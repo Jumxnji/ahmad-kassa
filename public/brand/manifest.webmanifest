@@ -1,0 +1,26 @@
+{
+  "name": "Ahmad Mohamed Kassa",
+  "short_name": "AMK",
+  "description": "Books, courses, and writing from Ahmad Mohamed Kassa — an Islamic teacher, author, and speaker dedicated to grounded, accessible scholarship.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF8",
+  "theme_color": "#0B1F36",
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/brand/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

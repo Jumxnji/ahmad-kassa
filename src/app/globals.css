@@ -1,26 +1,272 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================================================
+   Design tokens — Ahmad Kassa Academy
+   A scholarly, editorial system: deep navy + warm brass gold on warm paper.
+   ========================================================================== */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ---- Primary: Ink Navy ---- */
+  --navy-950: #0a1628;
+  --navy-900: #0f1e33;
+  --navy-800: #16294a;
+  --navy-700: #1e355c;
+  --navy-600: #2a4676;
+  --navy-500: #3b5998;
+  --navy-100: #e7ebf2;
+  --navy-50: #f3f5f9;
+
+  /* ---- Accent: Manuscript Gold ---- */
+  --gold-700: #7c5f2f;
+  --gold-600: #9c7a3c;
+  --gold-500: #b8924a;
+  --gold-400: #c9a65e;
+  --gold-300: #d8bc85;
+  --gold-100: #f1e6cd;
+  --gold-50: #f8f2e4;
+
+  /* ---- Background: Paper ---- */
+  --paper-50: #faf8f3;
+  --paper-100: #f4f0e7;
+  --paper-200: #ece5d6;
+
+  /* ---- Text: Ink ---- */
+  --ink-900: #17181c;
+  --ink-700: #34363d;
+  --ink-500: #565a63;
+
+  /* ---- Muted: Warm Stone ---- */
+  --stone-600: #706c63;
+  --stone-500: #8a8579;
+  --stone-300: #cec7b6;
+  --stone-200: #e2dccb;
+  --stone-100: #ede8dc;
+
+  /* ---- Semantic states ---- */
+  --success-500: #3f6c4e;
+  --success-100: #e4ede6;
+  --warning-500: #a6752b;
+  --warning-100: #f3e8d5;
+  --error-500: #9b3b3b;
+  --error-100: #f3e2e0;
+
+  /* ---- Surface mapping ---- */
+  --background: var(--paper-50);
+  --foreground: var(--ink-900);
+  --card: #ffffff;
+  --card-foreground: var(--ink-900);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink-900);
+  --primary: var(--navy-900);
+  --primary-foreground: var(--paper-50);
+  --secondary: var(--stone-100);
+  --secondary-foreground: var(--navy-900);
+  --muted: var(--stone-100);
+  --muted-foreground: var(--stone-600);
+  --accent: var(--gold-100);
+  --accent-foreground: var(--navy-900);
+  --destructive: var(--error-500);
+  --destructive-foreground: #ffffff;
+  --success: var(--success-500);
+  --success-foreground: #ffffff;
+  --warning: var(--warning-500);
+  --warning-foreground: #ffffff;
+  --border: var(--stone-200);
+  --input: var(--stone-200);
+  --ring: var(--gold-500);
+
+  /* ---- Radius scale ---- */
+  --radius: 0.5rem;
+
+  /* ---- Shadows (navy-tinted, soft) ---- */
+  --shadow-color: 220 45% 12%;
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.06);
+  --shadow-md: 0 4px 16px -4px hsl(var(--shadow-color) / 0.10), 0 2px 6px -2px hsl(var(--shadow-color) / 0.06);
+  --shadow-lg: 0 16px 40px -12px hsl(var(--shadow-color) / 0.16), 0 4px 12px -4px hsl(var(--shadow-color) / 0.08);
+  --shadow-xl: 0 24px 64px -16px hsl(var(--shadow-color) / 0.22);
+
+  /* ---- Fonts (mapped to next/font variables set on <html>) ---- */
+  --font-display: var(--font-newsreader);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-plex-mono);
+}
+
+.dark {
+  --background: var(--navy-950);
+  --foreground: var(--paper-50);
+  --card: var(--navy-900);
+  --card-foreground: var(--paper-50);
+  --popover: var(--navy-900);
+  --popover-foreground: var(--paper-50);
+  --primary: var(--gold-400);
+  --primary-foreground: var(--navy-950);
+  --secondary: var(--navy-800);
+  --secondary-foreground: var(--paper-50);
+  --muted: var(--navy-800);
+  --muted-foreground: var(--stone-300);
+  --accent: var(--navy-800);
+  --accent-foreground: var(--gold-300);
+  --destructive: #d97b6f;
+  --destructive-foreground: var(--navy-950);
+  --success: #6fae82;
+  --success-foreground: var(--navy-950);
+  --warning: var(--gold-400);
+  --warning-foreground: var(--navy-950);
+  --border: color-mix(in oklab, var(--paper-50) 12%, transparent);
+  --input: color-mix(in oklab, var(--paper-50) 14%, transparent);
+  --ring: var(--gold-400);
+  --shadow-color: 220 60% 4%;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Brand scales exposed as first-class utilities: bg-navy-900, text-gold-500, etc. */
+  --color-navy-950: var(--navy-950);
+  --color-navy-900: var(--navy-900);
+  --color-navy-800: var(--navy-800);
+  --color-navy-700: var(--navy-700);
+  --color-navy-600: var(--navy-600);
+  --color-navy-500: var(--navy-500);
+  --color-navy-100: var(--navy-100);
+  --color-navy-50: var(--navy-50);
+
+  --color-gold-700: var(--gold-700);
+  --color-gold-600: var(--gold-600);
+  --color-gold-500: var(--gold-500);
+  --color-gold-400: var(--gold-400);
+  --color-gold-300: var(--gold-300);
+  --color-gold-100: var(--gold-100);
+  --color-gold-50: var(--gold-50);
+
+  --color-paper-50: var(--paper-50);
+  --color-paper-100: var(--paper-100);
+  --color-paper-200: var(--paper-200);
+
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-500: var(--ink-500);
+
+  --color-stone-600: var(--stone-600);
+  --color-stone-500: var(--stone-500);
+  --color-stone-300: var(--stone-300);
+  --color-stone-200: var(--stone-200);
+  --color-stone-100: var(--stone-100);
+
+  --color-success-100: var(--success-100);
+  --color-warning-100: var(--warning-100);
+  --color-error-100: var(--error-100);
+
+  --font-display: var(--font-display);
+  --font-heading: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-xs: calc(var(--radius) * 0.5);
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: calc(var(--radius) * 0.875);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.75);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+
+  /* Container widths — editorial max-widths, generous on ultra-wide */
+  --container-content: 42rem;
+  --container-narrow: 56rem;
+  --container-wide: 80rem;
+  --container-ultra: 96rem;
+
+  --breakpoint-3xl: 120rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "liga" 1, "kern" 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display font-normal tracking-tight text-ink-900;
+  }
+
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6 {
+    @apply text-paper-50;
+  }
+
+  ::selection {
+    background-color: var(--gold-300);
+    color: var(--navy-950);
+  }
+
+  /* Respect reduced-motion preference across the app */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Eyebrow / archival label style — mono, tracked, uppercase */
+  .text-eyebrow {
+    /* gold-700, not gold-600 — meets WCAG AA 4.5:1 against paper backgrounds at this size */
+    @apply font-mono text-xs uppercase tracking-[0.18em] text-gold-700;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
 }

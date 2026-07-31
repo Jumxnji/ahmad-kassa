@@ -1,0 +1,52 @@
+import Link from "next/link";
+import { Bell, type LucideIcon } from "lucide-react";
+import type { Course } from "@/types/content";
+import { Badge } from "@/components/ui/badge";
+import { CourseIllustration } from "@/components/media/course-illustration";
+
+const LEVEL_LABELS: Record<Course["level"], string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
+
+interface CourseCardProps {
+  course: Course;
+  icon: LucideIcon;
+}
+
+export function CourseCard({ course, icon }: CourseCardProps) {
+  const lessonCount = course.modules.reduce((sum, m) => sum + m.lessonCount, 0);
+
+  return (
+    <div className="flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-border">
+      <CourseIllustration icon={icon} />
+      <div className="flex flex-1 flex-col p-6">
+        <div className="flex items-center justify-between gap-3">
+          <Badge variant="secondary" className="border-none bg-gold-100 text-gold-700">
+            Coming soon
+          </Badge>
+          <span className="text-xs text-muted-foreground">
+            {LEVEL_LABELS[course.level]}
+          </span>
+        </div>
+        <h3 className="mt-4 font-display text-xl leading-snug text-foreground">
+          {course.title}
+        </h3>
+        <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+          {course.excerpt}
+        </p>
+        <p className="mt-4 text-xs text-stone-500">
+          {course.modules.length} modules · {lessonCount} lessons
+        </p>
+        <Link
+          href="/newsletter"
+          className="mt-4 inline-flex items-center gap-1.5 border-t border-border pt-4 text-sm font-medium text-navy-800 transition-colors hover:text-gold-600"
+        >
+          <Bell className="size-3.5" strokeWidth={1.5} />
+          Notify me at launch
+        </Link>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,357 @@
+// Ahmad Mohamed Kassa — CMS database schema.
+//
+// Design principles:
+// - UUID primary keys everywhere except true singleton config rows
+//   (HomepageContent, AboutContent, SiteSettings), which use a fixed
+//   well-known string id so upserts never have to guess/branch.
+// - Media is a single reusable table referenced from anywhere an
+//   image is needed (book covers, galleries, SEO images, logos) —
+//   never duplicated per-feature.
+// - Seo is its own reusable table, attached 1:1 to whatever needs it,
+//   instead of repeating meta/OG/Twitter columns on every content model.
+// - Only V1-required content is modelled here (Book, Homepage, About,
+//   Question, ContactMessage, NewsletterSubscriber, Media, User,
+//   SiteSettings, Seo). Courses/Articles/Events/etc. are deliberately
+//   NOT modelled yet — see src/config/features.ts. Adding them later
+//   follows the same repository/service/action pattern already
+//   established here; it doesn't require reshaping anything above.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum Role {
+  OWNER
+  ADMINISTRATOR
+  EDITOR
+  VIEWER
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  SUSPENDED
+}
+
+enum QuestionCategory {
+  MARRIAGE
+  FAMILY
+  AQEEDAH
+  FIQH
+  RUQYAH
+  MENTAL_HEALTH
+  OTHER
+}
+
+enum QuestionStatus {
+  PENDING
+  ANSWERED
+  ARCHIVED
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ContactReason {
+  SPEAKING
+  SEMINARS
+  GENERAL
+  BOOKS
+  MEDIA
+}
+
+enum ContactStatus {
+  NEW
+  READ
+  ARCHIVED
+}
+
+enum MediaFolder {
+  IMAGES
+  PDFS
+  BOOK_COVERS
+  VIDEOS
+}
+
+// ============================================================
+// Identity
+// ============================================================
+
+/// Reserved for the future auth system (not wired up yet — see
+/// AGENTS/session notes). The role/status/mfa shape exists now so
+/// permissions and the Users screen can be built and tested ahead
+/// of real login.
+model User {
+  id          String     @id @default(uuid())
+  name        String
+  email       String     @unique
+  role        Role       @default(VIEWER)
+  avatarUrl   String?
+  status      UserStatus @default(ACTIVE)
+  mfaEnabled  Boolean    @default(false)
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  uploadedMedia Media[] @relation("MediaUploadedBy")
+
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+// ============================================================
+// Shared / reusable
+// ============================================================
+
+/// Single reusable media table. Every image/file in the CMS — book
+/// covers, galleries, SEO images, the site logo — is a row here,
+/// referenced by id. Nothing stores a raw upload path per-feature.
+model Media {
+  id           String      @id @default(uuid())
+  filename     String
+  url          String
+  mimeType     String
+  size         Int
+  folder       MediaFolder @default(IMAGES)
+  altText      String?
+  width        Int?
+  height       Int?
+  uploadedById String?
+  uploadedBy   User?       @relation("MediaUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now())
+
+  seoOgImage      Seo?             @relation("SeoOgImage")
+  seoTwitterImage Seo?             @relation("SeoTwitterImage")
+  bookCoverOf     Book?            @relation("BookCover")
+  bookGalleryId   String?
+  bookGallery     Book?            @relation("BookGallery", fields: [bookGalleryId], references: [id], onDelete: SetNull)
+  homepageHeroOf  HomepageContent? @relation("HomepageHeroImage")
+  siteLogoOf      SiteSettings?    @relation("SiteLogo")
+
+  @@index([folder])
+  @@index([uploadedById])
+  @@index([bookGalleryId])
+  @@map("media")
+}
+
+/// Reusable SEO fields, attached 1:1 to whatever needs them (a book,
+/// the homepage, the about page, or the site-wide default). Never
+/// duplicate meta/OG/Twitter columns onto individual content models.
+model Seo {
+  id              String   @id @default(uuid())
+  metaTitle       String?
+  metaDescription String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImageId       String?  @unique
+  ogImage         Media?   @relation("SeoOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  twitterCard     String?  @default("summary_large_image")
+  twitterImageId  String?  @unique
+  twitterImage    Media?   @relation("SeoTwitterImage", fields: [twitterImageId], references: [id], onDelete: SetNull)
+  canonicalUrl    String?
+  keywords        String?
+  noindex         Boolean  @default(false)
+  structuredData  Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  book            Book?
+  homepageContent HomepageContent?
+  aboutContent    AboutContent?
+  siteSettings    SiteSettings?
+
+  @@map("seo")
+}
+
+// ============================================================
+// Books
+// ============================================================
+
+/// Only one published book exists in V1, but the shape supports an
+/// unlimited catalog from day one — nothing here is "the one book"
+/// special-cased.
+model Book {
+  id                String   @id @default(uuid())
+  title             String
+  slug              String   @unique
+  description       String?
+  excerpt           String
+  coverImageId      String?  @unique
+  coverImage        Media?   @relation("BookCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  amazonUrl         String?
+  directPurchaseUrl String?
+  published         Boolean  @default(false)
+  comingSoon        Boolean  @default(false)
+  featured          Boolean  @default(false)
+  seoId             String?  @unique
+  seo               Seo?     @relation(fields: [seoId], references: [id], onDelete: SetNull)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  gallery            Media[]           @relation("BookGallery")
+  featuredInHomepage HomepageContent[] @relation("HomepageFeaturedBook")
+
+  @@index([published])
+  @@index([featured])
+  @@map("books")
+}
+
+// ============================================================
+// Editable page content (singletons)
+// ============================================================
+
+/// Singleton row (fixed id) — one homepage, always upserted against
+/// the same id rather than queried as a list.
+model HomepageContent {
+  id                    String   @id @default("homepage")
+  heroEyebrow           String   @default("Islamic Teacher · Author · Khateeb")
+  heroHeadline          String
+  heroSubtitle          String
+  heroPrimaryCtaLabel   String   @default("Explore Books")
+  heroPrimaryCtaHref    String   @default("/books")
+  heroSecondaryCtaLabel String   @default("Browse Articles")
+  heroSecondaryCtaHref  String   @default("/articles")
+  heroImageId           String?  @unique
+  heroImage             Media?   @relation("HomepageHeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
+  aboutPreviewText      String
+  featuredBookId        String?
+  featuredBook          Book?    @relation("HomepageFeaturedBook", fields: [featuredBookId], references: [id], onDelete: SetNull)
+  newsletterHeadline    String   @default("Stay connected, without the noise")
+  newsletterText        String
+  seoId                 String?  @unique
+  seo                   Seo?     @relation(fields: [seoId], references: [id], onDelete: SetNull)
+  status                ContentStatus @default(PUBLISHED)
+  updatedAt             DateTime @updatedAt
+
+  @@index([featuredBookId])
+  @@map("homepage_content")
+}
+
+/// Singleton row (fixed id). Timeline and education entries are
+/// normalized child tables (ordered, independently editable) rather
+/// than JSON blobs, since the dashboard needs to add/reorder/remove
+/// individual entries.
+model AboutContent {
+  id               String   @id @default("about")
+  introHeadline    String   @default("Ahmad Mohamed Kassa")
+  introText        String
+  biography        String
+  missionText      String
+  futureVisionText String
+  badges           String[] @default([])
+  seoId            String?  @unique
+  seo              Seo?     @relation(fields: [seoId], references: [id], onDelete: SetNull)
+  updatedAt        DateTime @updatedAt
+
+  timeline  TimelineItem[]
+  education EducationItem[]
+
+  @@map("about_content")
+}
+
+model TimelineItem {
+  id             String       @id @default(uuid())
+  aboutContentId String       @default("about")
+  aboutContent   AboutContent @relation(fields: [aboutContentId], references: [id], onDelete: Cascade)
+  label          String
+  title          String
+  description    String
+  order          Int          @default(0)
+
+  @@index([aboutContentId, order])
+  @@map("timeline_items")
+}
+
+model EducationItem {
+  id             String       @id @default(uuid())
+  aboutContentId String       @default("about")
+  aboutContent   AboutContent @relation(fields: [aboutContentId], references: [id], onDelete: Cascade)
+  title          String
+  detail         String
+  order          Int          @default(0)
+
+  @@index([aboutContentId, order])
+  @@map("education_items")
+}
+
+// ============================================================
+// Communication
+// ============================================================
+
+model Question {
+  id         String           @id @default(uuid())
+  name       String
+  email      String
+  category   QuestionCategory
+  question   String
+  isPrivate  Boolean          @default(false)
+  status     QuestionStatus   @default(PENDING)
+  flagged    Boolean          @default(false)
+  answer     String?
+  answeredAt DateTime?
+  createdAt  DateTime         @default(now())
+
+  @@index([status])
+  @@index([category])
+  @@map("questions")
+}
+
+model ContactMessage {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  reason    ContactReason @default(GENERAL)
+  message   String
+  status    ContactStatus @default(NEW)
+  createdAt DateTime      @default(now())
+
+  @@index([status])
+  @@map("contact_messages")
+}
+
+model NewsletterSubscriber {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  language   String   @default("en")
+  subscribed Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([subscribed])
+  @@map("newsletter_subscribers")
+}
+
+// ============================================================
+// Site-wide settings (singleton)
+// ============================================================
+
+model SiteSettings {
+  id           String   @id @default("site")
+  websiteName  String   @default("Ahmad Mohamed Kassa")
+  domain       String   @default("https://ahmadkassa.com")
+  contactEmail String
+  supportEmail String?
+  socialLinks  Json     @default("{}")
+  footerText   String?
+  navigation   Json     @default("[]")
+  logoId       String?  @unique
+  logo         Media?   @relation("SiteLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  brandColors  Json     @default("{}")
+  analyticsIds Json     @default("{}")
+  defaultSeoId String?  @unique
+  defaultSeo   Seo?     @relation(fields: [defaultSeoId], references: [id], onDelete: SetNull)
+  updatedAt    DateTime @updatedAt
+
+  @@map("site_settings")
+}
