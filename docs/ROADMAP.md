@@ -27,18 +27,22 @@ and `docs/sprints/SPRINT-XX.md` for per-sprint detail.
   architecture, rate limiting, security headers, and a
   temporary-password-on-invite flow. The public site remains fully
   open — only `/admin` requires login.
+- **Sprint 6** — Premium Books Management System (General Info,
+  Publishing/status, Media incl. gallery, Purchase Options, SEO,
+  Preview tabs; Duplicate action; `BookStatus` enum), a reusable Media
+  Picker, automatic image processing (dimensions/optimisation/
+  thumbnails via `sharp`), Media Library folders/drag-and-drop/details
+  dialog, and the public Books listing, Book Detail page, and
+  Homepage's Featured Book section now reading live from the CMS.
 
-## Immediate priority (Sprint 6 candidate)
+## Immediate priority (Sprint 7 candidate)
 
-1. **Wire the public site to the CMS.** This is now the single most
-   important gap in the project. `HomePage`, the public `/about` page,
-   and the book pages are still 100% hardcoded from Sprint 1 — none of
-   the content editors built in Sprints 3–4 affect what a visitor
-   actually sees. The fix is a data-wiring pass only (read from
-   `homepageService.get()`, `aboutService.get()`, `bookService.list()`
-   etc.), preserving the exact current markup/design — not a redesign.
-   This moved to the #1 spot now that authentication (the other former
-   #1) is done.
+1. **Finish wiring the public site to the CMS.** Sprint 6 closed this
+   gap for books specifically; `Hero`, `AboutPreviewSection`, and the
+   public `/about` page are still 100% hardcoded from Sprint 1. The fix
+   is the same data-wiring pass, now proven out by the Books work (read
+   from `homepageService.get()` / `aboutService.get()`), preserving the
+   exact current markup/design — not a redesign.
 2. **Real invite emails**, now that auth exists — wire Resend into the
    invite action so `userService.create()`'s temporary-password dialog
    becomes the fallback path (shown only if sending fails) rather than
@@ -49,6 +53,9 @@ and `docs/sprints/SPRINT-XX.md` for per-sprint detail.
 4. **Populate `AuditLog.ipAddress`** once the real hosting target's
    client-IP header is confirmed (e.g. `x-forwarded-for` behind
    Vercel) — currently a schema placeholder only.
+5. **In-browser cover/gallery cropping**, if uploading pre-cropped
+   images turns out to be a real friction point in practice — deferred
+   in Sprint 6, see `docs/PROJECT_MEMORY.md`.
 
 ## Planned (behind feature flags — architecture ready, not built)
 
@@ -99,3 +106,11 @@ established:
   existing Auth.js config (`src/auth.ts`) for any future login method
   (e.g. OAuth for a student portal), since the Prisma adapter is
   already attached and ready for it.
+- Prefer content-lifecycle states as a single enum (see `BookStatus`),
+  never stacked booleans — the same reasoning applies to any future
+  model that needs more than a simple published/unpublished flag.
+- New image fields should use the Sprint 6 Media Picker
+  (`MediaPickerField`/`MediaGalleryField`), not the older
+  `ImageUploadField` — the latter stays only on fields it already
+  powers (Homepage hero, Site Settings logo, SEO OG/Twitter images)
+  until those are migrated.

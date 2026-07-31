@@ -220,3 +220,67 @@ placeholder for a future student portal, not the CMS. Only `/admin` and
 its subroutes required authentication, per `docs/PROJECT_MEMORY.md`'s
 existing convention. Full detail, including the database and security
 decisions behind this sprint, is in `docs/sprints/SPRINT-05.md`.
+
+---
+
+## v0.6.0 — Sprint 6
+
+### Added
+
+- A full Books Management System: General Information (title, slug,
+  short/full description, author, publication date, ISBN, language,
+  category, tags), Publishing (Draft / Published / Coming Soon /
+  Archived + Featured), Media (cover + multi-image gallery), Purchase
+  Options (Amazon live; direct website purchase, signed copies, eBook,
+  and audiobook modelled and feature-flagged for later), and SEO (meta
+  title/description, canonical URL, keywords) — organised as tabs in a
+  single book editor.
+- `BookStatus` enum (`DRAFT` / `PUBLISHED` / `COMING_SOON` / `ARCHIVED`)
+  replacing the old `published`/`comingSoon` booleans, which allowed
+  nonsensical combinations.
+- A "Duplicate" action on the Books list — clones a book as an
+  unfeatured Draft (title suffixed "(Copy)") for reusing an existing
+  title as a starting point.
+- Automatic image processing on every upload: dimension probing, a
+  resized/optimised main image, and a generated thumbnail (JPEG, PNG,
+  WebP; SVGs pass through untouched, being vector).
+- A reusable Media Picker (single-select and multi-select/gallery
+  variants) for choosing an existing library image or uploading a new
+  one inline — built to be adopted by Homepage, Articles, Courses,
+  Authors, and SEO image fields as those are built.
+- Media Library folders reorganised to Images, Book Covers, Gallery,
+  Documents, Downloads, and Videos; a details dialog per file (editable
+  alt text, plus read-only dimensions/size/uploader/usage-count); a
+  drag-and-drop upload zone over the library grid, alongside the
+  existing upload button.
+- The public site now reads books from the CMS instead of hardcoded
+  placeholder data: the Books listing, Book Detail page, and the
+  Homepage's Featured Book section are all live. Featured Book falls
+  back to the newest published title when none is explicitly picked.
+- Automatically generated `Book` JSON-LD structured data on every book
+  page — no separate field to hand-maintain.
+- Share buttons (copy link / native share) and an image gallery section
+  on the Book Detail page; "About the author" now pulls from the real
+  About page content instead of a hardcoded bio.
+
+### Fixed
+
+- The Books, Book Detail, and Homepage Featured Book section no longer
+  read from `src/lib/data/books.ts` — the single largest known gap
+  flagged at the end of Sprints 4 and 5 is now closed for books
+  specifically (Articles remain the one content type still unwired).
+
+### Removed
+
+- `src/lib/data/books.ts` (the placeholder catalog) and the `Book`/
+  `BookFormat` shapes in `src/types/content.ts` — both fully superseded
+  by the real `Book` Prisma model. `Author`/`Article`/`Course`/
+  `Seminar`/`Lecture` placeholders are untouched.
+
+### Notes
+
+Cropping was deliberately left out of the cover/gallery upload flow
+this sprint — uploads are expected pre-cropped to a 2:3 cover ratio for
+now; automatic resizing/thumbnailing is handled server-side. See
+`docs/sprints/SPRINT-06.md` for the full reasoning and what's
+recommended for Sprint 7.

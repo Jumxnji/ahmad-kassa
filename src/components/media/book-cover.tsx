@@ -1,18 +1,42 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface BookCoverProps {
   title: string;
   className?: string;
   size?: "sm" | "lg";
+  cover?: { url: string; altText?: string | null; width?: number | null; height?: number | null } | null;
 }
 
 /**
- * Cover art placeholder — no commissioned covers exist yet. Renders
- * a manuscript-styled panel (gold hairline frame, initial, thin
- * rules standing in for a title block) so cards and the detail page
- * read as a real catalog rather than empty boxes.
+ * Renders the real uploaded cover when one exists. Until then — or for
+ * any book that never gets a commissioned cover — falls back to a
+ * manuscript-styled placeholder (gold hairline frame, initial, thin
+ * rules standing in for a title block) so the catalog still reads as
+ * complete rather than broken. Swapping in a real cover later is a
+ * Media Library upload, never a code change.
  */
-export function BookCover({ title, className, size = "sm" }: BookCoverProps) {
+export function BookCover({ title, className, size = "sm", cover }: BookCoverProps) {
+  if (cover) {
+    return (
+      <div
+        className={cn(
+          "relative aspect-2/3 w-full overflow-hidden rounded-md bg-navy-900 shadow-[0_18px_40px_-16px_rgba(10,22,40,0.45)] ring-1 ring-black/10",
+          className
+        )}
+      >
+        <Image
+          src={cover.url}
+          alt={cover.altText || `Cover of ${title}`}
+          fill
+          sizes={size === "lg" ? "(min-width: 1024px) 24rem, 60vw" : "(min-width: 1024px) 16rem, 40vw"}
+          className="object-cover"
+          priority={size === "lg"}
+        />
+      </div>
+    );
+  }
+
   const initial = title.trim().charAt(0).toUpperCase();
 
   return (

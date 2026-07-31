@@ -4,14 +4,18 @@ import { MediaActionsMenu } from "@/dashboard/components/media-actions-menu";
 import { formatBytes, formatDate } from "@/lib/format";
 import type { Media } from "@/generated/prisma/client";
 
+type MediaWithUploader = Media & { uploadedBy: { id: string; name: string } | null };
+
 const FOLDER_LABELS: Record<Media["folder"], string> = {
   IMAGES: "Images",
   BOOK_COVERS: "Book covers",
-  PDFS: "PDFs",
+  GALLERY: "Gallery",
+  DOCUMENTS: "Documents",
+  DOWNLOADS: "Downloads",
   VIDEOS: "Videos",
 };
 
-export function MediaListRow({ media }: { media: Media }) {
+export function MediaListRow({ media }: { media: MediaWithUploader }) {
   const isImage = media.mimeType.startsWith("image/");
 
   return (
@@ -19,7 +23,7 @@ export function MediaListRow({ media }: { media: Media }) {
       <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-md bg-paper-100">
         {isImage ? (
           <Image
-            src={media.url}
+            src={media.thumbnailUrl || media.url}
             alt={media.altText ?? media.filename}
             width={44}
             height={44}
@@ -33,6 +37,7 @@ export function MediaListRow({ media }: { media: Media }) {
         <p className="truncate text-sm font-medium text-foreground">{media.filename}</p>
         <p className="text-xs text-muted-foreground">
           {FOLDER_LABELS[media.folder]} · {formatBytes(media.size)}
+          {media.uploadedBy && ` · ${media.uploadedBy.name}`}
         </p>
       </div>
       <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">

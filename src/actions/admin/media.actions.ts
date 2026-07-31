@@ -5,7 +5,12 @@ import { fieldErrorsFromZod, runAction } from "@/lib/action-helpers";
 import { NotFoundError, ValidationError } from "@/lib/errors";
 import { requirePermission } from "@/permissions/require-permission";
 import { mediaService } from "@/services/media.service";
-import { uploadMediaSchema, renameMediaSchema } from "@/validators/media.validator";
+import {
+  uploadMediaSchema,
+  renameMediaSchema,
+  updateMediaDetailsSchema,
+} from "@/validators/media.validator";
+import type { $Enums } from "@/generated/prisma/client";
 
 export async function uploadMediaAction(formData: FormData) {
   return runAction(async () => {
@@ -57,6 +62,24 @@ export async function renameMediaAction(id: string, values: unknown) {
   }, "File renamed.");
 }
 
+export async function updateMediaDetailsAction(id: string, values: unknown) {
+  return runAction(async () => {
+    await requirePermission("media", "update");
+
+    const parsed = updateMediaDetailsSchema.safeParse(values);
+    if (!parsed.success) {
+      throw new ValidationError("Please check the form and try again.", fieldErrorsFromZod(parsed.error));
+    }
+
+    const existing = await mediaService.get(id);
+    if (!existing) throw new NotFoundError("File");
+
+    const media = await mediaService.updateDetails(id, parsed.data);
+    revalidatePath("/admin/media");
+    return media;
+  }, "File updated.");
+}
+
 export async function deleteMediaAction(id: string) {
   return runAction(async () => {
     await requirePermission("media", "delete");
@@ -68,4 +91,20 @@ export async function deleteMediaAction(id: string) {
     revalidatePath("/admin/media");
     return { id };
   }, "File deleted.");
+}
+
+export async function getMediaUsageCountAction(id: string) {
+  return runAction(async () => {
+    await requirePermission("media", "read");
+    const count = await mediaService.countUsages(id);
+    return { count };
+  }, "");
+}
+
+/** Backs the reusable Media Picker dialog — read-only, no revalidation needed. */
+export async function listMediaAction(opts?: { folder?: $Enums.MediaFolder; search?: string }) {
+  return runAction(async () => {
+    await requirePermission("media", "read");
+    return mediaService.list(opts);
+  }, "");
 }

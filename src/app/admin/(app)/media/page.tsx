@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ImageIcon, LayoutGrid, List } from "lucide-react";
 import { DashboardPageHeader } from "@/dashboard/components/page-header";
 import { MediaUploadButton } from "@/dashboard/components/media-upload-button";
+import { MediaDropzone } from "@/dashboard/components/media-dropzone";
 import { MediaCard } from "@/dashboard/components/media-card";
 import { MediaListRow } from "@/dashboard/components/media-list-row";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -17,7 +18,9 @@ const FOLDERS: { value: $Enums.MediaFolder | "ALL"; label: string }[] = [
   { value: "ALL", label: "All" },
   { value: "IMAGES", label: "Images" },
   { value: "BOOK_COVERS", label: "Book covers" },
-  { value: "PDFS", label: "PDFs" },
+  { value: "GALLERY", label: "Gallery" },
+  { value: "DOCUMENTS", label: "Documents" },
+  { value: "DOWNLOADS", label: "Downloads" },
   { value: "VIDEOS", label: "Videos" },
 ];
 
@@ -109,25 +112,29 @@ export default async function AdminMediaPage({ searchParams }: MediaPageProps) {
         </div>
       </div>
 
-      {media.length === 0 ? (
-        <EmptyState
-          icon={ImageIcon}
-          title={q ? `No files match "${q}"` : "No files here yet"}
-          description={q ? "Try a different search term." : "Upload images or PDFs to reuse across the site."}
-        />
-      ) : view === "list" ? (
-        <div className="overflow-hidden rounded-lg border border-border">
-          {media.map((item) => (
-            <MediaListRow key={item.id} media={item} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {media.map((item) => (
-            <MediaCard key={item.id} media={item} />
-          ))}
-        </div>
-      )}
+      <MediaDropzone folder={activeFolder ?? "IMAGES"}>
+        {media.length === 0 ? (
+          <EmptyState
+            icon={ImageIcon}
+            title={q ? `No files match "${q}"` : "No files here yet"}
+            description={
+              q ? "Try a different search term." : "Upload images or PDFs, or drag files in from your desktop."
+            }
+          />
+        ) : view === "list" ? (
+          <div className="overflow-hidden rounded-lg border border-border">
+            {media.map((item) => (
+              <MediaListRow key={item.id} media={item} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {media.map((item) => (
+              <MediaCard key={item.id} media={item} />
+            ))}
+          </div>
+        )}
+      </MediaDropzone>
     </div>
   );
 }

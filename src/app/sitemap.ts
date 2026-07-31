@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/config/site";
-import { getAllBooks } from "@/lib/data/books";
+import { bookService } from "@/services/book.service";
 import { getAllArticles } from "@/lib/data/articles";
 
 const STATIC_ROUTES = [
@@ -16,7 +16,7 @@ const STATIC_ROUTES = [
   "/terms",
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((path) => ({
     url: `${siteConfig.url}${path}`,
     lastModified: new Date(),
@@ -24,11 +24,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : 0.6,
   }));
 
-  const bookEntries: MetadataRoute.Sitemap = getAllBooks()
-    .filter((book) => book.status === "published")
+  const books = await bookService.listPublic();
+  const bookEntries: MetadataRoute.Sitemap = books
+    .filter((book) => book.status === "PUBLISHED")
     .map((book) => ({
       url: `${siteConfig.url}/books/${book.slug}`,
-      lastModified: book.publishedAt ? new Date(book.publishedAt) : new Date(),
+      lastModified: book.updatedAt,
       changeFrequency: "monthly",
       priority: 0.7,
     }));

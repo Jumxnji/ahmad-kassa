@@ -79,9 +79,23 @@ enum ContactStatus {
 
 enum MediaFolder {
   IMAGES
-  PDFS
   BOOK_COVERS
+  GALLERY
+  DOCUMENTS
+  DOWNLOADS
   VIDEOS
+}
+
+/// DRAFT: not visible anywhere public. PUBLISHED: live on the site.
+/// COMING_SOON: visible with a badge, not yet buyable. ARCHIVED: was
+/// published, deliberately taken down — kept for records, never shown
+/// publicly. Replaces the old `published`/`comingSoon` booleans, which
+/// allowed nonsensical combinations (e.g. both true at once).
+enum BookStatus {
+  DRAFT
+  PUBLISHED
+  COMING_SOON
+  ARCHIVED
 }
 
 // ============================================================
@@ -215,6 +229,9 @@ model Media {
   id           String      @id @default(uuid())
   filename     String
   url          String
+  /// Downscaled preview generated at upload time for JPEG/PNG/WEBP —
+  /// null for SVGs (vector, no thumbnail needed) and non-images.
+  thumbnailUrl String?
   mimeType     String
   size         Int
   folder       MediaFolder @default(IMAGES)
@@ -276,27 +293,42 @@ model Seo {
 /// unlimited catalog from day one — nothing here is "the one book"
 /// special-cased.
 model Book {
-  id                String   @id @default(uuid())
-  title             String
-  slug              String   @unique
-  description       String?
-  excerpt           String
-  coverImageId      String?  @unique
-  coverImage        Media?   @relation("BookCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  id          String     @id @default(uuid())
+  title       String
+  slug        String     @unique
+  description String? // full, rich-text (HTML) product-page description
+  excerpt     String // short description — cards, previews, meta fallback
+  authorName  String     @default("Ahmad Mohamed Kassa")
+  publicationDate DateTime?
+  isbn        String?
+  language    String     @default("English")
+  category    String?
+  tags        String[]   @default([])
+  status      BookStatus @default(DRAFT)
+  featured    Boolean    @default(false)
+
+  coverImageId String? @unique
+  coverImage   Media?  @relation("BookCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  // Purchase options — Amazon is the only live channel today; the rest
+  // are modelled now so they're a data-entry task, not a migration,
+  // once features.directBookSales flips on.
   amazonUrl         String?
   directPurchaseUrl String?
-  published         Boolean  @default(false)
-  comingSoon        Boolean  @default(false)
-  featured          Boolean  @default(false)
-  seoId             String?  @unique
-  seo               Seo?     @relation(fields: [seoId], references: [id], onDelete: SetNull)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  signedCopyAvailable Boolean @default(false)
+  ebookUrl            String?
+  audiobookUrl        String?
+
+  seoId String? @unique
+  seo   Seo?    @relation(fields: [seoId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   gallery            Media[]           @relation("BookGallery")
   featuredInHomepage HomepageContent[] @relation("HomepageFeaturedBook")
 
-  @@index([published])
+  @@index([status])
   @@index([featured])
   @@map("books")
 }

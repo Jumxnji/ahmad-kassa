@@ -63,3 +63,15 @@ export async function deleteBookAction(id: string) {
     return { id };
   }, "Book deleted.");
 }
+
+export async function duplicateBookAction(id: string) {
+  return runAction(async () => {
+    await requirePermission("content", "create");
+
+    const copy = await bookService.duplicate(id);
+    if (!copy) throw new NotFoundError("Book");
+
+    revalidatePath("/admin/books");
+    return copy;
+  }, "Book duplicated as a draft.");
+}

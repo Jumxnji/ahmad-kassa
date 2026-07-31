@@ -4,7 +4,9 @@ import { MediaActionsMenu } from "@/dashboard/components/media-actions-menu";
 import { formatBytes } from "@/lib/format";
 import type { Media } from "@/generated/prisma/client";
 
-export function MediaCard({ media }: { media: Media }) {
+type MediaWithUploader = Media & { uploadedBy: { id: string; name: string } | null };
+
+export function MediaCard({ media }: { media: MediaWithUploader }) {
   const isImage = media.mimeType.startsWith("image/");
 
   return (
@@ -12,7 +14,7 @@ export function MediaCard({ media }: { media: Media }) {
       <div className="flex aspect-square items-center justify-center bg-paper-100">
         {isImage ? (
           <Image
-            src={media.url}
+            src={media.thumbnailUrl || media.url}
             alt={media.altText ?? media.filename}
             width={240}
             height={240}

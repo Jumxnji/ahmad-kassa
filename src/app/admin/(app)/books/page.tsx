@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { BookOpen, Plus } from "lucide-react";
 import { DashboardPageHeader } from "@/dashboard/components/page-header";
@@ -11,11 +12,26 @@ import { Button } from "@/components/ui/button";
 import { bookService } from "@/services/book.service";
 import { formatDate } from "@/lib/format";
 import { buildListHref, pageCount, parseListQuery, type RawListSearchParams } from "@/lib/list-query";
-import type { Book } from "@/generated/prisma/client";
+
+type BookRow = Awaited<ReturnType<typeof bookService.listPaged>>["rows"][number];
 
 export const metadata = { title: "Books" };
 
 const BASE_PATH = "/admin/books";
+
+const STATUS_TONE = {
+  DRAFT: "muted",
+  PUBLISHED: "success",
+  COMING_SOON: "warning",
+  ARCHIVED: "muted",
+} as const;
+
+const STATUS_LABEL = {
+  DRAFT: "Draft",
+  PUBLISHED: "Published",
+  COMING_SOON: "Coming soon",
+  ARCHIVED: "Archived",
+} as const;
 
 interface BooksPageProps {
   searchParams: Promise<RawListSearchParams>;
@@ -25,7 +41,29 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
   const query = parseListQuery(await searchParams, "createdAt");
   const { rows: books, total } = await bookService.listPaged(query);
 
-  const columns: DataTableColumn<Book>[] = [
+  const columns: DataTableColumn<BookRow>[] = [
+    {
+      key: "cover",
+      header: "",
+      className: "w-14",
+      cell: (book) => (
+        <div className="relative size-10 overflow-hidden rounded-md bg-navy-900 ring-1 ring-black/10">
+          {book.coverImage ? (
+            <Image
+              src={book.coverImage.thumbnailUrl || book.coverImage.url}
+              alt=""
+              fill
+              sizes="40px"
+              className="object-cover"
+            />
+          ) : (
+            <span className="flex size-full items-center justify-center font-display text-sm italic text-gold-300/90">
+              {book.title.trim().charAt(0).toUpperCase()}
+            </span>
+          )}
+        </div>
+      ),
+    },
     {
       key: "title",
       header: "Title",
@@ -42,31 +80,31 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
       header: "Status",
       cell: (book) => (
         <div className="flex flex-wrap gap-1.5">
-          {book.published ? (
-            <StatusBadge label="Published" tone="success" />
-          ) : (
-            <StatusBadge label="Draft" tone="muted" />
-          )}
-          {book.comingSoon && <StatusBadge label="Coming soon" tone="warning" />}
-          {book.featured && <StatusBadge label="Featured" tone="neutral" />}
+          <StatusBadge label={STATUS_LABEL[book.status]} tone={STATUS_TONE[book.status]} />
         </div>
       ),
     },
     {
-      key: "createdAt",
-      header: "Added",
-      sortKey: "createdAt",
+      key: "featured",
+      header: "Featured",
+      cell: (book) =>
+        book.featured ? <StatusBadge label="Featured" tone="neutral" /> : null,
+    },
+    {
+      key: "updatedAt",
+      header: "Updated",
+      sortKey: "updatedAt",
       cell: (book) => (
         <span className="text-sm text-muted-foreground">
-          {formatDate(book.createdAt.toISOString())}
+          {formatDate(book.updatedAt.toISOString())}
         </span>
       ),
     },
     {
       key: "actions",
       header: "",
-      className: "w-24",
-      cell: (book) => <BookRowActions id={book.id} title={book.title} />,
+      className: "w-32",
+      cell: (book) => <BookRowActions id={book.id} title={book.title} slug={book.slug} status={book.status} />,
     },
   ];
 

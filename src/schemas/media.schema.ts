@@ -1,10 +1,18 @@
 import { z } from "zod";
 
-export const MEDIA_FOLDERS = ["IMAGES", "PDFS", "BOOK_COVERS", "VIDEOS"] as const;
+export const MEDIA_FOLDERS = [
+  "IMAGES",
+  "BOOK_COVERS",
+  "GALLERY",
+  "DOCUMENTS",
+  "DOWNLOADS",
+  "VIDEOS",
+] as const;
 
 export const mediaSchema = z.object({
   filename: z.string().min(1).max(255),
   url: z.string().min(1),
+  thumbnailUrl: z.string().min(1).optional().nullable(),
   mimeType: z.string().min(1),
   size: z.number().int().positive(),
   folder: z.enum(MEDIA_FOLDERS),

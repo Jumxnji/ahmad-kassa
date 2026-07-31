@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Section } from "@/components/shared/section";
 import { PageHeader } from "@/components/shared/page-header";
 import { BooksGrid } from "@/components/catalog/books-grid";
-import { getAllBooks } from "@/lib/data/books";
+import { bookService } from "@/services/book.service";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
@@ -11,8 +11,8 @@ export const metadata: Metadata = buildMetadata({
   path: "/books",
 });
 
-export default function BooksPage() {
-  const books = getAllBooks();
+export default async function BooksPage() {
+  const books = await bookService.listPublic();
 
   return (
     <Section containerWidth="wide">

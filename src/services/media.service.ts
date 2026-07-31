@@ -1,6 +1,7 @@
 import "server-only";
 import { mediaRepository } from "@/repositories/media.repository";
 import { storageService } from "@/services/storage";
+import type { UpdateMediaDetailsInput } from "@/validators/media.validator";
 import type { $Enums } from "@/generated/prisma/client";
 
 export const mediaService = {
@@ -17,6 +18,7 @@ export const mediaService = {
   get: (id: string) => mediaRepository.findById(id),
   count: () => mediaRepository.count(),
   listRecent: (limit: number = 5) => mediaRepository.findMany({ take: limit }),
+  countUsages: (id: string) => mediaRepository.countUsages(id),
 
   async upload(input: {
     buffer: Buffer;
@@ -30,8 +32,11 @@ export const mediaService = {
     return mediaRepository.create({
       filename: input.filename,
       url: uploaded.url,
+      thumbnailUrl: uploaded.thumbnailUrl,
       mimeType: input.mimeType,
       size: uploaded.size,
+      width: uploaded.width,
+      height: uploaded.height,
       folder: input.folder,
       altText: input.altText,
       uploadedById: input.uploadedById,
@@ -41,9 +46,12 @@ export const mediaService = {
   async remove(id: string) {
     const media = await mediaRepository.findById(id);
     if (!media) return;
-    await storageService.remove(media.url);
+    await storageService.remove({ url: media.url, thumbnailUrl: media.thumbnailUrl });
     await mediaRepository.delete(id);
   },
 
   rename: (id: string, filename: string) => mediaRepository.update(id, { filename }),
+
+  updateDetails: (id: string, input: UpdateMediaDetailsInput) =>
+    mediaRepository.update(id, { filename: input.filename, altText: input.altText || null }),
 };

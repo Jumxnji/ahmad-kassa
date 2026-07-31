@@ -119,23 +119,38 @@ async function main() {
   });
 
   // ---- Book: The Great Debate ------------------------------------------
-  const book = await db.book.upsert({
-    where: { slug: "the-great-debate" },
-    update: {},
-    create: {
-      title: "The Great Debate",
-      slug: "the-great-debate",
-      excerpt:
-        "A clear-eyed examination of the arguments for and against belief in God — weighing philosophy, revelation, and reason without flattening the difficulty of the question.",
-      description:
-        "The Great Debate examines belief in God with the same rigor Ahmad brings to teaching — walking through the philosophical case for a creator, the problem of evil, and revelation as evidence, before turning to what living with certainty actually looks like.",
-      amazonUrl: "https://amazon.com",
-      directPurchaseUrl: null, // direct purchase intentionally disabled in V1
-      published: true,
-      comingSoon: false,
-      featured: true,
-    },
-  });
+  const REAL_AMAZON_URL =
+    "https://www.amazon.co.uk/GREAT-DEBATE-Permissible-Exorcism-Critical-ebook/dp/B0FMYG5YJT/ref=sr_1_1?crid=3V5EV5FKHX4YZ&dib=eyJ2IjoiMSJ9.ZBRv04JZdNMlGYffRW8AWzcpVVQbQO-aXmcpUo6w-CE.fXkFxY_ybyTlOayVbTkANoAGoicuu4moKAS7zrLz-u4&dib_tag=se&keywords=the+great+debate+ahmad+kassa&qid=1785525085&sprefix=the+great+debate+ahmad+kassa%2Caps%2C120&sr=8-1";
+  const PLACEHOLDER_AMAZON_URLS = new Set(["https://amazon.com", ""]);
+
+  const existingBook = await db.book.findUnique({ where: { slug: "the-great-debate" } });
+
+  const book = existingBook
+    ? // Backfill the real Amazon link only if it's still missing/the old
+      // placeholder — never overwrite a link an editor has since updated
+      // through the CMS.
+      PLACEHOLDER_AMAZON_URLS.has(existingBook.amazonUrl ?? "")
+      ? await db.book.update({ where: { id: existingBook.id }, data: { amazonUrl: REAL_AMAZON_URL } })
+      : existingBook
+    : await db.book.create({
+        data: {
+          title: "The Great Debate",
+          slug: "the-great-debate",
+          excerpt:
+            "A clear-eyed examination of the arguments for and against belief in God — weighing philosophy, revelation, and reason without flattening the difficulty of the question.",
+          description:
+            "The Great Debate examines belief in God with the same rigor Ahmad brings to teaching — walking through the philosophical case for a creator, the problem of evil, and revelation as evidence, before turning to what living with certainty actually looks like.",
+          amazonUrl: REAL_AMAZON_URL,
+          directPurchaseUrl: null, // direct purchase intentionally disabled in V1
+          status: "PUBLISHED",
+          featured: true,
+          // No cover uploaded yet — coverImageId stays null, so the public
+          // site and admin both fall back to the on-brand manuscript
+          // placeholder (BookCover component) until a real cover is
+          // uploaded via the Media Library. That's the only change
+          // needed to "go live" with a real cover — no code involved.
+        },
+      });
 
   // ---- Homepage content (singleton) ------------------------------------
   await db.homepageContent.upsert({

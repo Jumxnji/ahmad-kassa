@@ -1,8 +1,10 @@
 /**
- * Shared content shapes for future catalog entities.
- * No CMS or data layer is wired up yet — these types exist so that
- * cards, routes, and metadata can be built against a stable contract
- * before real content is introduced.
+ * Shared content shapes for future catalog entities (Articles, Courses,
+ * Seminars, Lectures) — no CMS or data layer wired up yet for these; they
+ * exist so cards, routes, and metadata can be built against a stable
+ * contract before real content is introduced. Book graduated out of this
+ * file in Sprint 6 — it's now a real Prisma model (`prisma/schema.prisma`),
+ * not a placeholder shape.
  */
 
 export type ContentStatus = "draft" | "published" | "coming-soon";
@@ -29,24 +31,6 @@ interface ContentBase {
   readonly status: ContentStatus;
   readonly publishedAt?: string;
   readonly seo?: SeoFields;
-}
-
-export type BookFormat = "physical" | "ebook" | "audiobook";
-
-export interface Book extends ContentBase {
-  readonly author: Author;
-  /** Primary format shown on cards; `formats` lists every edition available. */
-  readonly format: BookFormat;
-  readonly formats?: readonly BookFormat[];
-  readonly priceCents?: number;
-  readonly currency?: "USD" | "GBP" | "EUR";
-  readonly pageCount?: number;
-  readonly isbn?: string;
-  readonly amazonUrl?: string;
-  readonly directPurchaseEnabled?: boolean;
-  readonly signedEditionAvailable?: boolean;
-  readonly tableOfContents?: readonly string[];
-  readonly featured?: boolean;
 }
 
 export type ArticleBlock =

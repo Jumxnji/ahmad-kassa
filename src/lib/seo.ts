@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
-import type { Book } from "@/types/content";
 
 interface BuildMetadataOptions {
   title: string | { default: string; template: string };
   description: string;
   path?: string;
   noIndex?: boolean;
+  /** Overrides the canonical/OG URL — for content with its own editor-set canonical (e.g. a book's SEO tab). */
+  canonicalUrl?: string;
+  ogImage?: string;
 }
 
 /**
@@ -18,8 +20,11 @@ export function buildMetadata({
   description,
   path = "/",
   noIndex = false,
+  canonicalUrl,
+  ogImage,
 }: BuildMetadataOptions): Metadata {
-  const url = new URL(path, siteConfig.url).toString();
+  const url = canonicalUrl || new URL(path, siteConfig.url).toString();
+  const image = ogImage || siteConfig.ogImage;
 
   return {
     metadataBase: new URL(siteConfig.url),
@@ -34,14 +39,14 @@ export function buildMetadata({
       description,
       url,
       siteName: siteConfig.name,
-      images: [{ url: siteConfig.ogImage }],
+      images: [{ url: image }],
       locale: "en_US",
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [siteConfig.twitterImage],
+      images: [image],
     },
     robots: noIndex
       ? { index: false, follow: false }
@@ -102,7 +107,21 @@ export function buildWebsiteJsonLd() {
   };
 }
 
-export function buildBookJsonLd(book: Book) {
+interface BookJsonLdInput {
+  title: string;
+  excerpt: string;
+  slug: string;
+  authorName: string;
+  isbn?: string | null;
+  language: string;
+  publicationDate?: Date | null;
+  status: "DRAFT" | "PUBLISHED" | "COMING_SOON" | "ARCHIVED";
+  amazonUrl?: string | null;
+  coverImageUrl?: string | null;
+}
+
+/** Generated automatically from live book fields — see `docs/sprints/SPRINT-06.md` for why there's no separate structured-data field to hand-edit. */
+export function buildBookJsonLd(book: BookJsonLdInput) {
   return {
     "@context": "https://schema.org",
     "@type": "Book",
@@ -111,24 +130,21 @@ export function buildBookJsonLd(book: Book) {
     url: new URL(`/books/${book.slug}`, siteConfig.url).toString(),
     author: {
       "@type": "Person",
-      name: book.author.name,
+      name: book.authorName,
     },
-    bookFormat:
-      book.format === "physical"
-        ? "https://schema.org/Paperback"
-        : book.format === "ebook"
-          ? "https://schema.org/EBook"
-          : "https://schema.org/AudiobookFormat",
+    inLanguage: book.language,
     ...(book.isbn ? { isbn: book.isbn } : {}),
-    ...(book.pageCount ? { numberOfPages: book.pageCount } : {}),
-    ...(book.priceCents != null
+    ...(book.publicationDate ? { datePublished: book.publicationDate.toISOString() } : {}),
+    ...(book.coverImageUrl
+      ? { image: new URL(book.coverImageUrl, siteConfig.url).toString() }
+      : {}),
+    ...(book.amazonUrl
       ? {
           offers: {
             "@type": "Offer",
-            price: (book.priceCents / 100).toFixed(2),
-            priceCurrency: book.currency ?? "USD",
+            url: book.amazonUrl,
             availability:
-              book.status === "published"
+              book.status === "PUBLISHED"
                 ? "https://schema.org/InStock"
                 : "https://schema.org/PreOrder",
           },

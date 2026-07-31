@@ -3,15 +3,33 @@ import { Button } from "@/components/ui/button";
 import { Section } from "@/components/shared/section";
 import { Eyebrow } from "@/components/shared/eyebrow";
 import { BookCover } from "@/components/media/book-cover";
-import { getFeaturedBook } from "@/lib/data/books";
+import { bookService } from "@/services/book.service";
+import { homepageService } from "@/services/homepage.service";
+import { isFeatureEnabled } from "@/features/flags";
 
-export function FeaturedBookSection() {
-  const book = getFeaturedBook();
+/**
+ * Leads with whichever book the Homepage editor picked as "Featured" —
+ * falling back to the newest published title if none is set (or the
+ * picked one has since been unpublished), so this section never goes
+ * empty as the catalog grows past one book.
+ */
+export async function FeaturedBookSection() {
+  const homepage = await homepageService.get();
+  const book = await bookService.resolveFeatured(homepage?.featuredBookId);
+
+  if (!book) return null;
+
+  const directBookSales = isFeatureEnabled("directBookSales");
 
   return (
     <Section tone="alt">
       <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.7fr)_1fr] lg:gap-20">
-        <BookCover title={book.title} size="lg" className="mx-auto max-w-[16rem] lg:max-w-none" />
+        <BookCover
+          title={book.title}
+          size="lg"
+          cover={book.coverImage}
+          className="mx-auto max-w-[16rem] lg:max-w-none"
+        />
 
         <div>
           <Eyebrow>Featured book</Eyebrow>
@@ -31,9 +49,13 @@ export function FeaturedBookSection() {
                 </a>
               </Button>
             )}
-            <Button variant="ghost" size="lg" disabled title="Coming soon">
-              Purchase direct
-            </Button>
+            {directBookSales && book.directPurchaseUrl && (
+              <Button asChild variant="ghost" size="lg">
+                <a href={book.directPurchaseUrl} target="_blank" rel="noopener noreferrer">
+                  Purchase direct
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -140,6 +140,47 @@ scoped like a bespoke platform rather than a generic template.
   picker, the Overview's activity feed) depend on a plain unpaginated
   array, so paginated variants were added as new methods rather than
   changing `list()`'s signature.
+- **`BookStatus` enum, not booleans (Sprint 6).** `published`/
+  `comingSoon` booleans were replaced with a single `status` enum
+  (`DRAFT`/`PUBLISHED`/`COMING_SOON`/`ARCHIVED`) — the boolean pair
+  allowed nonsensical states (both true at once) and couldn't express
+  "was published, now taken down" (Archived) at all. `featured` stays
+  a separate boolean since it's orthogonal to lifecycle status. If any
+  other content model ever needs a similar lifecycle, prefer an enum
+  over stacked booleans from the start.
+- **Book cover/gallery images can't be copied between books.**
+  `Book.coverImageId` is a 1:1 relation (`Media.bookCoverOf`) and
+  gallery images belong to exactly one book (`Media.bookGalleryId`) —
+  so `bookService.duplicate()` clones every scalar field but leaves the
+  new copy's cover/gallery empty rather than "stealing" the source
+  book's images. Any future "duplicate" action on a model with a
+  1:1/owned-image relation should follow the same rule.
+- **Media usage count is computed on read, never stored.** A stored
+  counter would need six write paths (book cover, book gallery, two SEO
+  image slots, homepage hero, site logo) kept in sync and would
+  eventually drift; `mediaRepository.countUsages()` just queries all
+  six relations live. Follow this pattern for any future "where is this
+  used" feature rather than adding a counter column.
+- **Image processing uses `sharp` (Sprint 6), added deliberately.**
+  Dimension probing, resizing to a max 2400px edge, and thumbnail
+  generation all genuinely require real image-codec work — this isn't
+  a "just in case" dependency. SVGs bypass processing entirely (vector,
+  no meaningful raster thumbnail). See `src/services/storage.ts`.
+- **The reusable Media Picker (Sprint 6) is the second selection
+  pattern for images**, alongside the older single-upload
+  `ImageUploadField` (still used by Homepage hero, Site Settings logo,
+  SEO OG/Twitter images — untouched this sprint). `MediaPickerField`/
+  `MediaGalleryField` let an editor choose an *existing* library image,
+  not just upload a new one. New image fields going forward should use
+  the Media Picker, not `ImageUploadField` — the older component was
+  left in place only because migrating it wasn't in this sprint's scope,
+  not because it's still the preferred pattern.
+- **Media folders**: `IMAGES`, `BOOK_COVERS`, `GALLERY`, `DOCUMENTS`,
+  `DOWNLOADS`, `VIDEOS` (Sprint 6 renamed `PDFS` → `DOCUMENTS` and added
+  `GALLERY`/`DOWNLOADS` via `ALTER TYPE ... RENAME VALUE`, not a
+  destructive drop/recreate — check `prisma/migrations/
+  20260731192010_sprint6_books_media/migration.sql` before adding
+  another folder value the same way).
 
 ## Design decisions
 
@@ -166,6 +207,11 @@ scoped like a bespoke platform rather than a generic template.
   from the same design tokens as the real `Hero`, not an iframe of the
   live site — see "Known limitation" below for why, and don't present
   it as more than a preview in any future copy changes.
+- **Cover/gallery image cropping was deliberately cut from Sprint 6's
+  scope.** Uploads are expected pre-cropped to a 2:3 cover ratio;
+  automatic resize/thumbnail happens server-side, but there's no
+  in-browser crop UI. Documented as a real gap (see Known limitations),
+  not silently dropped.
 
 ## Features intentionally postponed
 
@@ -187,17 +233,24 @@ sprints — do not build these without being asked again:
 
 ## Known limitations
 
-- **The public site does not read from the CMS.** Discovered mid-
-  Sprint-4: `Hero`, `AboutPreviewSection`, the public `/about` page,
-  and the book pages are all still hardcoded from Sprint 1 — none
-  import `homepageService`, `aboutService`, or `bookService`. Every
-  editor built in Sprints 3–4 persists real rows with **zero effect**
-  on what a visitor sees today. This means: Draft/Published on
-  Homepage is a real, persisted flag with no live-site consequence yet;
-  the live preview is an honest mockup, not a window onto production.
-  **Top priority for the next sprint** is wiring the public pages to
-  read this data, as a data-only pass that preserves the exact current
-  markup — see `docs/ROADMAP.md`.
+- **The public site's CMS wiring is now partial, not zero.** Discovered
+  mid-Sprint-4, closed for books in Sprint 6: the Books listing, Book
+  Detail page, and the Homepage's Featured Book section now read live
+  from `bookService`/`homepageService.featuredBookId`, with a fallback
+  to the newest published book when no title is explicitly featured.
+  **`Hero`, `AboutPreviewSection`, and the public `/about` page are
+  still fully hardcoded** — the Homepage/About editors persist real
+  rows with **zero effect** on those specific sections. Draft/Published
+  on Homepage is still a real, persisted flag with no live-site
+  consequence yet outside the Featured Book section; the Homepage
+  editor's live preview is still an honest mockup, not a window onto
+  production. **Top priority for the next sprint** is wiring `Hero`,
+  `AboutPreviewSection`, and the public About page the same way books
+  were wired this sprint — see `docs/ROADMAP.md`.
+- **Articles, Courses, and Events remain entirely unmodelled** (no
+  Prisma tables) — Sprint 6 only extended the already-real `Book`
+  model; it didn't add new content types. This is unchanged from
+  earlier sprints, not a new gap.
 - `User.lastLoginAt` now populates for real on every successful login
   (Sprint 5) — sorting by it is meaningful going forward, though rows
   created before Sprint 5 (or never logged into) still show `Never`.
@@ -212,6 +265,12 @@ sprints — do not build these without being asked again:
   once the hosting target's real-client-IP header (e.g.
   `x-forwarded-for` behind Vercel) is confirmed, rather than guessing
   now and getting it wrong for the eventual host.
+- **No in-browser image cropping (Sprint 6).** Book covers/gallery
+  images are expected to be uploaded already at a sensible aspect ratio
+  (2:3 for covers); the upload pipeline resizes/thumbnails but never
+  crops. A real crop UI (e.g. `react-easy-crop`) is the natural next
+  step if this becomes a recurring friction point for whoever uploads
+  covers.
 - The SEO `noindex` toggle's effect on `/robots.txt` relies on Next
   revalidating a build-time-static route via `revalidatePath` — verified
   working in dev; worth a smoke test after the first production deploy.
