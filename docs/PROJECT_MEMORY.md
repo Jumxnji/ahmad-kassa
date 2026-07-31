@@ -69,9 +69,63 @@ scoped like a bespoke platform rather than a generic template.
 - **Permission system** is resource+action tuples (`can(role, resource,
   action)`), four roles: Owner (everything, including ownership
   transfer), Administrator (content/questions/newsletter, not
-  ownership), Editor (content only), Viewer (read-only). `getCurrentUser()`
-  is currently a **stub** returning the seeded Owner — real
-  authentication is deliberately deferred (see "Postponed" below).
+  ownership), Editor (content only), Viewer (read-only).
+  `getCurrentUser()` (Sprint 5) is real: it calls `auth()` and re-reads
+  the user from Postgres on every call, so a role change or a
+  suspension takes effect on the very next request — no stale session
+  data. Unchanged from Sprint 3: this is still the single source of
+  truth, now also driving sidebar nav filtering.
+- **Real authentication (Sprint 5): Auth.js v5, Credentials provider,
+  JWT sessions only.** JWT was required (not a choice) because the
+  Credentials provider doesn't support database sessions. The
+  `@auth/prisma-adapter` is still attached to the config for future
+  OAuth-provider readiness even though it isn't exercised by Credentials
+  login today.
+- **Two-tier authorization, deliberately not one.** `src/proxy.ts` does
+  coarse, fast, JWT-only role gating (no DB hit) for
+  `/admin/users`/`/admin/settings` — this satisfies the brief's
+  "Middleware should enforce permissions" instruction and avoids a
+  page-flash for obviously-unauthorized roles. The actual security
+  boundary is always `getCurrentUser()` (DB-backed), used by
+  `requirePageAccess()` (Server Components, redirects) and
+  `requirePermission()` (Server Actions, throws). Never treat the
+  `proxy.ts` check as sufficient on its own when adding a new protected
+  route or resource — always pair it with a `requirePageAccess`/
+  `requirePermission` call in the actual page/action.
+- **Next.js 16 renamed `middleware.ts` to `proxy.ts`** (exported
+  function named `proxy`, default export). It defaults to the Node.js
+  runtime — unlike historical Next.js middleware, which defaulted to
+  Edge — so the full `auth()` config (including the Prisma adapter) can
+  be used directly in `proxy.ts` with no edge/node split. Setting an
+  explicit `export const runtime` in a proxy file throws in Next 16;
+  don't add one.
+- **"Remember me" is a custom `token.exp` claim**, not a second
+  `session.maxAge` — a JWT strategy only supports one fixed `maxAge`,
+  so the `jwt` callback manually sets `token.exp` at sign-in time (8
+  hours normally, 30 days if "remember me" was checked) instead.
+- **Temporary-password-on-invite, not an email invite.** Since real
+  invite emails are still postponed (see below), `userService.create()`
+  generates a secure random password, hashes it, and returns the plain
+  value *once* for the Owner/Administrator to relay manually via a
+  `TemporaryPasswordDialog`. The same mechanism backs a new
+  admin-triggered "Reset password" action for existing users. This was
+  chosen deliberately so the whole onboarding flow works today, without
+  waiting on Resend integration — when real invite emails ship, this
+  becomes the fallback path shown only if sending fails, not a redesign.
+- **Audit log is a generic, non-throwing side effect**, not a
+  hard dependency of the actions it observes: `action: string` +
+  `metadata: Json` on the `AuditLog` model, written by a service call
+  that never blocks or fails the parent operation. The IP-address field
+  exists on the model now but isn't populated yet — see "Known
+  limitations."
+- **CSRF relies on framework defaults, not custom middleware.** Next.js
+  Server Actions already verify the request Origin header, and Auth.js
+  has its own CSRF protection for its routes — a bespoke CSRF token
+  system would duplicate both. Documented inline in `next.config.ts`.
+- **Rate limiting is in-memory, single-instance, and documented as
+  such.** Fine for the current single-instance deployment target;
+  flagged in code and here as needing a shared store (e.g. Upstash
+  Redis) before any multi-instance/serverless-concurrent deployment.
 - **Server-driven tables, not client-side state**, for search/sort/
   pagination (Sprint 4). `DataTable`'s row-cell renderers are JSX
   closures built in a Server Component page — making `DataTable` itself
@@ -118,7 +172,6 @@ scoped like a bespoke platform rather than a generic template.
 Explicitly deferred by the client's own instructions at various
 sprints — do not build these without being asked again:
 
-- Authentication (`getCurrentUser()` stub remains until asked for)
 - Stripe / payments / direct book sales checkout
 - Student accounts / student portal
 - Articles CMS, Courses, Events (public pages for Articles/Courses
@@ -145,8 +198,20 @@ sprints — do not build these without being asked again:
   **Top priority for the next sprint** is wiring the public pages to
   read this data, as a data-only pass that preserves the exact current
   markup — see `docs/ROADMAP.md`.
-- `User.lastLoginAt` sorting is close to meaningless until real auth
-  exists — most rows are `null`.
+- `User.lastLoginAt` now populates for real on every successful login
+  (Sprint 5) — sorting by it is meaningful going forward, though rows
+  created before Sprint 5 (or never logged into) still show `Never`.
+- **Rate limiting (login, forgot-password) is in-memory and
+  single-instance.** Fine for the current deployment target; must move
+  to a shared store (e.g. Upstash Redis) before any multi-instance or
+  serverless-concurrent deployment, or limits can be trivially bypassed
+  by hitting different instances.
+- **`AuditLog.ipAddress` is a schema placeholder, not populated yet.**
+  The architecture (model + service) is in place per the Sprint 5
+  brief, but no request actually writes a real IP today — wire this up
+  once the hosting target's real-client-IP header (e.g.
+  `x-forwarded-for` behind Vercel) is confirmed, rather than guessing
+  now and getting it wrong for the eventual host.
 - The SEO `noindex` toggle's effect on `/robots.txt` relies on Next
   revalidating a build-time-static route via `revalidatePath` — verified
   working in dev; worth a smoke test after the first production deploy.

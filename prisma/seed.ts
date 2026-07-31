@@ -1,21 +1,89 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../src/generated/prisma/client";
+import { PrismaClient, type User } from "../src/generated/prisma/client";
+import { generateSecurePassword, hashPassword } from "../src/lib/password";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const db = new PrismaClient({ adapter });
 
-async function main() {
-  // ---- Owner user ----------------------------------------------------
-  const owner = await db.user.upsert({
-    where: { email: "hello@ahmadkassa.com" },
-    update: {},
-    create: {
-      name: "Ahmad Mohamed Kassa",
-      email: "hello@ahmadkassa.com",
-      role: "OWNER",
+interface SeededCredential {
+  name: string;
+  email: string;
+  password: string;
+}
+
+async function upsertSeededUser(input: {
+  name: string;
+  email: string;
+  role: "OWNER" | "ADMINISTRATOR" | "EDITOR" | "VIEWER";
+}): Promise<{ user: User; credential: SeededCredential | null }> {
+  const existing = await db.user.findUnique({ where: { email: input.email } });
+
+  if (existing) {
+    // Never touch (or reprint) a password for a user who already has
+    // one — re-running `prisma db seed` must not reset real
+    // credentials. But an existing row from before Sprint 5 (no
+    // passwordHash yet) needs one generated so they can actually log in.
+    if (existing.passwordHash) {
+      return { user: existing, credential: null };
+    }
+
+    const password = generateSecurePassword();
+    const passwordHash = await hashPassword(password);
+    const user = await db.user.update({ where: { id: existing.id }, data: { passwordHash } });
+    return { user, credential: { name: input.name, email: input.email, password } };
+  }
+
+  const password = generateSecurePassword();
+  const passwordHash = await hashPassword(password);
+
+  const user = await db.user.create({
+    data: {
+      name: input.name,
+      email: input.email,
+      role: input.role,
       status: "ACTIVE",
+      passwordHash,
     },
   });
+
+  return { user, credential: { name: input.name, email: input.email, password } };
+}
+
+async function main() {
+  // ---- Seeded users ----------------------------------------------------
+  // Passwords are generated fresh each time a user is first created and
+  // printed once below — they are never stored or logged anywhere else.
+  // Whoever runs `prisma db seed` is responsible for relaying them
+  // securely and having each person change their password on first login.
+  const generatedCredentials: SeededCredential[] = [];
+
+  const { credential: ownerCredential } = await upsertSeededUser({
+    name: "Ahmad Mohamed Kassa",
+    email: "hello@ahmadkassa.com",
+    role: "OWNER",
+  });
+  if (ownerCredential) generatedCredentials.push(ownerCredential);
+
+  const { credential: adminCredential } = await upsertSeededUser({
+    name: "Jimmy Kassa",
+    email: "jimmy@ahmadkassa.com",
+    role: "ADMINISTRATOR",
+  });
+  if (adminCredential) generatedCredentials.push(adminCredential);
+
+  const { credential: editorCredential } = await upsertSeededUser({
+    name: "Editor",
+    email: "editor@ahmadkassa.com",
+    role: "EDITOR",
+  });
+  if (editorCredential) generatedCredentials.push(editorCredential);
+
+  const { credential: viewerCredential } = await upsertSeededUser({
+    name: "Viewer",
+    email: "viewer@ahmadkassa.com",
+    role: "VIEWER",
+  });
+  if (viewerCredential) generatedCredentials.push(viewerCredential);
 
   // ---- Site settings (singleton) --------------------------------------
   await db.siteSettings.upsert({
@@ -218,10 +286,23 @@ async function main() {
   });
 
   console.log("Seed complete:");
-  console.log(`  Owner user:   ${owner.email}`);
   console.log(`  Book:         ${book.title}`);
   console.log(`  Timeline:     ${timelineItems.length} items`);
   console.log(`  Education:    ${educationItems.length} items`);
+
+  if (generatedCredentials.length > 0) {
+    console.log("");
+    console.log("================================================================");
+    console.log(" NEW ACCOUNTS CREATED — passwords shown once, never stored in");
+    console.log(" plaintext or logged again. Share securely and change on first login.");
+    console.log("================================================================");
+    for (const cred of generatedCredentials) {
+      console.log(`  ${cred.name.padEnd(20)} ${cred.email.padEnd(28)} ${cred.password}`);
+    }
+    console.log("================================================================");
+  } else {
+    console.log("  Users:        already seeded — no new accounts created.");
+  }
 }
 
 main()

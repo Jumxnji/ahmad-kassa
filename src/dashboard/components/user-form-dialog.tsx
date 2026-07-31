@@ -35,12 +35,14 @@ import {
 import { createUserAction, updateUserAction } from "@/actions/admin/user.actions";
 import { createUserSchema, type CreateUserInput } from "@/validators/user.validator";
 import { ROLE_LABELS } from "@/permissions/roles";
+import { TemporaryPasswordDialog } from "@/dashboard/components/temporary-password-dialog";
 import type { User } from "@/generated/prisma/client";
 
 const ASSIGNABLE_ROLES = ["ADMINISTRATOR", "EDITOR", "VIEWER"] as const;
 
 export function UserFormDialog({ user }: { user?: User }) {
   const [open, setOpen] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -56,13 +58,24 @@ export function UserFormDialog({ user }: { user?: User }) {
 
   function onSubmit(values: CreateUserInput) {
     startTransition(async () => {
-      const result = user
-        ? await updateUserAction(user.id, values)
-        : await createUserAction(values);
+      if (user) {
+        const result = await updateUserAction(user.id, values);
+        if (result.success) {
+          toast.success(result.message);
+          setOpen(false);
+          router.refresh();
+        } else {
+          toast.error(result.message);
+        }
+        return;
+      }
+
+      const result = await createUserAction(values);
       if (result.success) {
         toast.success(result.message);
         setOpen(false);
         form.reset();
+        setGeneratedPassword(result.data.temporaryPassword);
         router.refresh();
       } else {
         toast.error(result.message);
@@ -114,7 +127,8 @@ export function UserFormDialog({ user }: { user?: User }) {
                   </FormControl>
                   {!user && (
                     <FormDescription>
-                      They won&rsquo;t receive an email invite yet — share their login details directly.
+                      We&rsquo;ll generate a temporary password for you to share with them — no
+                      invite email is sent yet.
                     </FormDescription>
                   )}
                   <FormMessage />
@@ -169,12 +183,18 @@ export function UserFormDialog({ user }: { user?: User }) {
             />
             <DialogFooter>
               <Button type="submit" variant="gold" disabled={isPending}>
-                {isPending ? "Saving…" : user ? "Save changes" : "Send invite"}
+                {isPending ? "Saving…" : user ? "Save changes" : "Create user"}
               </Button>
             </DialogFooter>
           </form>
         </Form>
       </DialogContent>
+      <TemporaryPasswordDialog
+        password={generatedPassword}
+        onOpenChange={(next) => {
+          if (!next) setGeneratedPassword(null);
+        }}
+      />
     </Dialog>
   );
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import { auth } from "@/auth";
 import { db } from "@/db/client";
 import type { Role } from "@/permissions/roles";
 
@@ -10,24 +11,20 @@ export interface CurrentUser {
 }
 
 /**
- * STUB — there is no auth/session system yet (intentionally, per this
- * sprint's brief). This resolves to the seeded Owner account so every
- * dashboard screen and action can be built and tested against a real
- * permission check today.
- *
- * When real auth lands, replace the body of this function with a
- * session lookup (e.g. reading a cookie-based session, then loading
- * the User row) — every call site already expects `CurrentUser | null`
- * and every permission check already goes through can()/requirePermission(),
- * so nothing outside this file should need to change.
+ * The session JWT carries `id`/`role` for fast, coarse checks (see
+ * src/proxy.ts), but this function always re-reads the User row from
+ * the database rather than trusting those claims — so a role change or
+ * an account being suspended takes effect on the very next call, not
+ * whenever the token happens to expire. This is the authoritative
+ * check every `requirePermission()`/`requirePageAccess()` call is built
+ * on. See docs/PROJECT_MEMORY.md for the reasoning.
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const owner = await db.user.findFirst({
-    where: { role: "OWNER" },
-    orderBy: { createdAt: "asc" },
-  });
+  const session = await auth();
+  if (!session?.user?.id) return null;
 
-  if (!owner) return null;
+  const user = await db.user.findUnique({ where: { id: session.user.id } });
+  if (!user || user.status !== "ACTIVE") return null;
 
-  return { id: owner.id, name: owner.name, email: owner.email, role: owner.role };
+  return { id: user.id, name: user.name, email: user.email, role: user.role };
 }

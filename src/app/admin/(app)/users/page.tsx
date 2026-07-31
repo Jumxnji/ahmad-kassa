@@ -12,6 +12,8 @@ import { userService } from "@/services/user.service";
 import { ROLE_LABELS } from "@/permissions/roles";
 import { formatDate } from "@/lib/format";
 import { buildListHref, pageCount, parseListQuery, type RawListSearchParams } from "@/lib/list-query";
+import { requirePageAccess } from "@/permissions/require-page-access";
+import { can } from "@/permissions/permissions";
 import type { User } from "@/generated/prisma/client";
 
 export const metadata = { title: "Users" };
@@ -28,6 +30,10 @@ interface UsersPageProps {
 }
 
 export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
+  const currentUser = await requirePageAccess("users");
+  const canManage = can(currentUser.role, "users", "update");
+  const canInvite = can(currentUser.role, "users", "create");
+
   const query = parseListQuery(await searchParams, "createdAt");
   const { rows: users, total } = await userService.listPaged(query);
 
@@ -72,12 +78,16 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
         </span>
       ),
     },
-    {
-      key: "actions",
-      header: "",
-      className: "w-24",
-      cell: (u) => <UserRowActions user={u} />,
-    },
+    ...(canManage
+      ? [
+          {
+            key: "actions",
+            header: "",
+            className: "w-24",
+            cell: (u: User) => <UserRowActions user={u} />,
+          } satisfies DataTableColumn<User>,
+        ]
+      : []),
   ];
 
   return (
@@ -85,7 +95,7 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
       <DashboardPageHeader
         title="Users"
         description="Who has access to the dashboard, and what they can do."
-        actions={<UserFormDialog />}
+        actions={canInvite ? <UserFormDialog /> : undefined}
       />
 
       <TableSearchForm

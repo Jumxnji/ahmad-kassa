@@ -159,3 +159,64 @@ live preview features honestly around that gap (see
 `docs/PROJECT_MEMORY.md` and `docs/sprints/SPRINT-04.md` for detail);
 wiring the public site to the CMS is the top recommendation for
 Sprint 5.
+
+---
+
+## v0.5.0 — Sprint 5
+
+### Added
+
+- Real authentication for the Admin Dashboard via Auth.js v5
+  (Credentials provider, JWT sessions): secure login, logout, "remember
+  me" (8-hour session by default, 30 days when checked), and a full
+  forgot-password / reset-password flow with enumeration-safe
+  responses.
+- New Prisma models: `Account`, `Session`, `VerificationToken`,
+  `PasswordResetToken`, `AuditLog`, plus `passwordHash` on `User`.
+- Route-level protection for the whole `/admin` area (except the new
+  auth pages) via `src/proxy.ts` — Next.js 16's renamed
+  `middleware.ts` — redirecting unauthenticated visitors to
+  `/admin/login` with the page they were trying to reach preserved as
+  `callbackUrl`.
+- A premium, on-brand login page at `/admin/login` (new `(auth)` route
+  group), plus `/admin/forgot-password` and `/admin/reset-password`.
+- Two-tier role-based access control: fast JWT-based gating in
+  `proxy.ts` for UX, backed by an always-fresh, DB-backed check
+  (`getCurrentUser()` → `requirePageAccess()` / `requirePermission()`)
+  as the real security boundary — so a role change or a suspension
+  takes effect on the very next request, not just the next login.
+- A branded Unauthorized page, shown when a signed-in user without
+  permission reaches a protected page.
+- Secure password generation and hashing (bcryptjs) for seeded and
+  newly-invited users; a "temporary password" dialog shown once on
+  user creation and on a new admin-triggered "Reset password" action.
+- Audit log architecture (`AuditLog` model + service) recording who did
+  what and when, wired into login, logout, and all user-management
+  actions — an IP-address field exists on the model for a future pass
+  once the hosting target's real-client-IP header is confirmed.
+- In-memory rate limiting on login and forgot-password attempts (10
+  per 15 minutes per key), with the multi-instance caveat documented
+  for a future move to a shared store (e.g. Upstash Redis).
+- Baseline security headers (`next.config.ts`) — `X-Frame-Options`,
+  `X-Content-Type-Options`, `Referrer-Policy`, etc.
+- Sidebar navigation now filters itself per the signed-in user's role,
+  using the same `can()` permission check as the pages themselves.
+- The Users page now hides Invite/Edit/Reset/Delete controls entirely
+  for roles that can't use them (Viewer), instead of showing
+  controls that would just fail server-side.
+
+### Fixed
+
+- Newly-invited users previously had no way to ever log in — nothing
+  set a password on creation. `userService.create()` now generates and
+  hashes a temporary password and returns it once for the Owner to
+  relay; the pre-existing Owner row (seeded in an earlier sprint with
+  no password) is backfilled the same way by the seed script.
+
+### Notes
+
+`/dashboard` remains untouched and unprotected — it's still the
+placeholder for a future student portal, not the CMS. Only `/admin` and
+its subroutes required authentication, per `docs/PROJECT_MEMORY.md`'s
+existing convention. Full detail, including the database and security
+decisions behind this sprint, is in `docs/sprints/SPRINT-05.md`.

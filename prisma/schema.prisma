@@ -88,27 +88,120 @@ enum MediaFolder {
 // Identity
 // ============================================================
 
-/// Reserved for the future auth system (not wired up yet — see
-/// AGENTS/session notes). The role/status/mfa shape exists now so
-/// permissions and the Users screen can be built and tested ahead
-/// of real login.
+/// Credentials-based auth (Sprint 5) lives alongside the Auth.js
+/// standard tables below (Account/Session/VerificationToken) so OAuth
+/// providers can be added later without touching this model.
+/// `passwordHash` is nullable to allow a future OAuth-only user (e.g.
+/// a student account created via Google sign-in) with no password.
 model User {
-  id          String     @id @default(uuid())
-  name        String
-  email       String     @unique
-  role        Role       @default(VIEWER)
-  avatarUrl   String?
-  status      UserStatus @default(ACTIVE)
-  mfaEnabled  Boolean    @default(false)
-  lastLoginAt DateTime?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String?
+  role         Role       @default(VIEWER)
+  avatarUrl    String?
+  status       UserStatus @default(ACTIVE)
+  mfaEnabled   Boolean    @default(false)
+  lastLoginAt  DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  uploadedMedia Media[] @relation("MediaUploadedBy")
+  uploadedMedia       Media[]              @relation("MediaUploadedBy")
+  accounts            Account[]
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  auditLogs           AuditLog[]
 
   @@index([role])
   @@index([status])
   @@map("users")
+}
+
+/// Auth.js standard adapter tables. Not populated by the Credentials
+/// provider today (which uses JWT sessions — see src/auth.ts), but
+/// present so an OAuth provider (Google, etc.) can be added later
+/// with zero schema changes.
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+/// Reserved for database-strategy sessions (OAuth providers use this
+/// automatically via the Prisma adapter). The Credentials provider
+/// uses JWT sessions instead, so this stays empty until an OAuth
+/// provider is added — see docs/PROJECT_MEMORY.md for why.
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+/// Auth.js standard table for email verification / magic links.
+/// Not wired to a live flow yet — reserved for a future "verify your
+/// email" step.
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+/// One-time, expiring tokens for the "forgot password" flow. A row is
+/// deleted (not just marked used) once consumed, so there's nothing to
+/// clean up later.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("password_reset_tokens")
+}
+
+/// Architecture for future audit logging (Sprint 5 brief). Wired into
+/// the security-relevant actions today (login, logout, password
+/// reset, user create/update/delete/role change) — extending it to
+/// content edits later is additive, not a redesign.
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  metadata  Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 // ============================================================

@@ -10,11 +10,14 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import type { Resource } from "@/permissions/permissions";
 
 export interface NavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  /** Hidden from the sidebar when set and the current role can't read this resource. Omit for items every authenticated role should see (e.g. Overview). */
+  resource?: Resource;
 }
 
 export interface NavSection {
@@ -37,29 +40,29 @@ export const DASHBOARD_NAV: readonly NavSection[] = [
   {
     label: "Content",
     items: [
-      { label: "Homepage", href: "/admin/homepage", icon: Home },
-      { label: "About", href: "/admin/about", icon: BookOpen },
-      { label: "Books", href: "/admin/books", icon: BookOpen },
+      { label: "Homepage", href: "/admin/homepage", icon: Home, resource: "content" },
+      { label: "About", href: "/admin/about", icon: BookOpen, resource: "content" },
+      { label: "Books", href: "/admin/books", icon: BookOpen, resource: "content" },
     ],
   },
   {
     label: "Communication",
     items: [
-      { label: "Ask Ahmad", href: "/admin/ask-ahmad", icon: Inbox },
-      { label: "Contact Messages", href: "/admin/contact", icon: Mail },
-      { label: "Newsletter", href: "/admin/newsletter", icon: Mail },
+      { label: "Ask Ahmad", href: "/admin/ask-ahmad", icon: Inbox, resource: "questions" },
+      { label: "Contact Messages", href: "/admin/contact", icon: Mail, resource: "contact" },
+      { label: "Newsletter", href: "/admin/newsletter", icon: Mail, resource: "newsletter" },
     ],
   },
   {
     label: "Media",
-    items: [{ label: "Media Library", href: "/admin/media", icon: ImageIcon }],
+    items: [{ label: "Media Library", href: "/admin/media", icon: ImageIcon, resource: "media" }],
   },
   {
     label: "Administration",
     items: [
-      { label: "Users", href: "/admin/users", icon: Users },
-      { label: "SEO", href: "/admin/seo", icon: Search },
-      { label: "Site Settings", href: "/admin/settings", icon: Settings },
+      { label: "Users", href: "/admin/users", icon: Users, resource: "users" },
+      { label: "SEO", href: "/admin/seo", icon: Search, resource: "seo" },
+      { label: "Site Settings", href: "/admin/settings", icon: Settings, resource: "settings" },
     ],
   },
 ] as const;

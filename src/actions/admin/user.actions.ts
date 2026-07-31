@@ -5,11 +5,12 @@ import { fieldErrorsFromZod, runAction } from "@/lib/action-helpers";
 import { ConflictError, NotFoundError, PermissionError, ValidationError } from "@/lib/errors";
 import { requirePermission } from "@/permissions/require-permission";
 import { userService } from "@/services/user.service";
+import { auditLogService } from "@/services/audit-log.service";
 import { createUserSchema, updateUserSchema } from "@/validators/user.validator";
 
 export async function createUserAction(values: unknown) {
   return runAction(async () => {
-    await requirePermission("users", "create");
+    const actor = await requirePermission("users", "create");
 
     const parsed = createUserSchema.safeParse(values);
     if (!parsed.success) {
@@ -23,10 +24,32 @@ export async function createUserAction(values: unknown) {
     const existing = await userService.getByEmail(parsed.data.email);
     if (existing) throw new ConflictError("A user with that email already exists.");
 
-    const user = await userService.create(parsed.data);
+    const { user, temporaryPassword } = await userService.create(parsed.data);
+    await auditLogService.record({
+      userId: actor.id,
+      action: "user.created",
+      metadata: { targetUserId: user.id, email: user.email, role: user.role },
+    });
     revalidatePath("/admin/users");
-    return user;
+    return { user, temporaryPassword };
   }, "User invited.");
+}
+
+export async function resetUserPasswordAction(id: string) {
+  return runAction(async () => {
+    const actor = await requirePermission("users", "update");
+
+    const existing = await userService.get(id);
+    if (!existing) throw new NotFoundError("User");
+
+    const { temporaryPassword } = await userService.resetPassword(id);
+    await auditLogService.record({
+      userId: actor.id,
+      action: "user.password_reset_by_admin",
+      metadata: { targetUserId: id, email: existing.email },
+    });
+    return { temporaryPassword };
+  }, "Password reset.");
 }
 
 export async function updateUserAction(id: string, values: unknown) {
@@ -52,6 +75,17 @@ export async function updateUserAction(id: string, values: unknown) {
     }
 
     const user = await userService.update(id, parsed.data);
+    await auditLogService.record({
+      userId: actor.id,
+      action: "user.updated",
+      metadata: {
+        targetUserId: id,
+        ...(changingRole ? { roleFrom: existing.role, roleTo: parsed.data.role } : {}),
+        ...(parsed.data.status && parsed.data.status !== existing.status
+          ? { statusFrom: existing.status, statusTo: parsed.data.status }
+          : {}),
+      },
+    });
     revalidatePath("/admin/users");
     return user;
   }, "User updated.");
@@ -72,6 +106,11 @@ export async function deleteUserAction(id: string) {
     }
 
     await userService.remove(id);
+    await auditLogService.record({
+      userId: actor.id,
+      action: "user.deleted",
+      metadata: { targetUserId: id, email: existing.email },
+    });
     revalidatePath("/admin/users");
     return { id };
   }, "User removed.");

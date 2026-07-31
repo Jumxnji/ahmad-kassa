@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ExternalLink, Menu } from "lucide-react";
+import { ExternalLink, LogOut, Menu } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,8 +13,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarNav } from "@/dashboard/components/sidebar-nav";
+import { logoutAction } from "@/actions/auth/logout";
 import { ROLE_LABELS } from "@/permissions/roles";
 import type { CurrentUser } from "@/permissions/current-user";
 
@@ -34,6 +44,17 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const role = user?.role ?? "VIEWER";
+
+  function handleLogout() {
+    startTransition(async () => {
+      await logoutAction();
+      router.push("/admin/login");
+      router.refresh();
+    });
+  }
 
   return (
     <div className="min-h-screen bg-paper-50">
@@ -43,7 +64,7 @@ export function DashboardShell({
           <Logo />
         </div>
         <div className="flex-1 overflow-y-auto px-3 py-6">
-          <SidebarNav />
+          <SidebarNav role={role} />
         </div>
         <div className="border-t border-border p-4">
           <Link
@@ -73,7 +94,7 @@ export function DashboardShell({
                 </SheetTitle>
               </SheetHeader>
               <div className="overflow-y-auto px-3 py-6">
-                <SidebarNav onNavigate={() => setMobileOpen(false)} />
+                <SidebarNav role={role} onNavigate={() => setMobileOpen(false)} />
               </div>
             </SheetContent>
           </Sheet>
@@ -81,19 +102,38 @@ export function DashboardShell({
           <div className="flex-1" />
 
           {user && (
-            <div className="flex items-center gap-3">
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-medium leading-tight text-foreground">{user.name}</p>
-                <p className="text-xs leading-tight text-muted-foreground">
-                  {ROLE_LABELS[user.role]}
-                </p>
-              </div>
-              <Avatar className="size-9">
-                <AvatarFallback className="bg-navy-900 text-xs text-gold-300">
-                  {initials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center gap-3 rounded-full transition-opacity hover:opacity-80"
+                  aria-label="Account menu"
+                >
+                  <div className="hidden text-right sm:block">
+                    <p className="text-sm font-medium leading-tight text-foreground">{user.name}</p>
+                    <p className="text-xs leading-tight text-muted-foreground">
+                      {ROLE_LABELS[user.role]}
+                    </p>
+                  </div>
+                  <Avatar className="size-9">
+                    <AvatarFallback className="bg-navy-900 text-xs text-gold-300">
+                      {initials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="text-sm font-medium text-foreground">{user.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled={isPending} onSelect={handleLogout}>
+                  <LogOut className="size-3.5" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </header>
 
