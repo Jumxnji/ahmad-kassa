@@ -17,6 +17,10 @@
 /.next/
 /out/
 
+# local-dev media uploads (storageService writes here; production uses
+# Vercel Blob instead — see src/services/storage.ts)
+/public/uploads
+
 # production
 /build
 
