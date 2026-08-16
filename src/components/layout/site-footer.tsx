@@ -85,7 +85,7 @@ export function SiteFooter() {
             <p className="mt-4 text-sm leading-relaxed text-stone-300">
               Book announcements, courses, seminars &amp; articles — no spam.
             </p>
-            <NewsletterForm variant="footer" className="mt-4" />
+            <NewsletterForm variant="footer" source="FOOTER" className="mt-4" />
           </div>
         </div>
 

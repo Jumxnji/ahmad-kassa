@@ -3,18 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Section } from "@/components/shared/section";
 import { Eyebrow } from "@/components/shared/eyebrow";
 import { PortraitFrame } from "@/components/media/portrait-frame";
+import { ScrollReveal } from "@/components/shared/scroll-reveal";
 
 const CREDENTIALS = [
-  "Religious Institute, Kuwait",
-  "Computer Science & Telecommunications",
-  "PGCE, University of London",
-  "Ruqyah education since 2009",
+  "Khateeb — Masjid Al-Noor",
+  "Author — The Great Debate",
+  "Teaching since 2009",
+  "Arabic & Islamic Studies",
+  "Computer Science & Education",
 ] as const;
 
 export function AboutPreviewSection() {
   return (
     <Section>
-      <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.85fr)_1fr] lg:gap-20">
+      <ScrollReveal className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.85fr)_1fr] lg:gap-20">
         <PortraitFrame className="mx-auto max-w-sm lg:max-w-none" />
 
         <div>
@@ -46,7 +48,7 @@ export function AboutPreviewSection() {
             <Link href="/about">Read full biography</Link>
           </Button>
         </div>
-      </div>
+      </ScrollReveal>
     </Section>
   );
 }

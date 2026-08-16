@@ -1,10 +1,10 @@
 import { Hero } from "@/components/sections/hero";
-import { AboutPreviewSection } from "@/components/sections/about-preview-section";
 import { FeaturedBookSection } from "@/components/sections/featured-book-section";
-import { FutureCoursesSection } from "@/components/sections/future-courses-section";
-import { FeaturedArticlesSection } from "@/components/sections/featured-articles-section";
+import { AboutPreviewSection } from "@/components/sections/about-preview-section";
+import { TeachingAreasSection } from "@/components/sections/teaching-areas-section";
 import { QuoteSection } from "@/components/sections/quote-section";
-import { FeaturedLecturesSection } from "@/components/sections/featured-lectures-section";
+import { LatestKhutbahSection } from "@/components/sections/featured-lectures-section";
+import { FutureCoursesSection } from "@/components/sections/future-courses-section";
 import { CtaSection } from "@/components/sections/cta-section";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
 import { JsonLd } from "@/components/shared/json-ld";
@@ -15,12 +15,20 @@ import {
   buildWebsiteJsonLd,
 } from "@/lib/seo";
 import { siteConfig } from "@/config/site";
+import { homepageService } from "@/services/homepage.service";
+import type { Metadata } from "next";
 
-export const metadata = buildMetadata({
-  title: `${siteConfig.name} — ${siteConfig.tagline}`,
-  description: siteConfig.description,
-  path: "/",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const homepage = await homepageService.get();
+
+  return buildMetadata({
+    title: homepage?.seo?.metaTitle || `${siteConfig.name} — ${siteConfig.tagline}`,
+    description: homepage?.seo?.metaDescription || siteConfig.description,
+    path: "/",
+    noIndex: homepage?.seo?.noindex ?? false,
+    useRouteOgImage: true,
+  });
+}
 
 export default function HomePage() {
   return (
@@ -29,14 +37,14 @@ export default function HomePage() {
       <JsonLd data={buildOrganizationJsonLd()} />
       <JsonLd data={buildWebsiteJsonLd()} />
       <Hero />
-      <AboutPreviewSection />
       <FeaturedBookSection />
-      <FutureCoursesSection />
-      <FeaturedArticlesSection />
+      <AboutPreviewSection />
+      <TeachingAreasSection />
       <QuoteSection />
-      <FeaturedLecturesSection />
+      <LatestKhutbahSection />
+      <FutureCoursesSection />
       <CtaSection />
-      <NewsletterSection />
+      <NewsletterSection source="HOMEPAGE" />
     </>
   );
 }

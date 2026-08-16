@@ -30,9 +30,9 @@ export function Logo({ className, tone = "default" }: LogoProps) {
       <Image
         src={inverted ? "/brand/logo-mark-white.svg" : brand.logo.mark}
         alt=""
-        width={39}
+        width={24}
         height={34}
-        className="h-8 w-auto shrink-0 transition-opacity group-hover:opacity-80"
+        className="h-8 w-auto shrink-0 transition-[opacity,transform] duration-300 group-hover:scale-105 group-hover:opacity-80"
         priority
       />
       <span
