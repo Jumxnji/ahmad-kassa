@@ -1,5 +1,17 @@
 # Ahmad Mohamed Kassa — Visual Design System
 
+**This is the implementation reference — the "how."** For the reasoning behind
+these decisions — brand voice, design goals, the logo-as-design-language
+concept, motion/photography/watermark philosophy — see
+[`docs/CREATIVE_DIRECTION.md`](./CREATIVE_DIRECTION.md), the "why" companion to
+this document. The split is deliberate: this file should never restate
+`CREATIVE_DIRECTION.md`'s reasoning, and that file should never restate this
+one's exact values. If a rule seems to belong in both, the philosophy goes
+there and the specification stays here, cross-linked both ways. **This
+document is the single source of truth for implementation details** — a
+pixel value, a token, a duration, or a component spec should only ever be
+defined once, here.
+
 This document formalises the visual language for the public website. Where a token,
 component, or pattern already exists in the codebase, this document documents and
 extends it with rationale — per the project's standing rule, **the established
@@ -231,9 +243,11 @@ text on top, never a jarring pure-hue banner.
 
 ### New — Arabic body/UI font: Noto Naskh Arabic
 
-*Recommended for:* any Arabic UI text — the وردمark itself (already custom-drawn, no
-change needed), future multilingual navigation, and any inline Arabic word or phrase
-used for terminology (e.g. "Aqeedah — عقيدة").
+*Recommended for:* any Arabic UI text — future multilingual navigation and any
+inline Arabic word or phrase used for terminology (e.g. "Aqeedah — عقيدة"). This
+does not apply to the brand mark itself (see "The Mark as a Design Language" in
+Section 10) — the mark is a commissioned illustration, not typeset text, and
+stays completely unaffected by any font decision made here.
 
 *Why:* Noto Naskh Arabic is a true Naskh book-hand — the register Arabic readers
 actually expect for formal/educational text (as opposed to a Kufi or decorative
@@ -300,6 +314,32 @@ instead of "jumping" at a breakpoint, which reads as considered rather than
 templated. Body text does **not** fluid-scale — it stays fixed at 16px across all
 breakpoints (see Mobile Experience in the UX plan: shrinking reading type on mobile
 is a common mistake this system avoids).
+
+### Quote / pull-quote styling
+
+As implemented in `QuoteSection` and `FeaturedBookSection`'s excerpt: Newsreader,
+italic, `text-2xl` stepping to `text-3xl` at `sm:`, `leading-relaxed`, on a navy
+background in `paper-50` (the full-width pull-quote treatment) or in
+`text-muted-foreground` on paper (the shorter in-context excerpt treatment, at
+`text-xl`). Attribution, where present, sits below in the eyebrow style (mono,
+tracked, uppercase, `gold-400` on navy / `gold-700` on paper) — never in the
+quote's own serif, so the words being quoted and the attribution never compete
+for the same visual register. A pull-quote is always its own isolated block,
+never inline mid-paragraph.
+
+### Rules for emphasis
+
+Italic (Newsreader's own italic, not a synthetic slant) is the system's one
+emphasis device for warmth or idiom — used for a person's name within a headline
+(see the Hero's "*Mohamed Kassa*" treatment), for pull-quotes, and for occasional
+in-sentence emphasis in longer prose. **Bold is not used for emphasis in running
+text** — Newsreader's regular weight already carries enough presence (see
+"Headings are set at font-weight 400" above), and introducing bold as a second
+emphasis device alongside italic would create two competing signals where one is
+enough. Colour is never used for textual emphasis — gold marks a UI element
+(a link, an accent, a small label), never a word inside a sentence; using it that
+way would break the "one accent, spent rarely" rule the first time a paragraph
+needed to emphasise more than one word.
 
 ---
 
@@ -568,6 +608,47 @@ this system deliberately avoids.
 
 ## 10. Imagery
 
+### The Mark as a Design Language
+
+The philosophy behind this is in `CREATIVE_DIRECTION.md`, Section 6 — this
+subsection is the concrete implementation of it, as actually built.
+
+**Assets.** `public/brand/logo-mark.svg` (gold, on light backgrounds),
+`logo-mark-white.svg` (white, on dark/navy backgrounds), `logo-mark-dark.svg`
+(navy, single-colour print/fallback contexts) — three flat colourways of the
+same path data, no redrawing between them. Provenance and regeneration notes
+live in `public/brand/README.md`.
+
+**Implemented touchpoints, and their exact treatment:**
+
+| Touchpoint | Component | Treatment |
+|---|---|---|
+| Header / footer / loading screen | `src/components/shared/logo.tsx` | Mark + live-composed wordmark (Newsreader), `tone="default"` (gold) or `tone="inverted"` (white); subtle scale + opacity shift on hover |
+| Hero (Mode A — no portrait yet) | `src/components/sections/hero-emblem.tsx` | Large-format mark inside a soft circular gold glow (`radial-gradient`) with two concentric hairline rings — a "seal" treatment, not a literal frame |
+| Hero (Mode B — once a portrait exists) | `src/components/sections/hero-portrait.tsx` | Occupies the identical aspect box as Mode A; swapping is a one-line constant change in `hero.tsx` (`HERO_VISUAL`), never a layout change |
+| Background watermark | `QuoteSection`, `NewsletterSection` | The white mark colourway, `opacity-[0.05]`, large scale, absolutely positioned, on navy sections only — never on paper/ivory backgrounds (see the explicit warning below) |
+| Section-transition accent | `src/components/shared/manuscript-divider.tsx`'s `mark` prop | Swaps the usual rotated-gold-square accent for a small mark glyph, reserved for one or two genuinely significant transitions per page (currently: before "Ask Ahmad" on the homepage) |
+
+**Why the watermark is navy-only, not a stylistic preference.** The mark
+reads as a considered texture at low opacity against navy; on paper/ivory
+the available contrast range is narrower, and the same low-opacity treatment
+that looks intentional on navy risks looking either invisible or like a
+visible smudge on a light ground, depending on the exact colourway used.
+Rather than tune a paper-safe version, the simpler and more reliable rule is
+the one already in place: **watermark placements stay on navy sections
+only.**
+
+**An implementation gotcha worth flagging for anyone extending this
+pattern.** The navy-tuned watermark/texture utility class is deliberately
+named `manuscript-texture-navy`, *not* `bg-manuscript-texture-navy` — a
+`bg-`-prefixed custom utility was tried first and silently collided with
+Tailwind's `bg-navy-950` class in `tailwind-merge`'s conflict resolution
+(both get grouped as "background colour" utilities by name pattern, so the
+later one in the class list wins and the earlier one is dropped), which
+made the navy background disappear entirely underneath the texture layer.
+Any future custom background utility that layers on top of a Tailwind
+colour class should avoid the `bg-` prefix for exactly this reason.
+
 **Portraits (Ahmad).** Natural light, warm colour grading (slightly lifted shadows,
 never high-contrast/dramatic lighting), plain or softly blurred backgrounds — never
 a busy setting competing with the subject. Consistent framing across every portrait
@@ -585,19 +666,27 @@ than a portrait, depending on what's being led with; both Book Detail and Coming
 Soon pages intentionally use **no** hero photograph at all, leading with type
 instead, per the "restraint over filler" principle established in the UX plan.
 
-**Islamic architecture.** Used only as *texture*, never as generic stock decoration —
-a soft, desaturated, out-of-focus geometric or mihrab-adjacent architectural detail
-can appear as a section background texture (Section-divider bands, the Courses
-Coming Soon backdrop) at very low opacity (5–10% over paper), purely to add quiet
-depth. It should never be a literal, sharp photograph of "a generic mosque" used as
-set-dressing — that reads as a stock-photo shortcut, which undercuts the personal,
-specific nature of this platform.
+**Islamic architecture.** Not yet implemented — recommended for later, not
+required now. A soft, desaturated, out-of-focus geometric or mihrab-adjacent
+architectural detail could appear as a section background texture at very
+low opacity, purely to add quiet depth, once real (non-stock) photography of
+this kind exists. It should never be a literal, sharp photograph of "a
+generic mosque" used as set-dressing — that reads as a stock-photo shortcut,
+which undercuts the personal, specific nature of this platform. Until then,
+the geometric-tile texture below covers the same "quiet depth" need without
+depending on photography that doesn't exist yet.
 
-**Texture usage.** Beyond the architectural motif above, the *only* other texture in
-the system is an extremely subtle paper-grain overlay (near-imperceptible, ~2–3%
-opacity) applied globally to the `paper-50` background — reinforcing the paper
-metaphor at a level that registers subconsciously rather than visibly. No other
-textures (fabric, wood, gradients-as-texture) appear anywhere.
+**Texture — as actually implemented.** `.manuscript-texture` /
+`.manuscript-texture-navy` (`src/app/globals.css`) — a warm radial glow
+(`gold-50` on paper, `navy-800` on navy) layered with a large-tile (160px),
+low-opacity (0.05–0.07) interlocking-square geometric pattern, the same
+motif family as the manuscript-divider's rotated-square accent. Applied via
+`Section`'s `texture` prop (`src/components/shared/section.tsx`), currently
+used on the Hero and the two navy sections (Quote, Newsletter) — not applied
+globally to every `paper-50` surface, since a texture that's everywhere
+stops registering as a texture and starts registering as a background
+colour. No other textures (fabric, wood, paper-grain, gradients-as-texture)
+appear anywhere in the system.
 
 **Background imagery.** Full-bleed background photography is reserved for the
 homepage hero only (if a photographic hero is chosen over a portrait/type-led
@@ -613,6 +702,22 @@ stock-photo slideshow.
 The system already enforces a global `prefers-reduced-motion` shutoff in
 `globals.css` — every animation below must respect that as a hard constraint, not an
 afterthought.
+
+**As implemented.** `src/constants/motion.ts` exports the shared `fadeUp` /
+`fadeIn` / `staggerContainer` variants and the `EASE_OUT` cubic-bezier
+(`[0.16, 1, 0.3, 1]`) every Framer Motion usage should reuse rather than
+hand-rolling a new curve per component. The reduced-motion guard is a fixed
+idiom, used identically in every animated component (`hero.tsx`,
+`template.tsx`, `loading-screen.tsx`, `reading-progress-bar.tsx`, and the
+`ScrollReveal` wrapper below): read `useReducedMotion()` from
+`framer-motion`, and set `initial` to the resting/settled state instead of
+the animated-from state when it's `true`. **`ScrollReveal`**
+(`src/components/shared/scroll-reveal.tsx`) is the shared client-island
+pattern for scroll-triggered reveals on Server Component sections (an async
+section with a DB fetch can't itself be `"use client"`, so it wraps its
+content in `<ScrollReveal>` rather than converting the whole section) — any
+new section that needs a reveal-on-scroll should reuse this component, not
+add a bespoke `whileInView` block.
 
 **Durations & easing.**
 
