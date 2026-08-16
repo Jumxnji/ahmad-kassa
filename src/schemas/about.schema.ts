@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { seoSchema } from "@/schemas/seo.schema";
 
 export const aboutContentSchema = z.object({
   introHeadline: z.string().min(2).max(120),
@@ -7,6 +8,7 @@ export const aboutContentSchema = z.object({
   missionText: z.string().min(10).max(600),
   futureVisionText: z.string().min(10).max(600),
   badges: z.array(z.string().min(1).max(40)).max(8),
+  seo: seoSchema.optional(),
 });
 
 export const timelineItemSchema = z.object({

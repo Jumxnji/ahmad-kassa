@@ -10,14 +10,24 @@ export const QUESTION_CATEGORIES = [
   "OTHER",
 ] as const;
 
-export const QUESTION_STATUSES = ["PENDING", "ANSWERED", "ARCHIVED"] as const;
+export const QUESTION_STATUSES = [
+  "NEW",
+  "IN_REVIEW",
+  "WAITING",
+  "ANSWERED",
+  "CLOSED",
+  "ARCHIVED",
+] as const;
+
+export const QUESTION_PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
 
 export const questionSchema = z.object({
   name: z.string().min(2).max(120),
   email: z.email(),
   category: z.enum(QUESTION_CATEGORIES),
-  question: z.string().min(10).max(2000),
+  subject: z.string().max(150).optional().nullable(),
+  initialMessage: z.string().min(10).max(2000),
   isPrivate: z.boolean(),
   status: z.enum(QUESTION_STATUSES),
-  answer: z.string().max(4000).optional().nullable(),
+  priority: z.enum(QUESTION_PRIORITIES),
 });

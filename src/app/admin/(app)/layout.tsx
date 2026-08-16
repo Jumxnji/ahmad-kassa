@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/dashboard/components/dashboard-shell";
 import { getCurrentUser } from "@/permissions/current-user";
+import { notificationService } from "@/services/notification.service";
 
 // The dashboard reads live, frequently-changing data (questions,
 // messages, subscriber counts) and is per-session. It should never be
@@ -27,5 +28,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/admin/login");
   }
 
-  return <DashboardShell user={user}>{children}</DashboardShell>;
+  const notifications = await notificationService.getSummary();
+
+  return (
+    <DashboardShell user={user} notifications={notifications}>
+      {children}
+    </DashboardShell>
+  );
 }

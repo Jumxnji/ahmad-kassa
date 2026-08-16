@@ -24,9 +24,8 @@ import {
 import { StatusBadge } from "@/dashboard/components/status-badge";
 import { updateContactMessageAction } from "@/actions/admin/contact.actions";
 import { formatDate } from "@/lib/format";
+import { CONTACT_STATUS_TONE as STATUS_TONE } from "@/dashboard/contact-constants";
 import type { ContactMessage, $Enums } from "@/generated/prisma/client";
-
-const STATUS_TONE = { NEW: "warning", READ: "neutral", ARCHIVED: "muted" } as const;
 
 export function ContactDetailSheet({ message }: { message: ContactMessage }) {
   const [open, setOpen] = useState(false);
@@ -62,8 +61,10 @@ export function ContactDetailSheet({ message }: { message: ContactMessage }) {
       </SheetTrigger>
       <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>{message.name}</SheetTitle>
-          <SheetDescription>{message.email}</SheetDescription>
+          <SheetTitle>{message.subject || message.name}</SheetTitle>
+          <SheetDescription>
+            {message.name} · {message.email}
+          </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-6 px-4 pb-6">

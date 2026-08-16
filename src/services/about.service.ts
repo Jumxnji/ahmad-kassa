@@ -1,5 +1,6 @@
 import "server-only";
 import { aboutRepository } from "@/repositories/about.repository";
+import { seoService } from "@/services/seo.service";
 import { sanitizeRichText } from "@/lib/sanitize-rich-text";
 import type {
   EducationItemFormInput,
@@ -9,8 +10,22 @@ import type {
 
 export const aboutService = {
   get: () => aboutRepository.get(),
-  update: (input: UpdateAboutInput) =>
-    aboutRepository.update({ ...input, biography: sanitizeRichText(input.biography) }),
+
+  async update(input: UpdateAboutInput) {
+    const { seo, ...rest } = input;
+    const data: typeof rest & { seoId?: string | null } = {
+      ...rest,
+      biography: sanitizeRichText(rest.biography),
+    };
+
+    if (seo && Object.keys(seo).length > 0) {
+      const existing = await aboutRepository.get();
+      const seoRow = await seoService.save(existing?.seoId ?? null, seo);
+      data.seoId = seoRow.id;
+    }
+
+    return aboutRepository.update(data);
+  },
 
   addTimelineItem: (input: TimelineItemFormInput) => aboutRepository.createTimelineItem(input),
   updateTimelineItem: (id: string, input: Partial<TimelineItemFormInput>) =>

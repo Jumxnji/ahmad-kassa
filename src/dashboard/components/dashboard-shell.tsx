@@ -23,9 +23,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { SidebarNav } from "@/dashboard/components/sidebar-nav";
+import { NotificationBell } from "@/dashboard/components/notification-bell";
 import { logoutAction } from "@/actions/auth/logout";
 import { ROLE_LABELS } from "@/permissions/roles";
 import type { CurrentUser } from "@/permissions/current-user";
+import type { NotificationSummary } from "@/services/notification.service";
 
 function initials(name: string) {
   return name
@@ -38,9 +40,11 @@ function initials(name: string) {
 
 export function DashboardShell({
   user,
+  notifications,
   children,
 }: {
   user: CurrentUser | null;
+  notifications?: NotificationSummary;
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -59,7 +63,10 @@ export function DashboardShell({
   return (
     <div className="min-h-screen bg-paper-50">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-background lg:flex">
+      <aside
+        aria-label="Dashboard sidebar"
+        className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-background lg:flex"
+      >
         <div className="flex h-16 items-center border-b border-border px-5">
           <Logo />
         </div>
@@ -94,12 +101,14 @@ export function DashboardShell({
                 </SheetTitle>
               </SheetHeader>
               <div className="overflow-y-auto px-3 py-6">
-                <SidebarNav role={role} onNavigate={() => setMobileOpen(false)} />
+                <SidebarNav role={role} onNavigate={() => setMobileOpen(false)} aria-label="Mobile" />
               </div>
             </SheetContent>
           </Sheet>
 
           <div className="flex-1" />
+
+          {notifications && <NotificationBell summary={notifications} />}
 
           {user && (
             <DropdownMenu>

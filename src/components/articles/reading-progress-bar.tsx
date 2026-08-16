@@ -1,19 +1,23 @@
 "use client";
 
-import { motion, useScroll, useSpring } from "framer-motion";
+import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 
 /**
  * Fixed hairline beneath the header that fills as the reader scrolls
  * through the article. Uses whole-page scroll progress so it works
- * regardless of where the article body sits in the layout.
+ * regardless of where the article body sits in the layout. Skips the
+ * spring easing (tracks raw scroll progress instead) when the reader
+ * prefers reduced motion — still functional, just without the lag.
  */
 export function ReadingProgressBar() {
+  const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
+  const springScaleX = useSpring(scrollYProgress, {
     stiffness: 280,
     damping: 40,
     restDelta: 0.001,
   });
+  const scaleX = shouldReduceMotion ? scrollYProgress : springScaleX;
 
   return (
     <motion.div

@@ -33,6 +33,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RichTextEditor } from "@/dashboard/components/rich-text-editor";
 import { TagsInput } from "@/dashboard/components/tags-input";
 import { MediaPickerField, MediaGalleryField, type MediaPickerItem } from "@/dashboard/components/media-picker";
+import { SeoFields } from "@/dashboard/components/seo-fields";
 import { AutosaveIndicator } from "@/dashboard/components/autosave-indicator";
 import { useAutosave } from "@/hooks/use-autosave";
 import { createBookAction, updateBookAction } from "@/actions/admin/book.actions";
@@ -163,6 +164,7 @@ export function BookForm({ book }: BookFormProps) {
         metaDescription: book?.seo?.metaDescription ?? "",
         canonicalUrl: book?.seo?.canonicalUrl ?? "",
         keywords: book?.seo?.keywords ?? "",
+        noindex: book?.seo?.noindex ?? false,
       },
     },
   });
@@ -614,71 +616,17 @@ export function BookForm({ book }: BookFormProps) {
             </Card>
           </TabsContent>
 
-          <TabsContent value="seo" className="mt-6">
-            <Card className="border-none p-6 shadow-none ring-1 ring-border">
-              <h2 className="text-sm font-medium text-foreground">Search &amp; sharing</h2>
-              <div className="mt-4 grid gap-6 sm:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="seo.metaTitle"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meta title</FormLabel>
-                      <FormControl>
-                        <Input {...field} value={field.value ?? ""} />
-                      </FormControl>
-                      <FormDescription>Defaults to the book title if left blank.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="seo.metaDescription"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meta description</FormLabel>
-                      <FormControl>
-                        <Input {...field} value={field.value ?? ""} />
-                      </FormControl>
-                      <FormDescription>Defaults to the short description if left blank.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="seo.canonicalUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Canonical URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Defaults to the book's own URL" {...field} value={field.value ?? ""} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="seo.keywords"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Keywords</FormLabel>
-                      <FormControl>
-                        <Input {...field} value={field.value ?? ""} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <p className="mt-6 rounded-lg bg-paper-100/60 p-4 text-xs leading-relaxed text-muted-foreground">
-                Structured data (schema.org <code>Book</code> JSON-LD) is generated automatically
-                from this book&rsquo;s details — title, author, ISBN, format, and availability — no
-                separate field to maintain.
-              </p>
-            </Card>
+          <TabsContent value="seo" className="mt-6 space-y-4">
+            <SeoFields
+              control={form.control}
+              titleDefaultHint="Defaults to the book title if left blank."
+              descriptionDefaultHint="Defaults to the short description if left blank."
+            />
+            <p className="rounded-lg bg-paper-100/60 p-4 text-xs leading-relaxed text-muted-foreground">
+              Structured data (schema.org <code>Book</code> JSON-LD) is generated automatically
+              from this book&rsquo;s details — title, author, ISBN, format, and availability — no
+              separate field to maintain.
+            </p>
           </TabsContent>
 
           <TabsContent value="preview" className="mt-6">

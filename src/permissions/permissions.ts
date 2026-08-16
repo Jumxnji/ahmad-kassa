@@ -10,17 +10,21 @@ export type Resource =
   | "content" // homepage, about, books
   | "questions"
   | "contact"
-  | "newsletter"
+  | "newsletter" // subscriber management
+  | "campaigns" // newsletter campaign drafting/sending — its own resource, same precedent as "ownership" below
   | "media"
   | "users"
   | "seo"
   | "settings"
   | "ownership"; // promoting/demoting someone to or from Owner
 
-export type Action = "read" | "create" | "update" | "delete";
+export type Action = "read" | "create" | "update" | "delete" | "send";
 
 const ALL: readonly Action[] = ["read", "create", "update", "delete"];
 const READ_ONLY: readonly Action[] = ["read"];
+/** Everything a campaign resource needs except sending to the full active list. */
+const CAMPAIGN_EDIT: readonly Action[] = ["read", "create", "update", "delete"];
+const CAMPAIGN_ALL: readonly Action[] = ["read", "create", "update", "delete", "send"];
 
 type PermissionTable = Record<Role, Partial<Record<Resource, readonly Action[]>>>;
 
@@ -30,6 +34,7 @@ export const ROLE_PERMISSIONS: PermissionTable = {
     questions: ALL,
     contact: ALL,
     newsletter: ALL,
+    campaigns: CAMPAIGN_ALL,
     media: ALL,
     users: ALL,
     seo: ALL,
@@ -41,6 +46,7 @@ export const ROLE_PERMISSIONS: PermissionTable = {
     questions: ALL,
     contact: ALL,
     newsletter: ALL,
+    campaigns: CAMPAIGN_ALL,
     media: ALL,
     users: ["read", "create", "update"], // cannot delete, cannot touch ownership
     seo: ALL,
@@ -53,6 +59,9 @@ export const ROLE_PERMISSIONS: PermissionTable = {
     questions: READ_ONLY,
     contact: READ_ONLY,
     newsletter: READ_ONLY,
+    // Can draft, edit, preview, and send test emails (all gated on
+    // "update") — but cannot send to the full active list.
+    campaigns: CAMPAIGN_EDIT,
     seo: ["read", "update"],
   },
   VIEWER: {
@@ -60,6 +69,7 @@ export const ROLE_PERMISSIONS: PermissionTable = {
     questions: READ_ONLY,
     contact: READ_ONLY,
     newsletter: READ_ONLY,
+    campaigns: READ_ONLY,
     media: READ_ONLY,
     users: READ_ONLY,
     seo: READ_ONLY,

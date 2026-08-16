@@ -7,20 +7,32 @@ export const newsletterRepository = {
     return db.newsletterSubscriber.findMany({ orderBy: { createdAt: "desc" }, ...args });
   },
 
-  findByEmail(email: string) {
-    return db.newsletterSubscriber.findUnique({ where: { email } });
+  findById(id: string) {
+    return db.newsletterSubscriber.findUnique({ where: { id } });
+  },
+
+  findByNormalizedEmail(normalizedEmail: string) {
+    return db.newsletterSubscriber.findUnique({ where: { normalizedEmail } });
+  },
+
+  findByConfirmationTokenHash(hash: string) {
+    return db.newsletterSubscriber.findFirst({ where: { confirmationTokenHash: hash } });
   },
 
   count(where?: Prisma.NewsletterSubscriberWhereInput) {
     return db.newsletterSubscriber.count({ where });
   },
 
-  upsertByEmail(email: string, data: Prisma.NewsletterSubscriberUncheckedCreateInput) {
-    return db.newsletterSubscriber.upsert({
-      where: { email },
-      create: data,
-      update: { subscribed: true, language: data.language },
+  /** Confirmed + active subscribers, ordered oldest-first — the only audience a campaign send may ever read from. */
+  findActiveForCampaign() {
+    return db.newsletterSubscriber.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { createdAt: "asc" },
     });
+  },
+
+  create(data: Prisma.NewsletterSubscriberUncheckedCreateInput) {
+    return db.newsletterSubscriber.create({ data });
   },
 
   update(id: string, data: Prisma.NewsletterSubscriberUncheckedUpdateInput) {

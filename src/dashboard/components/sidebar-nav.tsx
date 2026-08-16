@@ -12,11 +12,19 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function SidebarNav({ role, onNavigate }: { role: Role; onNavigate?: () => void }) {
+export function SidebarNav({
+  role,
+  onNavigate,
+  "aria-label": ariaLabel = "Primary",
+}: {
+  role: Role;
+  onNavigate?: () => void;
+  "aria-label"?: string;
+}) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-6">
+    <nav aria-label={ariaLabel} className="flex flex-col gap-6">
       {DASHBOARD_NAV.map((section) => {
         const items = section.items.filter(
           (item) => !item.resource || can(role, item.resource, "read")

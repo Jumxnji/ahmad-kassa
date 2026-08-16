@@ -28,6 +28,10 @@ export async function updateContactMessageAction(id: string, values: unknown) {
 export async function deleteContactMessageAction(id: string) {
   return runAction(async () => {
     await requirePermission("contact", "delete");
+
+    const existing = await contactService.get(id);
+    if (!existing) throw new NotFoundError("Message");
+
     await contactService.remove(id);
     revalidatePath("/admin/contact");
     return { id };

@@ -24,6 +24,7 @@ import { contactService } from "@/services/contact.service";
 import { newsletterService } from "@/services/newsletter.service";
 import { mediaService } from "@/services/media.service";
 import { formatDate } from "@/lib/format";
+import type { Question, ContactMessage, Media } from "@/generated/prisma/client";
 
 export const metadata = { title: "Overview" };
 
@@ -45,18 +46,18 @@ export default async function AdminOverviewPage() {
     recentQuestions,
     recentMessages,
     recentUploads,
-  ] = await Promise.all([
+  ]: [number, number, number, number, Question[], ContactMessage[], Media[]] = await Promise.all([
     bookService.countPublished(),
-    questionService.countPending(),
+    questionService.countByStatus("NEW"),
     contactService.countUnread(),
-    newsletterService.countSubscribed(),
-    questionService.list({ status: "PENDING" }),
+    newsletterService.countActive(),
+    questionService.list({ status: "NEW" }),
     contactService.list({ status: "NEW" }),
     mediaService.listRecent(6),
   ]);
 
   const recentActivity = [
-    ...recentQuestions.slice(0, 5).map((q) => ({
+    ...recentQuestions.slice(0, 5).map((q: Question) => ({
       id: q.id,
       href: "/admin/ask-ahmad",
       title: `${q.name} asked a question`,
@@ -64,7 +65,7 @@ export default async function AdminOverviewPage() {
       date: q.createdAt,
       badge: "Question",
     })),
-    ...recentMessages.slice(0, 5).map((m) => ({
+    ...recentMessages.slice(0, 5).map((m: ContactMessage) => ({
       id: m.id,
       href: "/admin/contact",
       title: `${m.name} sent a message`,
@@ -161,7 +162,7 @@ export default async function AdminOverviewPage() {
             />
           ) : (
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-              {recentUploads.map((item) => {
+              {recentUploads.map((item: Media) => {
                 const isImage = item.mimeType.startsWith("image/");
                 return (
                   <Link

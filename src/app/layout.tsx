@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Manrope, Newsreader } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { siteConfig } from "@/config/site";
 import { brand } from "@/config/brand";
 import { buildMetadata } from "@/lib/seo";
+import { defaultLocale, isRtl } from "@/config/i18n";
 import "./globals.css";
 
 const newsreader = Newsreader({
@@ -35,6 +37,15 @@ export const metadata: Metadata = {
     },
     description: siteConfig.description,
   }),
+  // Search Console / Bing ownership verification (Sprint 9) — both
+  // optional, undefined-safe, set once the production domain is
+  // connected. See .env.example.
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+      : undefined,
+  },
   manifest: "/brand/manifest.webmanifest",
   icons: {
     icon: [
@@ -75,7 +86,8 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang={defaultLocale}
+      dir={isRtl(defaultLocale) ? "rtl" : "ltr"}
       suppressHydrationWarning
       className={`${newsreader.variable} ${manrope.variable} ${plexMono.variable} h-full`}
     >
@@ -90,6 +102,7 @@ export default function RootLayout({
           {children}
           <Toaster position="bottom-right" />
         </TooltipProvider>
+        <Analytics />
       </body>
     </html>
   );

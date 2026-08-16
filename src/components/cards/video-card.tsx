@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Lecture } from "@/types/content";
 import { VideoThumbnail } from "@/components/media/video-thumbnail";
 import { Badge } from "@/components/ui/badge";
+import { trackEvent } from "@/lib/analytics";
 
 interface VideoCardProps {
   lecture: Lecture;
@@ -34,7 +35,11 @@ export function VideoCard({ lecture }: VideoCardProps) {
       ) : (
         <button
           type="button"
-          onClick={() => canPlay && setPlaying(true)}
+          onClick={() => {
+            if (!canPlay) return;
+            trackEvent({ name: "external_video_click", props: { lectureSlug: lecture.slug } });
+            setPlaying(true);
+          }}
           disabled={!canPlay}
           className="text-left disabled:cursor-default"
           aria-label={canPlay ? `Play ${lecture.title}` : `${lecture.title} — coming soon`}

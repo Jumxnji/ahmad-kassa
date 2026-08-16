@@ -24,16 +24,20 @@ export const contactService = {
   count: () => contactRepository.count(),
   countUnread: () => contactRepository.count({ status: "NEW" }),
 
-  async listPaged(query: ParsedListQuery) {
-    const where: Prisma.ContactMessageWhereInput = query.q
-      ? {
-          OR: [
-            { name: { contains: query.q, mode: "insensitive" } },
-            { email: { contains: query.q, mode: "insensitive" } },
-            { message: { contains: query.q, mode: "insensitive" } },
-          ],
-        }
-      : {};
+  async listPaged(query: ParsedListQuery, filters?: { status?: $Enums.ContactStatus }) {
+    const where: Prisma.ContactMessageWhereInput = {
+      ...(query.q
+        ? {
+            OR: [
+              { name: { contains: query.q, mode: "insensitive" } },
+              { email: { contains: query.q, mode: "insensitive" } },
+              { subject: { contains: query.q, mode: "insensitive" } },
+              { message: { contains: query.q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+      ...(filters?.status ? { status: filters.status } : {}),
+    };
     const orderBy: Prisma.ContactMessageOrderByWithRelationInput = {
       [SORTABLE_FIELDS.has(query.sort) ? query.sort : "createdAt"]: query.dir,
     };
@@ -52,9 +56,12 @@ export const contactService = {
       name: input.name,
       email: input.email,
       reason: REASON_MAP[input.reason],
+      subject: input.subject,
       message: input.message,
       status: "NEW",
     }),
+
+  findRecentDuplicate: (email: string, message: string) => contactRepository.findRecentDuplicate(email, message),
 
   update: (id: string, input: UpdateContactMessageInput) => contactRepository.update(id, input),
 

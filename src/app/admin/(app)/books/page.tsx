@@ -12,26 +12,13 @@ import { Button } from "@/components/ui/button";
 import { bookService } from "@/services/book.service";
 import { formatDate } from "@/lib/format";
 import { buildListHref, pageCount, parseListQuery, type RawListSearchParams } from "@/lib/list-query";
+import { BOOK_STATUS_LABEL, BOOK_STATUS_TONE } from "@/dashboard/books-constants";
 
 type BookRow = Awaited<ReturnType<typeof bookService.listPaged>>["rows"][number];
 
 export const metadata = { title: "Books" };
 
 const BASE_PATH = "/admin/books";
-
-const STATUS_TONE = {
-  DRAFT: "muted",
-  PUBLISHED: "success",
-  COMING_SOON: "warning",
-  ARCHIVED: "muted",
-} as const;
-
-const STATUS_LABEL = {
-  DRAFT: "Draft",
-  PUBLISHED: "Published",
-  COMING_SOON: "Coming soon",
-  ARCHIVED: "Archived",
-} as const;
 
 interface BooksPageProps {
   searchParams: Promise<RawListSearchParams>;
@@ -80,7 +67,7 @@ export default async function AdminBooksPage({ searchParams }: BooksPageProps) {
       header: "Status",
       cell: (book) => (
         <div className="flex flex-wrap gap-1.5">
-          <StatusBadge label={STATUS_LABEL[book.status]} tone={STATUS_TONE[book.status]} />
+          <StatusBadge label={BOOK_STATUS_LABEL[book.status]} tone={BOOK_STATUS_TONE[book.status]} />
         </div>
       ),
     },

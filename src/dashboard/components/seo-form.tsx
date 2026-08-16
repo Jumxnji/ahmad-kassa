@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { ExternalLink } from "lucide-react";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Card } from "@/components/ui/card";
 import { ImageUploadField } from "@/dashboard/components/image-upload-field";
+import { CharCount, META_TITLE_MAX, META_DESCRIPTION_MAX } from "@/dashboard/components/seo-fields";
 import { updateDefaultSeoAction } from "@/actions/admin/seo.actions";
 import { seoSchema, type SeoInput } from "@/schemas/seo.schema";
 import type { Media, Seo } from "@/generated/prisma/client";
@@ -49,6 +50,9 @@ export function SeoForm({ seo }: SeoFormProps) {
     },
   });
 
+  const metaTitle = useWatch({ control: form.control, name: "metaTitle" }) ?? "";
+  const metaDescription = useWatch({ control: form.control, name: "metaDescription" }) ?? "";
+
   function onSubmit(values: SeoInput) {
     startTransition(async () => {
       const result = await updateDefaultSeoAction(values);
@@ -71,7 +75,10 @@ export function SeoForm({ seo }: SeoFormProps) {
               name="metaTitle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Default meta title</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Default meta title</FormLabel>
+                    <CharCount value={metaTitle} max={META_TITLE_MAX} />
+                  </div>
                   <FormControl>
                     <Input {...field} value={field.value ?? ""} />
                   </FormControl>
@@ -84,7 +91,10 @@ export function SeoForm({ seo }: SeoFormProps) {
               name="metaDescription"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Default meta description</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Default meta description</FormLabel>
+                    <CharCount value={metaDescription} max={META_DESCRIPTION_MAX} />
+                  </div>
                   <FormControl>
                     <Textarea rows={3} {...field} value={field.value ?? ""} />
                   </FormControl>

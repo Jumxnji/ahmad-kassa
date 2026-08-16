@@ -10,11 +10,14 @@
 // - Seo is its own reusable table, attached 1:1 to whatever needs it,
 //   instead of repeating meta/OG/Twitter columns on every content model.
 // - Only V1-required content is modelled here (Book, Homepage, About,
-//   Question, ContactMessage, NewsletterSubscriber, Media, User,
-//   SiteSettings, Seo). Courses/Articles/Events/etc. are deliberately
-//   NOT modelled yet — see src/config/features.ts. Adding them later
-//   follows the same repository/service/action pattern already
-//   established here; it doesn't require reshaping anything above.
+//   Question, ContactMessage, NewsletterSubscriber, Campaign, Media,
+//   User, SiteSettings, Seo). Courses/Articles/Events/etc. are
+//   deliberately NOT modelled yet — see src/features/flags.ts. Adding
+//   them later follows the same repository/service/action pattern
+//   already established here; it doesn't require reshaping anything
+//   above.
+// - NewsletterSettings/HomepageContent/AboutContent/SiteSettings are
+//   singleton rows using a fixed well-known string id — see above.
 
 generator client {
   provider = "prisma-client"
@@ -52,10 +55,33 @@ enum QuestionCategory {
   OTHER
 }
 
+/// NEW: just submitted, nobody has looked yet. IN_REVIEW: someone is
+/// actively considering it. WAITING: blocked on something (more info,
+/// a decision) before it can move forward. ANSWERED: a reply has been
+/// given. CLOSED: the conversation is done, but not archived away.
+/// ARCHIVED: removed from the active inbox view entirely.
 enum QuestionStatus {
-  PENDING
+  NEW
+  IN_REVIEW
+  WAITING
   ANSWERED
+  CLOSED
   ARCHIVED
+}
+
+enum QuestionPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+/// Who a Message was written by. Only USER (the visitor) is ever
+/// created in V1 — ADMIN exists now so a future admin-reply feature is
+/// a new Server Action, not a schema change.
+enum SenderType {
+  USER
+  ADMIN
 }
 
 enum ContentStatus {
@@ -98,6 +124,65 @@ enum BookStatus {
   ARCHIVED
 }
 
+/// PENDING: submitted, confirmation email sent, not yet clicked.
+/// ACTIVE: confirmed — the only status a campaign may ever send to.
+/// UNSUBSCRIBED: self-service opt-out, always resubscribable (via a
+/// fresh confirmation cycle). SUPPRESSED: staff-applied hard stop
+/// (e.g. a complaint handled manually). BOUNCED / COMPLAINED: set only
+/// by verified Resend webhook events. Suppressed/Bounced/Complained
+/// never auto-reactivate.
+enum SubscriberStatus {
+  PENDING
+  ACTIVE
+  UNSUBSCRIBED
+  SUPPRESSED
+  BOUNCED
+  COMPLAINED
+}
+
+/// Where a subscriber's signup came from — shown in the dashboard so
+/// staff can see which public forms are actually driving signups.
+enum SubscriberSource {
+  HOMEPAGE
+  FOOTER
+  NEWSLETTER_PAGE
+  BOOK_PAGE
+  COURSES_COMING_SOON
+  ADMIN_IMPORT
+  OTHER
+}
+
+/// DRAFT: being written. READY: content finished, not yet sent.
+/// SCHEDULED: queued for a future send (reserved — see
+/// features.newsletterScheduling). SENDING: send in progress — this is
+/// the state a conditional status-transition update uses as the
+/// idempotency guard against a duplicate trigger. SENT: fully
+/// delivered. PARTIALLY_FAILED: some recipients failed — see
+/// CampaignRecipient for which. CANCELLED: a scheduled send was called
+/// off before it ran.
+enum CampaignStatus {
+  DRAFT
+  READY
+  SCHEDULED
+  SENDING
+  SENT
+  PARTIALLY_FAILED
+  CANCELLED
+}
+
+/// V1 only ever uses ALL_ACTIVE (every confirmed, active subscriber).
+/// Modelled as an enum now so a future segment (e.g. BY_LANGUAGE) is a
+/// new value, not a schema change — see features.newsletterSegmentation.
+enum CampaignAudienceType {
+  ALL_ACTIVE
+}
+
+enum CampaignRecipientStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
 // ============================================================
 // Identity
 // ============================================================
@@ -125,6 +210,11 @@ model User {
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
   auditLogs           AuditLog[]
+  assignedQuestions   Question[]           @relation("QuestionAssignee")
+  sentMessages        Message[]            @relation("MessageSender")
+  internalNotes       InternalNote[]       @relation("InternalNoteAuthor")
+  createdCampaigns    Campaign[]           @relation("CampaignCreatedBy")
+  updatedCampaigns    Campaign[]           @relation("CampaignUpdatedBy")
 
   @@index([role])
   @@index([status])
@@ -330,6 +420,9 @@ model Book {
 
   @@index([status])
   @@index([featured])
+  /// Matches bookService.listPublic()'s actual query — filter on
+  /// status, order by featured then publicationDate.
+  @@index([status, featured])
   @@map("books")
 }
 
@@ -415,22 +508,130 @@ model EducationItem {
 // Communication
 // ============================================================
 
+/// The public-facing "ticket" — one row per submission. Deliberately
+/// does NOT store the message body itself (that's the first Message in
+/// its Conversation) — Question is the case file; Conversation/Message
+/// is the actual back-and-forth. This split is what lets V2 add admin
+/// replies, visitor replies, and a customer portal without touching
+/// this table's shape at all.
 model Question {
-  id         String           @id @default(uuid())
-  name       String
-  email      String
-  category   QuestionCategory
-  question   String
-  isPrivate  Boolean          @default(false)
-  status     QuestionStatus   @default(PENDING)
-  flagged    Boolean          @default(false)
-  answer     String?
-  answeredAt DateTime?
-  createdAt  DateTime         @default(now())
+  id              String           @id @default(uuid())
+  /// Human-facing lookup, e.g. "AMK-2026-000023" — shown in every
+  /// email and the dashboard so a visitor can reference it later
+  /// without needing an account. Generated via ReferenceCounter.
+  referenceNumber String           @unique
+  name            String
+  email           String
+  category        QuestionCategory
+  subject         String?
+  /// The visitor's original question text — kept here (in addition to
+  /// living as the first Message) purely so list views, search, and
+  /// the confirmation email don't need a join for the common case.
+  /// The canonical, growable record of the exchange is `conversation`.
+  initialMessage  String
+  status          QuestionStatus   @default(NEW)
+  priority        QuestionPriority @default(NORMAL)
+  isPrivate       Boolean          @default(false)
+  flagged         Boolean          @default(false)
+  /// Staff read-tracking — independent of `status`, so "someone opened
+  /// this" and "where this stands in the workflow" can't get confused
+  /// with each other.
+  readAt          DateTime?
+  assignedToId    String?
+  assignedTo      User?            @relation("QuestionAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  conversation Conversation?
+  notes        InternalNote[]
+  notifications UserNotification[]
 
   @@index([status])
   @@index([category])
+  @@index([assignedToId])
   @@map("questions")
+}
+
+/// One per Question today (1:1) — modelled as its own table rather
+/// than inlining messages onto Question so a future "visitor replies,
+/// admin replies" thread is just more Message rows, never a migration.
+model Conversation {
+  id         String    @id @default(uuid())
+  questionId String    @unique
+  question   Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  messages   Message[]
+
+  @@map("conversations")
+}
+
+/// A single entry in a Conversation. V1 only ever creates one USER
+/// message (the original submission) — ADMIN messages, attachments,
+/// and read receipts are all real columns already, waiting for the
+/// reply feature rather than requiring one.
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderType     SenderType
+  /// Which admin sent this — null for USER messages (visitors don't
+  /// have accounts yet) and for the one auto-created USER message.
+  senderUserId   String?
+  senderUser     User?        @relation("MessageSender", fields: [senderUserId], references: [id], onDelete: SetNull)
+  message        String
+  /// Reserved for future file uploads — an array of Media ids/urls.
+  /// Always null until attachments ship; not read anywhere yet.
+  attachments    Json?
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+/// Staff-only annotations on a Question — never rendered anywhere a
+/// visitor (now or in a future portal) could see them. Deliberately a
+/// separate table from Message, not a third SenderType, so "internal"
+/// can never leak into the conversation history by a filtering bug.
+model InternalNote {
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  authorId   String?
+  author     User?    @relation("InternalNoteAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  note       String
+  createdAt  DateTime @default(now())
+
+  @@index([questionId])
+  @@map("internal_notes")
+}
+
+/// Tracks visitor-facing notification delivery per Question — reserved
+/// for a future "your question was answered" email/portal alert.
+/// Populated honestly today (emailSent flips true right after the
+/// confirmation email send succeeds) rather than left as a pure stub.
+model UserNotification {
+  id           String    @id @default(uuid())
+  questionId   String
+  question     Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  emailSent    Boolean   @default(false)
+  lastReminder DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([questionId])
+  @@map("user_notifications")
+}
+
+/// Atomic per-key counters — currently only backs Question reference
+/// numbers ("question-2026" -> 23), but the key is a free-form string
+/// so any future sequential-number need (invoices, bookings, contact
+/// references) reuses this instead of inventing another counter table.
+model ReferenceCounter {
+  key   String @id
+  value Int    @default(0)
+
+  @@map("reference_counters")
 }
 
 model ContactMessage {
@@ -438,23 +639,144 @@ model ContactMessage {
   name      String
   email     String
   reason    ContactReason @default(GENERAL)
+  subject   String        @default("")
   message   String
   status    ContactStatus @default(NEW)
   createdAt DateTime      @default(now())
 
   @@index([status])
+  /// Admin inbox default sort.
+  @@index([createdAt])
   @@map("contact_messages")
 }
 
+/// A calm, low-frequency announcement list, not a marketing database.
+/// `email` keeps its original casing (shown in the dashboard);
+/// `normalizedEmail` (lowercased + trimmed) is the unique key every
+/// lookup/dedup actually uses, so "Name@Example.com" and
+/// "name@example.com" are always the same subscriber. Confirmation
+/// tokens are single-use/expiring and stored only as a hash — the raw
+/// token exists solely in the outgoing email/URL, never persisted
+/// (unlike the older, out-of-scope `PasswordResetToken`, which stores
+/// its token raw). Unsubscribe links need no stored token at all — see
+/// src/lib/newsletter-token.ts's `unsubscribeToken()`.
 model NewsletterSubscriber {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  language   String   @default("en")
-  subscribed Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  id                         String            @id @default(uuid())
+  email                      String            @unique
+  normalizedEmail            String            @unique
+  firstName                  String?
+  /// Stored for a future multilingual rollout; not yet exposed as a
+  /// form control (see features.multilingual).
+  preferredLanguage          String            @default("en")
+  status                     SubscriberStatus  @default(PENDING)
+  source                     SubscriberSource  @default(OTHER)
+  /// Which version of the on-page consent copy was shown at signup —
+  /// bump the constant in code (not this schema) when the wording
+  /// changes, so historical consent stays attributable to what a
+  /// subscriber actually saw.
+  consentTextVersion         String?
+  consentedAt                DateTime?
+  confirmedAt                DateTime?
+  unsubscribedAt             DateTime?
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+  lastEmailSentAt            DateTime?
+  emailFailureCount          Int               @default(0)
+  /// Set only when status is SUPPRESSED/BOUNCED/COMPLAINED — why this
+  /// address will never be emailed again.
+  suppressionReason          String?
+  confirmationTokenHash      String?
+  confirmationTokenExpiresAt DateTime?
+  metadata                   Json?
 
-  @@index([subscribed])
+  campaignRecipients CampaignRecipient[]
+
+  @@index([status])
+  @@index([source])
+  @@index([confirmationTokenHash])
   @@map("newsletter_subscribers")
+}
+
+model Campaign {
+  id               String               @id @default(uuid())
+  /// Admin-only label shown in the campaigns list — never sent.
+  internalName     String
+  /// The heading rendered inside the email body.
+  title            String
+  subject          String
+  previewText      String?
+  /// Rich HTML from the shared Tiptap editor.
+  content          String
+  plainTextContent String
+  ctaLabel         String?
+  ctaUrl           String?
+  secondaryContent String?
+  status           CampaignStatus       @default(DRAFT)
+  audienceType     CampaignAudienceType @default(ALL_ACTIVE)
+  language         String               @default("en")
+  /// Nullable overrides of NewsletterSettings' defaults.
+  senderName       String?
+  replyToEmail     String?
+  scheduledFor     DateTime?
+  sentAt           DateTime?
+  createdById      String?
+  createdBy        User?                @relation("CampaignCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedById      String?
+  updatedBy        User?                @relation("CampaignUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  /// Resend batch-send id, once a send has started.
+  providerBatchId  String?
+  recipientCount   Int                  @default(0)
+  successCount     Int                  @default(0)
+  failureCount     Int                  @default(0)
+
+  recipients CampaignRecipient[]
+
+  @@index([status])
+  @@map("campaigns")
+}
+
+/// Per-subscriber delivery tracking for one campaign send. The
+/// `@@unique` below is the duplicate-delivery guard: a send action that
+/// re-runs against an already-populated recipient set can't insert the
+/// same subscriber twice, and only ever processes rows still PENDING.
+model CampaignRecipient {
+  id                String                   @id @default(uuid())
+  campaignId        String
+  campaign          Campaign                 @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subscriberId      String
+  subscriber        NewsletterSubscriber     @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  status            CampaignRecipientStatus  @default(PENDING)
+  sentAt            DateTime?
+  error             String?
+  providerMessageId String?
+  createdAt         DateTime                 @default(now())
+
+  @@unique([campaignId, subscriberId])
+  @@index([campaignId])
+  @@index([subscriberId])
+  @@index([providerMessageId])
+  @@map("campaign_recipients")
+}
+
+/// Singleton row (fixed id), same pattern as SiteSettings/
+/// HomepageContent — always a plain `.update()`, never `.upsert()`.
+model NewsletterSettings {
+  id                            String   @id @default("newsletter")
+  senderName                    String   @default("Ahmad Kassa")
+  senderEmail                   String   @default("newsletter@ahmadkassa.com")
+  replyToEmail                  String?
+  confirmationSubject           String   @default("Confirm your subscription")
+  welcomeSubject                String   @default("Welcome — you're subscribed")
+  defaultFooterText             String?
+  businessAddress               String?
+  defaultLanguage               String   @default("en")
+  confirmationTokenExpiryHours  Int      @default(48)
+  testEmailAllowlist            String[] @default([])
+  updatedAt                     DateTime @updatedAt
+
+  @@map("newsletter_settings")
 }
 
 // ============================================================

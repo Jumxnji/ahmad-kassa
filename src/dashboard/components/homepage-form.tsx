@@ -28,6 +28,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Container } from "@/components/shared/container";
 import { ImageUploadField } from "@/dashboard/components/image-upload-field";
+import { SeoFields } from "@/dashboard/components/seo-fields";
 import { AutosaveIndicator } from "@/dashboard/components/autosave-indicator";
 import { useAutosave } from "@/hooks/use-autosave";
 import { updateHomepageAction } from "@/actions/admin/homepage.actions";
@@ -119,6 +120,7 @@ export function HomepageForm({ homepage, books }: HomepageFormProps) {
       seo: {
         metaTitle: homepage?.seo?.metaTitle ?? "",
         metaDescription: homepage?.seo?.metaDescription ?? "",
+        noindex: homepage?.seo?.noindex ?? false,
       },
     },
   });
@@ -393,37 +395,13 @@ export function HomepageForm({ homepage, books }: HomepageFormProps) {
           </div>
         </Card>
 
-        <Card className="border-none p-6 shadow-none ring-1 ring-border">
-          <h2 className="text-sm font-medium text-foreground">SEO</h2>
-          <div className="mt-4 grid gap-6 sm:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="seo.metaTitle"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Meta title</FormLabel>
-                  <FormControl>
-                    <Input {...field} value={field.value ?? ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="seo.metaDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Meta description</FormLabel>
-                  <FormControl>
-                    <Input {...field} value={field.value ?? ""} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </Card>
+        <SeoFields
+          control={form.control}
+          showCanonical={false}
+          showKeywords={false}
+          titleDefaultHint="Defaults to the site name and tagline if left blank."
+          descriptionDefaultHint="Defaults to the site-wide description if left blank."
+        />
 
         <Button type="submit" variant="gold" size="lg" disabled={isPending}>
           {isPending ? "Saving…" : "Save changes"}

@@ -265,19 +265,35 @@ async function main() {
   }
 
   // ---- Sample inbox data, so dashboard tables aren't empty on first run --
+  const SEED_QUESTION_MESSAGE =
+    "Assalamu alaikum, I've been having trouble sleeping and keep having the same disturbing dream. Could this be linked to the unseen, and if so what's the first practical step?";
+
   await db.question.upsert({
     where: { id: "seed-question-1" },
     update: {},
     create: {
       id: "seed-question-1",
+      referenceNumber: "AMK-2026-000001",
       name: "Yusuf A.",
       email: "yusuf.example@example.com",
       category: "RUQYAH",
-      question:
-        "Assalamu alaikum, I've been having trouble sleeping and keep having the same disturbing dream. Could this be linked to the unseen, and if so what's the first practical step?",
-      status: "PENDING",
+      initialMessage: SEED_QUESTION_MESSAGE,
+      status: "NEW",
+      priority: "NORMAL",
       isPrivate: true,
+      conversation: {
+        create: { messages: { create: { senderType: "USER", message: SEED_QUESTION_MESSAGE } } },
+      },
+      notifications: { create: { emailSent: false } },
     },
+  });
+
+  // Keep the reference-number counter in step with the hardcoded seed
+  // reference above, so the next real submission doesn't collide with it.
+  await db.referenceCounter.upsert({
+    where: { key: "question-2026" },
+    update: {},
+    create: { key: "question-2026", value: 1 },
   });
 
   await db.contactMessage.upsert({
@@ -288,6 +304,7 @@ async function main() {
       name: "Amina K.",
       email: "amina.example@example.com",
       reason: "SPEAKING",
+      subject: "Speaking at our Birmingham seminar?",
       message:
         "We're organizing a seminar in Birmingham this spring and would love to have Ahmad speak on Ruqyah. Could you share available dates and a rough fee?",
       status: "NEW",
@@ -297,7 +314,27 @@ async function main() {
   await db.newsletterSubscriber.upsert({
     where: { email: "subscriber.example@example.com" },
     update: {},
-    create: { email: "subscriber.example@example.com", language: "en", subscribed: true },
+    create: {
+      email: "subscriber.example@example.com",
+      normalizedEmail: "subscriber.example@example.com",
+      preferredLanguage: "en",
+      source: "OTHER",
+      status: "ACTIVE",
+      consentTextVersion: "v1",
+      consentedAt: new Date(),
+      confirmedAt: new Date(),
+    },
+  });
+
+  // ---- Newsletter settings (singleton) ----------------------------------
+  await db.newsletterSettings.upsert({
+    where: { id: "newsletter" },
+    update: {},
+    create: {
+      id: "newsletter",
+      ...(process.env.RESEND_FROM_EMAIL ? { senderEmail: process.env.RESEND_FROM_EMAIL } : {}),
+      ...(process.env.RESEND_REPLY_TO_EMAIL ? { replyToEmail: process.env.RESEND_REPLY_TO_EMAIL } : {}),
+    },
   });
 
   console.log("Seed complete:");

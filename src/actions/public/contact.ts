@@ -1,43 +1,59 @@
 "use server";
 
-import { CONTACT_EMAIL } from "@/constants/site";
-import { getResendClient } from "@/services/resend";
+import { runAction, fieldErrorsFromZod } from "@/lib/action-helpers";
+import { ValidationError } from "@/lib/errors";
+import { checkFormRateLimit, isHoneypotTriggered } from "@/lib/spam-protection";
 import { contactService } from "@/services/contact.service";
+import { emailService } from "@/services/email.service";
+import { contactReceivedEmail, adminNewContactEmail } from "@/lib/email/templates";
 import { contactFormSchema } from "@/validators/public/contact-form.validator";
+import { siteConfig } from "@/config/site";
 import type { ActionResult } from "@/types/actions";
 
 export async function submitContactForm(values: unknown): Promise<ActionResult> {
-  const parsed = contactFormSchema.safeParse(values);
+  return runAction(async () => {
+    const parsed = contactFormSchema.safeParse(values);
+    if (!parsed.success) {
+      throw new ValidationError("Please check the form and try again.", fieldErrorsFromZod(parsed.error));
+    }
 
-  if (!parsed.success) {
-    return { success: false, message: "Please check the form and try again." };
-  }
+    if (isHoneypotTriggered(parsed.data.company)) {
+      return;
+    }
 
-  try {
-    await contactService.submit(parsed.data);
-  } catch (error) {
-    console.error("[submitContactForm] Failed to save message:", error);
-    return {
-      success: false,
-      message: "Something went wrong on our end — please try again.",
-    };
-  }
+    const rateLimit = await checkFormRateLimit("contact");
+    if (!rateLimit.allowed) {
+      throw new ValidationError("Too many submissions — please try again in a few minutes.");
+    }
 
-  try {
-    const resend = getResendClient();
-    await resend.emails.send({
-      from: "Ahmad Kassa <noreply@ahmadkassa.com>",
-      to: CONTACT_EMAIL,
-      replyTo: parsed.data.email,
-      subject: `New enquiry (${parsed.data.reason}) from ${parsed.data.name}`,
-      text: parsed.data.message,
-    });
-  } catch (error) {
-    console.error("[submitContactForm] Resend is not configured yet:", error);
-  }
+    const duplicate = await contactService.findRecentDuplicate(parsed.data.email, parsed.data.message);
+    if (duplicate) {
+      return;
+    }
 
-  return {
-    success: true,
-    message: "Thank you — your message has been sent.",
-  };
+    const message = await contactService.submit(parsed.data);
+
+    const dashboardUrl = new URL("/admin/contact", siteConfig.url).toString();
+
+    await Promise.all([
+      emailService.send({
+        to: message.email,
+        ...contactReceivedEmail({ name: message.name, subject: message.subject }),
+      }),
+      emailService.getAdminRecipient().then((to) =>
+        emailService.send({
+          to,
+          replyTo: message.email,
+          ...adminNewContactEmail({
+            name: message.name,
+            email: message.email,
+            subject: message.subject,
+            reason: message.reason,
+            message: message.message,
+            dashboardUrl,
+          }),
+        })
+      ),
+    ]);
+  }, "Thank you — your message has been sent.");
 }

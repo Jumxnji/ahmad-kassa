@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Mail } from "lucide-react";
 import { DashboardPageHeader } from "@/dashboard/components/page-header";
 import { DataTable, type DataTableColumn } from "@/dashboard/components/data-table";
@@ -8,21 +9,44 @@ import { PaginationControls } from "@/dashboard/components/pagination-controls";
 import { EmptyState } from "@/components/shared/empty-state";
 import { contactService } from "@/services/contact.service";
 import { formatDate } from "@/lib/format";
-import { buildListHref, pageCount, parseListQuery, type RawListSearchParams } from "@/lib/list-query";
-import type { ContactMessage } from "@/generated/prisma/client";
+import {
+  buildListHref,
+  pageCount,
+  parseListQuery,
+  type ParsedListQuery,
+  type RawListSearchParams,
+} from "@/lib/list-query";
+import { cn } from "@/lib/utils";
+import {
+  CONTACT_STATUS_LABEL as STATUS_LABEL,
+  CONTACT_STATUS_TONE as STATUS_TONE,
+} from "@/dashboard/contact-constants";
+import type { $Enums, ContactMessage } from "@/generated/prisma/client";
 
 export const metadata = { title: "Contact Messages" };
 
 const BASE_PATH = "/admin/contact";
-const STATUS_TONE = { NEW: "warning", READ: "neutral", ARCHIVED: "muted" } as const;
 
 interface ContactPageProps {
-  searchParams: Promise<RawListSearchParams>;
+  searchParams: Promise<RawListSearchParams & { status?: string }>;
 }
 
 export default async function AdminContactPage({ searchParams }: ContactPageProps) {
-  const query = parseListQuery(await searchParams, "createdAt");
-  const { rows: messages, total } = await contactService.listPaged(query);
+  const raw = await searchParams;
+  const query = parseListQuery(raw, "createdAt");
+  const statusFilter = raw.status as $Enums.ContactStatus | undefined;
+
+  const { rows: messages, total } = await contactService.listPaged(query, { status: statusFilter });
+
+  function hrefWithStatus(
+    status: string | undefined,
+    overrides: Partial<Pick<ParsedListQuery, "sort" | "dir" | "page">> = {}
+  ) {
+    const base = buildListHref(BASE_PATH, query, overrides);
+    if (!status) return base;
+    const separator = base.includes("?") ? "&" : "?";
+    return `${base}${separator}status=${status}`;
+  }
 
   const columns: DataTableColumn<ContactMessage>[] = [
     {
@@ -37,9 +61,14 @@ export default async function AdminContactPage({ searchParams }: ContactPageProp
       ),
     },
     {
-      key: "message",
-      header: "Message",
-      cell: (m) => <p className="line-clamp-2 max-w-md text-sm text-foreground/80">{m.message}</p>,
+      key: "subject",
+      header: "Subject",
+      cell: (m) => (
+        <div>
+          <p className="text-sm text-foreground/90">{m.subject || "—"}</p>
+          <p className="line-clamp-1 max-w-md text-xs text-muted-foreground">{m.message}</p>
+        </div>
+      ),
     },
     {
       key: "reason",
@@ -51,7 +80,7 @@ export default async function AdminContactPage({ searchParams }: ContactPageProp
       key: "status",
       header: "Status",
       sortKey: "status",
-      cell: (m) => <StatusBadge label={m.status} tone={STATUS_TONE[m.status]} />,
+      cell: (m) => <StatusBadge label={STATUS_LABEL[m.status]} tone={STATUS_TONE[m.status]} />,
     },
     {
       key: "createdAt",
@@ -76,12 +105,35 @@ export default async function AdminContactPage({ searchParams }: ContactPageProp
         description="Enquiries submitted through the public Contact form."
       />
 
-      <TableSearchForm
-        action={BASE_PATH}
-        placeholder="Search messages…"
-        defaultValue={query.q}
-        preserve={{ sort: query.sort, dir: query.dir }}
-      />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <TableSearchForm
+          action={BASE_PATH}
+          placeholder="Search messages…"
+          defaultValue={query.q}
+          preserve={{ sort: query.sort, dir: query.dir }}
+        />
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: undefined, label: "All" },
+            { value: "NEW", label: "Unread" },
+            { value: "READ", label: "Read" },
+            { value: "ARCHIVED", label: "Archived" },
+          ].map((option) => (
+            <Link
+              key={option.label}
+              href={hrefWithStatus(option.value)}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
+                statusFilter === option.value
+                  ? "border-navy-900 bg-navy-900 text-paper-50"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </div>
+      </div>
 
       {messages.length === 0 ? (
         <EmptyState
@@ -96,14 +148,14 @@ export default async function AdminContactPage({ searchParams }: ContactPageProp
             rows={messages}
             getRowKey={(m) => m.id}
             sort={{ key: query.sort, dir: query.dir }}
-            buildSortHref={(key, dir) => buildListHref(BASE_PATH, query, { sort: key, dir, page: 1 })}
+            buildSortHref={(key, dir) => hrefWithStatus(statusFilter, { sort: key, dir, page: 1 })}
           />
           <PaginationControls
             page={query.page}
             pageCount={pageCount(total, query.pageSize)}
             total={total}
             itemLabel="message"
-            buildHref={(page) => buildListHref(BASE_PATH, query, { page })}
+            buildHref={(page) => hrefWithStatus(statusFilter, { page })}
           />
         </>
       )}

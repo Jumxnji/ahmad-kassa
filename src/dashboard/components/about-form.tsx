@@ -19,11 +19,12 @@ import {
 } from "@/components/ui/form";
 import { Card } from "@/components/ui/card";
 import { RichTextEditor } from "@/dashboard/components/rich-text-editor";
+import { SeoFields } from "@/dashboard/components/seo-fields";
 import { AutosaveIndicator } from "@/dashboard/components/autosave-indicator";
 import { useAutosave } from "@/hooks/use-autosave";
 import { updateAboutAction } from "@/actions/admin/about.actions";
 import { aboutContentSchema } from "@/schemas/about.schema";
-import type { AboutContent } from "@/generated/prisma/client";
+import type { AboutContent, Seo } from "@/generated/prisma/client";
 
 // The form works with badges as a single comma-separated string for a
 // simpler input; the schema (array of strings) still validates on submit.
@@ -32,7 +33,7 @@ const aboutFormSchema = aboutContentSchema.extend({
 });
 type AboutFormValues = z.infer<typeof aboutFormSchema>;
 
-export function AboutForm({ about }: { about: AboutContent | null }) {
+export function AboutForm({ about }: { about: (AboutContent & { seo: Seo | null }) | null }) {
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<AboutFormValues>({
@@ -44,6 +45,11 @@ export function AboutForm({ about }: { about: AboutContent | null }) {
       missionText: about?.missionText ?? "",
       futureVisionText: about?.futureVisionText ?? "",
       badges: about?.badges?.join(", ") ?? "",
+      seo: {
+        metaTitle: about?.seo?.metaTitle ?? "",
+        metaDescription: about?.seo?.metaDescription ?? "",
+        noindex: about?.seo?.noindex ?? false,
+      },
     },
   });
 
@@ -188,6 +194,14 @@ export function AboutForm({ about }: { about: AboutContent | null }) {
             />
           </div>
         </Card>
+
+        <SeoFields
+          control={form.control}
+          showCanonical={false}
+          showKeywords={false}
+          titleDefaultHint="Defaults to “About” if left blank."
+          descriptionDefaultHint="Defaults to a standard bio summary if left blank."
+        />
 
         <Button type="submit" variant="gold" size="lg" disabled={isPending}>
           {isPending ? "Saving…" : "Save changes"}

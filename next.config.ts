@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname),
   },
+  // AVIF/WebP negotiation for next/image (Sprint 9) — smaller payloads
+  // on every browser that supports them, no source-image changes
+  // needed since Next transcodes on request.
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
   // Baseline security headers (Sprint 5) — cheap, broadly-recommended
   // hardening that sits alongside the app-level protections (Zod
   // validation everywhere, bcrypt password hashing, rate-limited auth

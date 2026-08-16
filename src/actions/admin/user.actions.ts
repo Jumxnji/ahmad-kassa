@@ -42,6 +42,10 @@ export async function resetUserPasswordAction(id: string) {
     const existing = await userService.get(id);
     if (!existing) throw new NotFoundError("User");
 
+    if (existing.role === "OWNER") {
+      await requirePermission("ownership", "update");
+    }
+
     const { temporaryPassword } = await userService.resetPassword(id);
     await auditLogService.record({
       userId: actor.id,

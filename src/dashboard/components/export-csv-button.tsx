@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { exportNewsletterCsvAction } from "@/actions/admin/newsletter.actions";
+import type { $Enums } from "@/generated/prisma/client";
 
 function downloadCsv(filename: string, csv: string) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -16,12 +17,20 @@ function downloadCsv(filename: string, csv: string) {
   URL.revokeObjectURL(url);
 }
 
-export function ExportCsvButton({ search }: { search?: string }) {
+export function ExportCsvButton({
+  q,
+  status,
+  source,
+}: {
+  q?: string;
+  status?: $Enums.SubscriberStatus;
+  source?: $Enums.SubscriberSource;
+}) {
   const [isPending, startTransition] = useTransition();
 
   function handleExport() {
     startTransition(async () => {
-      const result = await exportNewsletterCsvAction(search);
+      const result = await exportNewsletterCsvAction({ q, status, source });
       if (result.success) {
         downloadCsv(`newsletter-subscribers-${new Date().toISOString().slice(0, 10)}.csv`, result.data);
       } else {

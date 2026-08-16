@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { Bell, type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 import type { Course } from "@/types/content";
 import { Badge } from "@/components/ui/badge";
 import { CourseIllustration } from "@/components/media/course-illustration";
+import { CourseInterestLink } from "@/components/cards/course-interest-link";
 
 const LEVEL_LABELS: Record<Course["level"], string> = {
   beginner: "Beginner",
@@ -39,13 +39,7 @@ export function CourseCard({ course, icon }: CourseCardProps) {
         <p className="mt-4 text-xs text-stone-500">
           {course.modules.length} modules · {lessonCount} lessons
         </p>
-        <Link
-          href="/newsletter"
-          className="mt-4 inline-flex items-center gap-1.5 border-t border-border pt-4 text-sm font-medium text-navy-800 transition-colors hover:text-gold-600"
-        >
-          <Bell className="size-3.5" strokeWidth={1.5} />
-          Notify me at launch
-        </Link>
+        <CourseInterestLink courseSlug={course.slug} />
       </div>
     </div>
   );
