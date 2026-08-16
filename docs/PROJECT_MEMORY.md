@@ -181,18 +181,298 @@ scoped like a bespoke platform rather than a generic template.
   destructive drop/recreate — check `prisma/migrations/
   20260731192010_sprint6_books_media/migration.sql` before adding
   another folder value the same way).
+- **Question ≠ its message text (Sprint 7).** `Question` is the case
+  file (reference number, category, status, priority, who it's from);
+  the actual exchange lives in `Conversation` → `Message[]`, a genuine
+  1-to-many from day one even though V1 only ever creates a single
+  USER message. `Question.initialMessage` duplicates that first
+  message's text purely so list views and search don't need a join for
+  the common case — the canonical, growable record is always the
+  Conversation. Admin replies, visitor replies, and a threaded history
+  are all "add a Message row," never a migration. Never inline a
+  question's answer back onto the `Question` row (the old `answer`/
+  `answeredAt` columns were removed this sprint for exactly this
+  reason) — an answer is an ADMIN `Message`.
+- **`InternalNote` is a separate table from `Message`, not a third
+  `senderType`.** Internal notes must never be able to leak into a
+  future customer-facing conversation view by a filtering bug — putting
+  them in a genuinely different table makes that structurally
+  impossible rather than policy-enforced.
+- **Reference numbers (`AMK-2026-000023`) use a generic
+  `ReferenceCounter` table** (`key` → `value`, atomically incremented
+  via Postgres `ON CONFLICT DO UPDATE SET value = value + 1`), keyed
+  `"question-2026"` today. Any future entity needing sequential
+  human-facing numbers (contact enquiries, bookings, invoices) reuses
+  this counter with a different key prefix rather than inventing a new
+  mechanism — see `src/services/reference-number.service.ts`.
+- **Read-tracking (`readAt`) is deliberately separate from workflow
+  `status`.** "Has staff looked at this" and "where this stands in the
+  process" are different questions — conflating them (e.g. treating
+  `status=NEW` as "unread") would break the moment a question needs to
+  go back to New after being reopened. Both `Question.readAt` and
+  `Message.readAt` follow this same pattern.
+- **Notifications are two unrelated things, not one feature.** The
+  dashboard bell (staff-facing, "you have new questions") is a live
+  computed count from existing tables — no stored notifications, see
+  `src/services/notification.service.ts`. `UserNotification` (visitor-
+  facing, "your question was answered") is a real but currently-unused
+  table, populated honestly (`emailSent` flips true right after the
+  confirmation email send actually succeeds) so it's trustworthy data
+  whenever a future portal starts reading it, not a stub someone has to
+  remember to wire up correctly later.
+- **Email templates are hand-written HTML strings, not a React Email
+  dependency.** All styling is inlined (not a `<style>` block — Outlook
+  desktop strips/mishandles those), and no web fonts are loaded (email
+  clients don't reliably fetch them); `src/lib/email/layout.ts`'s
+  `DISPLAY_FONT`/`BODY_FONT` stacks are the closest email-safe
+  approximation of Newsreader/Manrope. Every template shares one layout
+  function, so a future template (newsletter, course receipt) is a new
+  content function, not new chrome.
+- **The admin notification recipient is read from
+  `SiteSettings.contactEmail` server-side**, not the `CONTACT_EMAIL`
+  constant that's also shown on the public site — see
+  `emailService.getAdminRecipient()`. Decouples "address shown
+  publicly" from "address internal alerts actually go to," which is
+  also how the brief's "never expose the admin email publicly"
+  requirement got satisfied (the public Contact page's old `mailto:`
+  icon was removed this sprint for the same reason).
+- **Spam protection layers**: a honeypot field (name `company`,
+  off-screen via CSS positioning rather than `display:none`, which some
+  bots specifically check for and skip) that silently "succeeds"
+  without processing if filled in; per-IP rate limiting reusing the
+  existing `checkRateLimit` from Sprint 5
+  (`src/lib/spam-protection.ts`'s `checkFormRateLimit`, keyed per form
+  name so a flood on Ask Ahmad can't lock out Contact); and
+  duplicate-submission prevention (same email + same message text
+  within 2 minutes returns the original record instead of creating a
+  second one — handles double-clicks and flaky-network retries, not
+  just bots).
+
+- **Newsletter subscribers require confirmed opt-in (Sprint 8) — never
+  add an address to a sendable audience on submit alone.** Signup
+  creates a `PENDING` row; only clicking the emailed confirmation link
+  flips it to `ACTIVE`. A campaign send's audience query filters on
+  `status: "ACTIVE"` and nothing else — see
+  `newsletterRepository.findActiveForCampaign()` and the pure
+  `canReceiveCampaign()` predicate in `src/schemas/newsletter.schema.ts`
+  (kept outside any `"server-only"`-guarded file specifically so it's
+  unit-testable). `SUPPRESSED`/`BOUNCED`/`COMPLAINED` can never be
+  reactivated by a public resubmit or an admin "resubscribe" click —
+  only `UNSUBSCRIBED` is eligible for that.
+- **Unsubscribe tokens are computed, not stored (Sprint 8).**
+  `unsubscribeToken(subscriberId) = HMAC-SHA256(subscriberId)`, keyed
+  by `NEWSLETTER_TOKEN_SECRET` — recomputed and compared
+  (`timingSafeEqual`) on every click, nothing persisted. This was a
+  correction mid-sprint from an initial random-token-plus-stored-hash
+  design (mirroring confirmation tokens), which turned out to be wrong
+  for this use case: a raw token generated once at signup and then
+  discarded (per "never store raw tokens") can never be reconstructed
+  for a *later* email (the welcome email, any campaign). Confirmation
+  tokens correctly keep the random+hashed+expiring pattern, since they
+  must become invalid after one use — a property the derived scheme
+  can't give without also persisting a "consumed" flag. See
+  `src/lib/newsletter-token.ts` and `docs/sprints/SPRINT-08.md`.
+- **Campaign sends are per-recipient concurrent calls through the
+  existing `emailService.send()`, not `resend.batch.send()` (Sprint
+  8).** The batch endpoint was reviewed and rejected: its
+  permissive-validation partial-failure reporting doesn't reliably
+  correlate back to *which* recipient failed once any entries are
+  skipped, which this sprint's per-recipient `CampaignRecipient`
+  status tracking needs. `Promise.all` chunks of 20 give a clean 1:1
+  result mapping and reuse the already-tested retry logic instead.
+- **Campaign-send idempotency is two independent DB-level guards, not
+  a client-side disable.** `campaignService.beginSending()` is a
+  conditional `UPDATE ... WHERE status IN (DRAFT, READY)` — only one
+  concurrent trigger can ever win. `CampaignRecipient` rows carry a
+  unique `(campaignId, subscriberId)` constraint, so even a crash-and-
+  retry of the send loop can't double-send. See `sendCampaignAction`
+  in `src/actions/admin/campaign.actions.ts`.
+- **`campaigns` is its own permission resource (Sprint 8), mirroring
+  the `ownership` resource's precedent** — a dedicated resource for one
+  especially sensitive capability (`send`), separate from `newsletter`
+  (subscriber management, unchanged this sprint). Editor can create/
+  update/delete a draft and send test emails (gated on `campaigns:update`)
+  but not `campaigns:send`. Follow this same pattern — a new resource,
+  not a bespoke check — for any future capability that needs a
+  narrower permission than an existing resource's `update` already
+  grants.
+- **The Resend delivery webhook (`/api/webhooks/resend`, Sprint 8)
+  verifies signatures by hand** (Svix-compatible HMAC, see
+  `src/lib/webhook-signature.ts`) rather than adding the `svix`
+  package — consistent with the `toCsv()` precedent of a small
+  hand-written utility over a dependency for something this size.
+  Bounce/complaint processing needs no processed-event-id table: the
+  writes it performs (suppress a subscriber, mark a recipient failed)
+  are naturally idempotent end states.
+
+- **`SITE_URL` is environment-aware (Sprint 9), and every discovery
+  surface reads through it.** `src/constants/site.ts`'s `SITE_URL`
+  prefers `NEXT_PUBLIC_SITE_URL`, falling back to the hardcoded real
+  domain — the same pattern Sprint 8's `newsletter-urls.ts` already
+  established. `buildMetadata()`, `sitemap.ts`, `robots.ts`, and every
+  dynamic OG image route all resolve through `siteConfig.url`, so this
+  one env var fixes canonical/OG/sitemap/robots consistently across
+  local dev, preview deployments, and a not-yet-connected production
+  domain — never hardcode a URL in a new discovery-related file.
+- **CMS-backed metadata prefers the editor-set `Seo` row, with a
+  hardcoded fallback (Sprint 9).** Homepage and About's
+  `generateMetadata()` read `homepageService.get()`/`aboutService.get()`'s
+  `seo.metaTitle`/`seo.metaDescription`, falling back to a constant
+  only when unset — mirroring the pattern Books already had. The
+  site-wide default `Seo` row (`/admin/seo`) is deliberately **not**
+  wired as a further fallback into the root layout: every page already
+  sets its own explicit metadata, so the site-wide defaults would
+  never actually be visible, and converting the root layout to
+  `generateMetadata()` for an invisible fallback would add a DB call
+  to every single request (admin included). Only that form's
+  `noindex` toggle is consumed (via `robots.ts`).
+- **`<SeoFields>` is the one place meta-title/description length
+  guidance and the per-item noindex toggle live (Sprint 9).**
+  `src/dashboard/components/seo-fields.tsx` is a generic
+  `<T extends FieldValues>` component reused by the Book/Homepage/
+  About editors, all of which nest their Seo object under the same
+  `seo.*` field path. The site-wide SEO form has a different,
+  root-level shape (no `seo.` prefix) plus OG/Twitter fields the
+  shared component doesn't cover — it reuses just the exported
+  `CharCount`/length constants rather than the whole component. Any
+  future content type with an editable `Seo` relation should render
+  `<SeoFields control={form.control} />`, not duplicate the fields
+  again.
+- **Dynamic OG images need `useRouteOgImage: true` to actually take
+  effect (Sprint 9).** Next only auto-detects a co-located
+  `opengraph-image.tsx` when the page's metadata doesn't already set
+  `openGraph.images` — and `buildMetadata()` always sets one (the
+  static default) unless told not to. `useRouteOgImage: true` omits
+  the image key so the file convention wins; pass an explicit
+  `ogImage` alongside it when a real per-item image should still take
+  priority over the generated card (see `books/[slug]/page.tsx`). See
+  `docs/SEO.md` for the full pattern and how to add a new route.
+- **Structured data `sameAs` only includes confirmed social profile
+  URLs (Sprint 9).** `siteConfig.socialLinks` still contains generic
+  placeholder domains (`https://youtube.com`, not a real channel URL)
+  — `confirmedSocialUrls()` in `src/lib/seo.ts` filters these out
+  before they reach `buildPersonJsonLd()`/`buildOrganizationJsonLd()`,
+  since presenting an unconfirmed URL as a "confirmed profile" in
+  structured data is exactly what the client's brief warned against.
+  `sameAs` is correctly absent from both schemas until real profile
+  URLs are set — no code change needed once they are, just update
+  `SOCIAL_LINKS`.
+- **Analytics is a typed abstraction over `@vercel/analytics`, not
+  scattered provider calls (Sprint 9).** `trackEvent()`
+  (`src/lib/analytics.ts`) is the only way any component fires an
+  event; the fixed `AnalyticsEvent` union is the single source of
+  truth for what's tracked. `<TrackedLink>`/`<TrackEventOnMount>`
+  exist specifically for the two cases a direct call site can't cover
+  (a click that also needs to navigate; an outcome a Server Component
+  already decided). Vercel Web Analytics was chosen over GA4/Meta
+  Pixel as the *live* default specifically because it's cookieless —
+  the existing `SiteSettings.analyticsIds` (GA4/Meta Pixel) capture
+  stays intentionally unwired until a consent banner exists, since
+  either would need one. Never call `@vercel/analytics`'s `track()`
+  directly from a component — always go through `trackEvent()`.
+- **A Client Component can't receive a Lucide icon component as a
+  prop (Sprint 9, real regression caught and fixed).** `CourseCard` is
+  a Server Component specifically because `(site)/courses/page.tsx`
+  passes it a `LucideIcon` reference — converting it to `"use client"`
+  (attempted mid-Sprint-9, for click tracking) broke that
+  serialization boundary immediately. The fix was a small client
+  island (`CourseInterestLink`) receiving only a string prop, with
+  `CourseCard` staying server-rendered. Any future component that
+  receives an icon/function prop from a Server Component must extract
+  only the interactive *leaf* into a client island, not convert the
+  whole component.
+- **Real privilege-escalation bug found and fixed (Sprint 10):**
+  `resetUserPasswordAction` (`src/actions/admin/user.actions.ts`) was
+  missing the Owner guard its siblings `updateUserAction`/
+  `deleteUserAction` already had — an Administrator (who holds
+  `users:update`) could reset the Owner's password and receive the
+  plaintext temporary password in the action result, a full
+  account-takeover path. Fixed by adding the same
+  `requirePermission("ownership", "update")` check when the target's
+  `role === "OWNER"`. **Any new action that mutates a `User` row must
+  be checked against this same pattern** — `users:update`/
+  `users:delete` alone are not sufficient when the target could be the
+  Owner; always add the ownership check too, mirroring
+  `updateUserAction`.
+- **Admin list/detail pages needing a status-label or status-tone map
+  should live in a shared `src/dashboard/<feature>-constants.ts` file
+  (Sprint 10), not be redefined per page.** `newsletter-constants.ts`
+  was the first instance of this pattern (Sprint 8); Sprint 10 found
+  the same map duplicated verbatim across `books/page.tsx`,
+  `ask-ahmad/page.tsx`, `ask-ahmad/[id]/page.tsx`,
+  `contact/page.tsx`, and `contact-detail-sheet.tsx`, and
+  consolidated them into `books-constants.ts`/`ask-ahmad-constants.ts`/
+  `contact-constants.ts`. Any new resource with an enum-backed status
+  shown via `StatusBadge` in more than one place should get its own
+  constants file from the start.
+- **The admin dashboard intentionally does not hide or disable
+  mutating controls (New/Save/Archive/Delete buttons, editable form
+  fields) for read-only roles (Sprint 10 finding, not changed).**
+  A `VIEWER` can open `/admin/books/new` or a question's detail page
+  and interact with every field/button exactly like an Editor; the
+  action is only actually blocked when the underlying Server Action's
+  `requirePermission()` call rejects it server-side (confirmed live —
+  Viewer gets a "You don't have permission to do that" toast and
+  nothing persists). This is a real UX rough edge (worth a future
+  "read-only mode" pass disabling controls per-role) but not a
+  security gap, since the server-side check is the actual boundary in
+  every case audited. Documented here rather than fixed this sprint,
+  since disabling controls per-role across every admin form is a
+  cross-cutting UI change larger than this QA sprint's fix-only scope
+  — see `docs/sprints/SPRINT-10.md`.
 
 ## Design decisions
 
-- Public site uses the design system established in Sprint 1 ("Prompt
+- Public site used the design system established in Sprint 1 ("Prompt
   #1") — navy/gold/paper palette, `font-display` for headings, the
-  manuscript-divider motif. **Never regenerate or redesign this** —
-  every sprint since has been additive (branding, backend, dashboard),
-  and that constraint has been repeated explicitly by the client each
-  time.
+  manuscript-divider motif — as an unchanged baseline through Sprint
+  10. **Sprint 11 (Homepage Redesign & Brand Identity Integration)**
+  deliberately broke that "never redesign" constraint, at the
+  client's explicit direction, once a new professionally-commissioned
+  logo emblem made the Sprint 1 homepage layout obsolete. **Sprint 12
+  (Creative Direction & Design System)** then formalised the result as
+  permanent governance: `docs/CREATIVE_DIRECTION.md` (the WHY — voice,
+  audience, palette philosophy, motion philosophy) and
+  `docs/DESIGN_SYSTEM.md` (the HOW — the single implementation source
+  of truth, superseding this bullet). **Read those two documents, not
+  this one, for current visual-direction rules** — this file only
+  records that the change happened and why. The navy/gold/paper
+  palette itself did not change in Sprint 11; what changed was the
+  section composition, motion language, and the mark's role as a
+  recurring design element (see below).
 - The brand system (Sprint 2) was built **around** a supplied logo —
   the logo itself was never redesigned, only packaged (favicons, OG
-  images, manifest, brand.ts tokens).
+  images, manifest, brand.ts tokens). **That Sprint 2 mark (a
+  font-glyph-derived Arabic calligraphy outline) was superseded in
+  Sprint 11** by a new mark commissioned directly from the client's
+  designer (a calligraphic "Ahmad" set inside a teardrop/flame
+  emblem), delivered as `brand-source/AHMAD-06.svg` and exported as
+  `public/brand/logo-mark.svg` (+ white/dark colourway variants) at
+  the same file paths, so every existing consumer picked up the new
+  mark with no consumer-side changes. As with Sprint 2, **the new mark
+  is frozen and not redrawn or reinterpreted by this project** — see
+  `public/brand/README.md`'s asset manifest and
+  `docs/CREATIVE_DIRECTION.md`'s "the professional emblem is not an
+  illustration" framing. The prior mark's files (`logo-mark*.svg`) were
+  overwritten in place with the new mark's path data, not kept
+  side-by-side.
+- **Sprint 11 also redesigned the homepage** (`src/app/(site)/page.tsx`)
+  around the new mark. Current real section order: Hero →
+  FeaturedBookSection → AboutPreviewSection → TeachingAreasSection →
+  QuoteSection → LatestKhutbahSection → FutureCoursesSection →
+  CtaSection → NewsletterSection. `FeaturedArticlesSection` was removed
+  from the homepage itself (the `/articles` page and its nav link are
+  untouched — Articles just isn't promoted on the homepage anymore).
+  The hero uses a **Mode A/B switch**
+  (`HERO_VISUAL: "emblem" | "portrait"` in
+  `src/components/sections/hero.tsx`) — Mode A (the emblem as the
+  hero's visual anchor, `hero-emblem.tsx`) is live today; Mode B
+  (`hero-portrait.tsx`, a professional photograph in the same
+  composition slot) is built but unwired, ready for a one-line
+  constant swap once a portrait exists. Per
+  `docs/CREATIVE_DIRECTION.md`, the emblem should remain part of the
+  hero composition even after Mode B ships, not be fully replaced by
+  the photo.
 - The `/admin` dashboard deliberately echoes the public site's design
   language (same palette/typography) rather than looking like a
   generic admin template (explicitly: "Not WordPress. Not Bootstrap.
@@ -230,6 +510,50 @@ sprints — do not build these without being asked again:
 - In-dashboard analytics/reporting (distinct from the GA/Meta Pixel ID
   fields already in Site Settings, which just emit public tracking
   scripts)
+- Admin replies / two-way conversation (Sprint 7's Reply panel is
+  visibly present but disabled — the schema is ready, the Server
+  Action and UI-enable is not built)
+- Visitor replies, a customer portal (account, view submitted
+  questions/replies, upload/download attachments, book consultations),
+  and email-reply synchronisation — all explicitly named as future
+  scope in the Sprint 7 brief; the schema supports every one without a
+  redesign, none of the UI/inbound-email plumbing exists
+- Message attachments (the `Message.attachments` Json column exists,
+  nothing writes to it yet)
+- Question assignment (`Question.assignedToId`/`assignedTo` exist in
+  the schema; no UI control to set it yet)
+- Consultation booking, student messaging, message search-across-
+  everything, and conversation analytics (all named as future
+  preparation in the Sprint 7 brief, none modelled beyond what the
+  Conversation/Message shape already naturally supports)
+- Newsletter cron-based scheduling (`features.newsletterScheduling`) —
+  `Campaign.scheduledFor` and a disabled "Schedule for later" control
+  exist; needs a real deployment target to wire up Vercel Cron
+  against, see `docs/DEPLOYMENT.md`
+- Newsletter CSV import (`features.newsletterImports`) — no legitimate
+  consented list exists to import yet; architecture documented in
+  `docs/sprints/SPRINT-08.md`
+- Granular newsletter email preferences and audience segmentation
+  (`features.newsletterPreferences`/`newsletterSegmentation`) — V1 is
+  a single subscribed/unsubscribed state sent to "all active"
+- Newsletter open/click analytics (`features.newsletterAnalytics`) —
+  left off by default; no engagement numbers shown anywhere
+- A tuned Content-Security-Policy header (Sprint 9) — not explicitly
+  requested, and real risk of breaking Next dev tooling/Radix/Tailwind
+  without careful per-directive tuning; starting-point directive list
+  in `docs/PERFORMANCE.md`
+- Live GA4/Meta Pixel script injection (Sprint 9) — the admin-captured
+  `SiteSettings.analyticsIds` stays inert until a consent banner
+  exists, since both are cookie-based tracking
+- A full RTL/logical-property conversion (Sprint 9) — ~114 remaining
+  physical-utility instances catalogued by file in
+  `docs/ACCESSIBILITY.md`; convert incrementally alongside real
+  translated content once multilingual work actually starts, not as a
+  standalone mechanical pass
+- `VideoObject` structured data (Sprint 9) — no real configured
+  lecture video exists yet (every `Lecture` in
+  `src/lib/data/lectures.ts` is `status: "coming-soon"`); add once one
+  does, `VideoCard`'s facade pattern needs no markup changes
 
 ## Known limitations
 
@@ -271,9 +595,42 @@ sprints — do not build these without being asked again:
   crops. A real crop UI (e.g. `react-easy-crop`) is the natural next
   step if this becomes a recurring friction point for whoever uploads
   covers.
+- **Email sending requires `RESEND_API_KEY` to be set** (`.env`) — it's
+  not set in local dev by default, so `emailService.send()` fails
+  gracefully (logs, returns `{success:false}`) and both the Ask Ahmad
+  and Contact forms still complete normally, since the record is
+  already saved before mail is attempted. Set the key to actually test
+  email delivery.
+- **Dashboard notification bell counts are computed on every request**
+  (no caching) — fine at current volume; if the inbox grows into the
+  thousands the brief anticipates, revisit with a cheap cached count
+  rather than re-querying on every dashboard page load.
 - The SEO `noindex` toggle's effect on `/robots.txt` relies on Next
   revalidating a build-time-static route via `revalidatePath` — verified
   working in dev; worth a smoke test after the first production deploy.
+- **Newsletter/campaign email sending requires `NEWSLETTER_TOKEN_SECRET`,
+  `RESEND_WEBHOOK_SECRET`, and (still, since Sprint 7) `RESEND_API_KEY`
+  in production** — none are set in local dev by default. Confirmation/
+  welcome/campaign sends fail gracefully without `RESEND_API_KEY`
+  (same pattern as Ask Ahmad/Contact), logging a dev-only preview line
+  (`[email:dev-preview]`, subject + first link) so the golden path is
+  still manually testable locally. Token hashes are unpeppered without
+  `NEWSLETTER_TOKEN_SECRET` — fine in dev, logged as an error if
+  missing in production.
+- **A pre-Sprint-8 subscriber row is grandfathered in as
+  already-confirmed** by the migration's backfill, with no usable
+  historical unsubscribe link (moot going forward, since unsubscribe
+  tokens are now derived from the subscriber id rather than stored —
+  see "Major architectural decisions").
+- **`SOCIAL_LINKS` (`src/constants/site.ts`) are still generic
+  placeholder domains**, not real profile URLs — structured data
+  correctly omits `sameAs` until the client supplies real YouTube/
+  Instagram/TikTok URLs (Sprint 9). The public footer's social icons
+  still render and link to these placeholders, since they aren't
+  technically empty — worth revisiting once real URLs exist.
+- **The About page's visible content is still 100% hardcoded**
+  (Sprint 1) — Sprint 9 only wired its *metadata* to the real `Seo`
+  row. Unchanged, still the top `docs/ROADMAP.md` priority.
 - A systemic Radix/Tailwind bug was found and fixed project-wide in
   Sprint 3: several shadcn components used bare `data-open:`/
   `data-checked:` selectors where Radix actually emits `data-state="open"`
@@ -289,8 +646,13 @@ sprints — do not build these without being asked again:
   fine continuing with local Postgres via Prisma, since switching later
   is trivial. (See "Major architectural decisions" above.)
 - Explicitly corrected the calligraphy mark's Arabic diacritics:
-  *"i dont want any dhammahs"* — verify any future Arabic typography
-  work against this preference before shipping.
+  *"i dont want any dhammahs"* (Sprint 2.5, on the original Sprint 2
+  mark) — verify any future Arabic typography work against this
+  preference before shipping. The Sprint 11 mark replacement was a
+  fresh professional commission, not typeset in-house, so this
+  specific correction doesn't apply retroactively to it — but the
+  underlying preference should still guide review of any new Arabic
+  typography.
 - Recurring explicit instruction across every sprint since Sprint 1:
   do not regenerate existing pages, do not redesign the UI/design
   system, do not duplicate components. Every sprint's brief has been
@@ -316,10 +678,29 @@ sprints — do not build these without being asked again:
 - Autosave on a form: use `useAutosave` + `AutosaveIndicator`
   (`src/hooks/use-autosave.ts`) driven by `useWatch({ control })` —
   don't build a second debounce mechanism.
+- Any content model with an editable `Seo` relation: render
+  `<SeoFields control={form.control} />`
+  (`src/dashboard/components/seo-fields.tsx`) for its admin form, not
+  a hand-rolled meta title/description/canonical/keywords/noindex set
+  — see `docs/SEO.md`.
+- Any new trackable user action: add it to the `AnalyticsEvent` union
+  in `src/lib/analytics.ts` and call `trackEvent()` — never call
+  `@vercel/analytics` directly from a component. Never include email
+  addresses, message/question text, or names as an event property.
 - `npm` installs on this machine need
   `--cache <scratchpad>/npm-cache` (or `npm_config_cache` env var)
   because the default `~/.npm` cache is root-owned; new native-binary
   install scripts need `npm approve-scripts <pkg>` before they'll run.
+- **`vitest` (Sprint 8) is the project's test framework, scoped to
+  pure-logic unit tests only** — `tests/*.test.ts`, run via `npm test`.
+  Anything that needs Prisma, Next.js request context, or a running
+  server is still verified manually (browser + direct HTTP/DB checks),
+  matching every prior sprint's actual verification method. A function
+  needs to be testable this way to get a test — if it's genuinely pure
+  logic worth covering but currently lives inside a `"server-only"`-
+  guarded file, extract it to a plain module first (see
+  `src/lib/normalize-email.ts`, `src/schemas/newsletter.schema.ts`'s
+  `canReceiveCampaign()`) rather than skipping the test.
 
 ## Reasons behind technical choices
 

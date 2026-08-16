@@ -34,8 +34,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — real values never committed; .env.example has no
+# secrets and is meant to be a shared reference (see docs/DEPLOYMENT.md)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -45,3 +47,16 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Designer reference/delivery comps and watermarked drafts — not the
+# authoritative source. AHMAD.ai (Illustrator master) and AHMAD-06.svg
+# (the vector export every production mark file derives from) are
+# tracked; these are kept locally only for provenance, and two of them
+# still carry a visible Fiverr watermark. See public/brand/README.md.
+/brand-source/1.png
+/brand-source/2.jpg
+/brand-source/512x512.jpg
+/brand-source/AHMAD.jpg
+/brand-source/New.jpg
+/brand-source/just-logo.jpg
+/brand-source/just-logo.png

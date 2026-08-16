@@ -20,6 +20,39 @@ that volume would otherwise do. Everything in this plan takes the second path.
 
 ---
 
+## 0. Document Status — What's Built vs. What's Planned
+
+This document was originally written as a forward-looking UX plan, before most of it
+was built. A homepage redesign (Sprint 11) and a permanent creative-direction split
+(`docs/CREATIVE_DIRECTION.md` = why, `docs/DESIGN_SYSTEM.md` = how, Sprint 12) have
+since shipped real, different decisions in several places this document originally
+proposed. Rather than delete the long-term thinking below — most of it is still the
+right direction — every section is now marked against reality:
+
+- 🟢 **CURRENT** — live in the codebase today, matches this document.
+- 🟡 **PLANNED** — not built, but scoped and intended as a fairly near-term next step
+  (an existing feature flag, an explicit roadmap item).
+- 🔵 **FUTURE-ASPIRATIONAL** — the long-term academy vision from `docs/project_vision.docx`.
+  Real, still wanted, but with no committed timeline and no code — do not build or
+  expose any of it (nav items, routes, UI affordances) just because it's described
+  here in detail.
+
+**The single most important reality check**: the site's actual global navigation
+today is five items — **About, Books, Courses, Articles, Ask Ahmad**
+(`src/constants/navigation.ts`) — not the seven-item Home/About/Books/Khutbahs/
+Videos/Articles/Contact nav this document originally specified. There is no
+`/khutbahs` page, no `/videos` page, and no `/search` page yet — Khutbah content
+exists only as a single homepage section (`LatestKhutbahSection`) pulling from
+`src/lib/data/lectures.ts`, where every entry is honestly `status: "coming-soon"`.
+"Contact" and "Ask Ahmad" are two separate real routes (`/contact` and `/ask`), not
+one page with an internal category switch as Section 11 below originally proposed —
+see the correction inline. Sections 7 (Khutbah Library), and the Videos/Search/
+language-selector material in Sections 3 and 15, are 🔵 FUTURE-ASPIRATIONAL in full —
+kept because the long-term academy vision should stay documented, not because any of
+it is close to being built.
+
+---
+
 ## 1. Design Principles Guiding Every Decision
 
 - **Institution, not blog.** Every page is laid out like a page in a considered
@@ -50,166 +83,169 @@ that volume would otherwise do. Everything in this plan takes the second path.
 
 ## 2. Site Map
 
-| Page | Route | Purpose | Primary Audience | Primary CTA | Secondary CTA |
-|---|---|---|---|---|---|
-| Home | `/` | First impression; establish premium/scholarly tone; route every visitor toward biography, the book, or the newsletter | First-time visitors, prospective students | "Read The Great Debate" | "Get khutbah updates" (newsletter) |
-| About | `/about` | Tell Ahmad's story; build the trust that everything else depends on | Visitors deciding whether to invest time/money/attention | "See his book" | "Ask a question" |
-| Books (listing) | `/books` | Present the catalogue — one title today, ready for more | Readers, gift buyers | Open "The Great Debate" | "Notify me of future books" |
-| Book Detail | `/books/the-great-debate` | Convert interest into a purchase or a sample read | Purchase-intent readers | "Buy the book" | "Read a sample chapter" |
-| Khutbahs | `/khutbahs` | House Jumu'ah khutbah recordings as they're published | Community members, regular followers | Play latest khutbah | "Get notified of new khutbahs" |
-| Videos | `/videos` | House the wider (currently small) video library — lectures, interviews, talks | New visitors discovering him via social/YouTube | Play featured video | Subscribe on YouTube |
-| Articles (listing) | `/articles` | Future long-form writing, structured to scale to hundreds | Students of knowledge, SEO/search visitors | (once live) Read latest article | "Notify me when articles launch" |
-| Article Detail | `/articles/[slug]` | Distraction-free long-form reading | Readers of a specific piece | Read next article | Subscribe |
-| Contact | `/contact` | Categorised questions (Marriage, Family, Aqeedah, Fiqh, Ruqyah, Mental Health, Other) + general/business enquiries | Individuals with personal questions, event organisers, press | "Submit your question" | General enquiry email |
-| Privacy Policy | `/privacy` | Legal transparency, data handling | Legally-conscious visitors | — | "Contact us about privacy" |
-| Terms | `/terms` | Legal terms of use | Anyone reading fine print | — | Back to Home |
-| 404 | *(not found)* | Recover a broken/removed link gracefully, on-brand | Anyone landing on a dead link | "Return home" | Search the site |
-| Search | `/search?q=` | Cross-content search results | Anyone using nav search | Open a result | Browse by section instead |
-| Newsletter Thank You | `/newsletter/thank-you` | Confirm subscription, keep momentum | Just-subscribed visitor | Read the book | Follow on social |
-| Question Submitted | `/contact/thank-you` | Confirm a question was received, set expectations | Just-submitted visitor | Browse khutbahs while you wait | Share with someone who'd benefit |
-| Book Purchase Thank You | `/books/thank-you` | Bridge to the external retailer / confirm a direct purchase | Purchase-intent visitor | Continue to retailer / View order | Subscribe for future book news |
-| Courses — Coming Soon | `/courses` | Capture demand for the future academy honestly | Prospective students | "Join the waiting list" | Read the book in the meantime |
-| Student Portal — Coming Soon | *(unlisted, reserved)* | Placeholder for the future enrolled-student area | Curious visitors who find it, not yet linked from nav | "Join the waiting list" (same as Courses) | Back to Home |
+| Page | Route | Status | Purpose | Primary Audience | Primary CTA | Secondary CTA |
+|---|---|---|---|---|---|---|
+| Home | `/` | 🟢 CURRENT | First impression; establish the editorial/quiet-luxury tone (Sprint 11); route every visitor toward the emblem, the book, teaching areas, or the newsletter | First-time visitors, prospective students | "Explore Books" | "Ask Ahmad" |
+| About | `/about` | 🟢 CURRENT | Tell Ahmad's story; build the trust everything else depends on | Visitors deciding whether to invest time/money/attention | "See his book" | "Ask a question" |
+| Books (listing) | `/books` | 🟢 CURRENT | Present the catalogue — one title today, live from the CMS (`bookService`), ready for more | Readers, gift buyers | Open "The Great Debate" | — |
+| Book Detail | `/books/[slug]` | 🟢 CURRENT | Convert interest into a purchase | Purchase-intent readers | "Buy the book" | — |
+| Courses | `/courses` | 🟢 CURRENT (honest "coming soon") | Capture demand for the future academy — a real, live page listing planned courses, each clearly framed as in development, not a stub | Prospective students | Newsletter signup | Read the book in the meantime |
+| Articles (listing) | `/articles` | 🟢 CURRENT | Long-form writing, structured to scale | Students of knowledge, SEO/search visitors | Read an article | — |
+| Article Detail | `/articles/[slug]` | 🟢 CURRENT | Distraction-free long-form reading | Readers of a specific piece | Read next article | — |
+| Ask Ahmad | `/ask` | 🟢 CURRENT | Categorised personal questions (marriage, family, aqeedah, fiqh, ruqyah, mental health) — its own route, not a tab inside Contact | Individuals with personal questions | "Submit your question" | — |
+| Contact | `/contact` | 🟢 CURRENT | General/business enquiries — speaking engagements, media/press, book enquiries — its own route, separate audience and tone from Ask Ahmad | Event organisers, press, business enquiries | Contact form | Social links |
+| Newsletter | `/newsletter` | 🟢 CURRENT | Dedicated signup page (also embedded as a homepage/footer section) | Anyone not ready to commit further yet | Subscribe | — |
+| Newsletter confirm/unsubscribe | `/newsletter/confirm`, `/newsletter/unsubscribe` | 🟢 CURRENT | Double-opt-in confirmation and one-click unsubscribe (token-based, Sprint 8) | Just-confirmed / opting-out subscribers | — | — |
+| Privacy Policy | `/privacy` | 🟢 CURRENT | Legal transparency, data handling | Legally-conscious visitors | — | — |
+| Terms | `/terms` | 🟢 CURRENT | Legal terms of use | Anyone reading fine print | — | — |
+| Login | `/login` | 🟢 CURRENT | Admin/staff authentication (Auth.js v5) — not a public-facing feature | Admin/Editor/Viewer staff | — | — |
+| Student Portal | `/dashboard`, `/academy` *(reserved, unlisted)* | 🟡 PLANNED — route reserved, not built out | Placeholder route group for the future enrolled-student area | — | — | — |
+| 404 | *(not found)* | 🟢 CURRENT | Recover a broken/removed link gracefully, on-brand | Anyone landing on a dead link | "Return home" | — |
+| Khutbah Library | `/khutbahs` | 🔵 FUTURE-ASPIRATIONAL — no route exists | Dedicated home for Jumu'ah khutbah recordings as they're published; today, a single `LatestKhutbahSection` on the homepage carries this signal instead | Community members, regular followers | — | — |
+| Videos | `/videos` | 🔵 FUTURE-ASPIRATIONAL — no route exists | House a wider video library (lectures, interviews, talks) | New visitors discovering him via social/YouTube | — | — |
+| Search | `/search?q=` | 🔵 FUTURE-ASPIRATIONAL — no route exists | Cross-content search results | Anyone using nav search | — | — |
+| Newsletter Thank You | `/newsletter/thank-you` | 🔵 FUTURE-ASPIRATIONAL — superseded | The real `/newsletter` route's inline success state + double opt-in via `/newsletter/confirm` already cover this job; a dedicated thank-you page was not built | Just-subscribed visitor | — | — |
+| Book Purchase Thank You | `/books/thank-you` | 🔵 FUTURE-ASPIRATIONAL — no route exists | Bridge to the external retailer / confirm a direct purchase | Purchase-intent visitor | — | — |
 
-Two intentional decisions worth flagging:
+Two intentional decisions worth flagging (still true today):
 
-1. **Student Portal is not in the navigation at all.** It exists in this plan only as a
-   destination reachable from the Courses "Coming Soon" page ("Student accounts will
-   live here"), matching the existing engineering convention that `/dashboard` stays
-   reserved and unexposed until the feature actually ships. Adding a greyed-out nav
-   item for something that doesn't exist reads as a website apologising for itself —
-   exactly what this plan avoids.
-2. **Events, Certificates, and Payments have no dedicated page yet.** Per the vision
-   doc's own phasing (Phase 3–4), these are further out than Courses. Rather than
-   invent three more "Coming Soon" stubs today, they're folded into a single line on
-   the Courses page ("and, over time, seminars, certificates, and enrolment") until
-   one of them is close enough to ship to deserve its own page.
+1. **Student Portal is not in the navigation at all.** `/dashboard` and `/academy`
+   exist as reserved, unexposed route groups — matching the engineering convention
+   that this path stays reserved until the feature actually ships (see
+   `docs/PROJECT_MEMORY.md`). No "Coming Soon" waitlist page has actually been built
+   for it yet (that page itself is still 🔵 FUTURE-ASPIRATIONAL); the routes exist as
+   placeholders only.
+2. **Events, Certificates, and Payments have no dedicated page yet**, matching the
+   vision doc's own phasing (Phase 3–4) — these remain 🔵 FUTURE-ASPIRATIONAL,
+   further out than Courses.
 
 ---
 
 ## 3. Global Navigation
 
+🟢 **CURRENT**, corrected to match the real implementation (`src/components/layout/
+site-header.tsx`, `main-nav.tsx`, `mobile-nav.tsx`, `search-trigger.tsx`) — this
+section originally described a planned nav that differs from what actually shipped
+in Sprint 11 in several concrete ways, noted inline below.
+
 ### Desktop (≥1024px)
 
 ```
-[Logo: Arabic calligraphy + wordmark]      Home   About   Books   Khutbahs   Videos   Articles   Contact        [Search icon]   [Read the Book →]
+[Logo mark + "AMK"]      About   Books   Courses   Articles   Ask Ahmad      [Search icon]  [Log in]  [Newsletter →]
 ```
 
-- Seven text links, evenly spaced, generous letter-spacing — no dropdowns, no mega
-  menu. **This is deliberate, not an oversight:** a mega menu under "Books" that opens
-  to reveal one title, or under "Articles" that opens to reveal none, actively
-  undermines the premium feel this brief asks for. Empty dropdown panels are one of
-  the fastest ways a small site reads as small. The nav should look exactly as
-  confident as the content behind it.
-- One filled gold button on the far right — always the single highest-value action
-  available right now (currently "Read the Book"; becomes "Explore Courses" once
-  Phase 3 ships, per the vision doc's own roadmap).
-- A quiet search icon sits just left of the CTA button, not a full search bar — see
-  Search below.
-- **Evolution path, so this isn't rebuilt later:** once 3+ books exist, "Books"
-  gains a simple two-column dropdown (cover thumbnails, not a mega menu). Once
-  Articles has real categories, it gains a lightweight category dropdown. Neither
-  is built now — the trigger is content, not a sprint number.
+- **Five text links** (`PRIMARY_NAV` in `src/constants/navigation.ts`) — About,
+  Books, Courses, Articles, Ask Ahmad. No "Home" link (the logo serves that role,
+  standard convention) and no "Khutbahs"/"Videos"/"Contact" links — Khutbah/video
+  content isn't a standalone section yet (see Section 0), and Contact is reachable
+  from the footer rather than primary nav. No dropdowns/mega menus, matching the
+  original reasoning here (an empty dropdown reads as small) — still correct, still
+  followed.
+- **Two buttons on the right, not one** — a ghost "Log in" (admin/staff entry point,
+  hidden on small screens) and a filled gold "Newsletter" CTA. This is a real
+  difference from the original single-CTA plan ("Read the Book"): the newsletter, not
+  a specific book, is the nav's standing highest-value ask, consistent with
+  `docs/CREATIVE_DIRECTION.md`'s emphasis on the newsletter as the primary
+  relationship-building mechanism.
+- A quiet search icon sits to the left of Log in/Newsletter — see Search below.
+- The "Books gains a dropdown at 3+ titles" / "Articles gains a category dropdown"
+  evolution path remains 🔵 FUTURE-ASPIRATIONAL — not built, no trigger threshold
+  reached yet.
 
 ### Tablet (768–1023px)
 
-- Same logic, condensed: link spacing tightens, the CTA button shrinks to icon+label,
-  and once space is fully exhausted, the last 2–3 links (Videos, Articles) collapse
-  into the hamburger menu before anything else does — Home/About/Books/Contact stay
-  visible longest, since they're the highest-traffic destinations.
+- The real breakpoint is `lg` (1024px), not a separate tablet tier — below `lg`,
+  the five-link `MainNav` is replaced entirely by the hamburger/`MobileNav`, not
+  progressively condensed link-by-link as originally planned.
 
-### Mobile (<768px)
+### Mobile (<1024px)
 
-- Logo (left) + search icon + hamburger (right). Tapping the hamburger opens a
-  full-screen overlay (not a slide-in drawer) in the site's ivory/navy palette:
-  large, generously-spaced link list, the gold CTA button pinned near the thumb at
-  the bottom, and a small "Subscribe" line beneath it. Full-screen over a drawer
-  because a drawer on a content-light site tends to feel like a leftover admin
-  pattern; full-screen reads as considered.
+- Logo (left) + search icon + hamburger (right). The hamburger opens a **right-side
+  sliding drawer** (`Sheet`, `w-full sm:max-w-xs`) — not the full-screen overlay
+  originally specified. The drawer lists all five nav links, then a gold "Join the
+  newsletter" button and an outline "Log in" button pinned near the bottom. The
+  full-screen-over-drawer reasoning in the original plan wasn't followed through in
+  implementation; revisit only as part of a deliberate Editorial Refinement pass, not
+  as an incidental fix.
 
 ### Sticky behaviour
 
-- On the homepage only, the nav starts **transparent over the hero** (logo/text in
-  ivory) and crossfades to a solid navy bar with a soft bottom hairline once the
-  visitor scrolls past the hero — a small, standard, high-craft touch (this is the
-  Apple/Stripe marketing-site pattern named explicitly in the brief).
-- Everywhere else, the nav is solid from the first frame (there's no hero to sit
-  over) and stays fixed at a slightly condensed height (logo mark shrinks ~15%) once
-  scrolling begins, so the CTA and search stay reachable without the bar eating too
-  much vertical space on long pages (Khutbahs, Articles).
-- No hide-on-scroll-down behaviour — the vision doc's "calm" register doesn't suit a
-  nav that jumps around; it stays put.
-
-### Dropdowns / mega menus
-
-None at launch, per above. The only exception: **Search** (see below), which behaves
-like a dropdown/overlay hybrid rather than a full page navigation.
+- The header is **translucent with backdrop-blur at all times** (`bg-background/85
+  backdrop-blur-md`), not "transparent over the hero, crossfading to solid navy."
+  A soft shadow appears once scrolled (`useScrolled()`), and a `ManuscriptDivider`
+  sits along the header's bottom edge always. This is a real, simpler implementation
+  than the original hero-crossfade plan — the crossfade concept remains 🔵
+  FUTURE-ASPIRATIONAL if a future Editorial Refinement pass wants to reintroduce it.
+- No hide-on-scroll-down behaviour, consistent with the original "calm, doesn't jump
+  around" reasoning — still true.
 
 ### Search
 
-- A single icon-triggered overlay, not a persistent search bar — with only one book,
-  a handful of khutbahs, and no articles yet, a bar occupying permanent nav real
-  estate would be searching almost nothing. The icon signals "search exists and is
-  built properly" (a premium-site expectation) without visually competing for
-  attention it hasn't earned yet.
-- Clicking it (or pressing `/` on desktop) expands a centred overlay: a single large
-  input, live-filtered suggestions grouped by type (Pages · Book · Khutbahs · Videos
-  · Articles) appearing as the visitor types, and a "See all results" link to the
-  full `/search` page for anything with more than a handful of matches.
-- This is explicitly future-proofed: the exact same overlay and results page will
-  carry real weight once Articles and the Khutbah library grow — nothing about the
-  pattern changes, only the volume of results.
+🟢 A `SearchTrigger` icon is real and live in the header today — clicking it opens a
+Dialog with an honest, on-brand message ("Search is coming soon. In the meantime,
+explore Books, Courses, and Articles from the menu."), not a functioning search. The
+full live-filtered overlay + grouped `/search` results page described below remains
+🔵 FUTURE-ASPIRATIONAL:
+
+- Clicking it (eventually) would expand a centred overlay: a single large input,
+  live-filtered suggestions grouped by type, and a "See all results" link to a full
+  `/search` page for anything with more than a handful of matches.
+- Kept documented because the interaction pattern (icon → overlay → grouped results)
+  is still the right target design once there's enough content to search.
 
 ### Language selector
 
-- **Reserved, not built.** The vision doc lists multilingual support as future scope,
-  and the codebase already carries a `multilingual` feature flag for this reason. A
-  language selector placeholder is *not* added to the nav today — a globe icon that
-  only ever says "English" is dead weight. When Arabic (or another language) content
-  is real, a compact selector lands to the immediate left of the search icon, using
-  the same icon-triggered-overlay pattern as search rather than a traditional
-  dropdown, so the two feel like one consistent "utility cluster" rather than two
-  unrelated widgets bolted onto the nav.
+🟡 **PLANNED, partially scaffolded** — not in the header (this document's original
+placement) but a real, honestly-disabled `<select>` sits in the **footer**
+(`site-footer.tsx`), pre-populated from `src/config/i18n.ts`'s locale list
+(English/French/Kiswahili/Arabic) and clearly marked `disabled` with an
+`aria-label="Language (more coming soon)"`. `src/config/i18n.ts` itself is
+explicitly "configuration only... no routing, middleware, or translation loading is
+wired up yet." Moving this into the header's icon-triggered-overlay pattern next to
+Search, once real translated content exists, remains 🔵 FUTURE-ASPIRATIONAL.
 
 ---
 
 ## 4. Global Footer
 
+🟢 **CURRENT**, corrected — the real footer (`src/components/layout/site-footer.tsx`)
+is a 4-column grid, not the 4-column-plus-mission-statement layout originally
+planned, and there's no separate dedicated "Books" column:
+
 ```
-Mission statement (short, one sentence, serif)
-─────────────────────────────────────────────
-Quick Links        Books              Connect            Stay Updated
- About              The Great Debate   YouTube             [email input] [Subscribe]
- Khutbahs           (future titles     Instagram           "Monthly-ish. No spam."
- Videos              listed here as    Facebook
- Articles            they publish)
- Contact
-─────────────────────────────────────────────
-Privacy Policy · Terms · Sitemap          © 2026 Ahmad Mohamed Kassa. All rights reserved.
+[Logo mark, inverted] + SITE_TAGLINE                Explore      Connect        Newsletter
+ Social icons (YouTube/Instagram/TikTok)              About       Ask Ahmad      [email input] [Subscribe]
+                                                       Books       Newsletter     "Book announcements,
+                                                       Courses     Contact         courses, seminars &
+                                                       Articles                    articles — no spam."
+─────────────────────────────────────────────────────────────────────────────────────────
+© {year} Ahmad Mohamed Kassa. All rights reserved.    Privacy Policy · Terms   [language select, disabled]
 ```
 
-**Why each part exists:**
+**What's real vs. what the original plan proposed:**
 
-- **Mission statement** — one sentence, set in the display serif, sitting alone above
-  the column grid. This is the "institution" signal: Harvard/Yaqeen-style footers open
-  with a statement of purpose, not a logo repeated from the header. Something in the
-  register of: *"Sharing authentic Islamic knowledge, one lesson at a time."*
-- **Quick Links** — the full primary nav again, for the (large, real) share of
-  visitors who scroll straight to the footer to orient themselves, a well-documented
-  pattern on content-first sites.
-- **Books column** — deliberately its own column, not folded into Quick Links. This is
-  quiet future-proofing: today it lists one title; it's structurally ready to become a
-  real catalogue list without changing the footer's grid.
-- **Connect (social)** — icon row, not text links, kept small and quiet — this is a
-  secondary trust signal ("this is a real, active person"), not a primary CTA. Given
-  "very few videos" exist today, YouTube is listed but not oversold.
-- **Stay Updated (newsletter)** — the *only* input field in the footer, and the only
-  place other than the dedicated newsletter section it needs to appear. Repeating the
-  ask at the natural end of every page maximises capture without nagging mid-page.
-- **Legal row** — small, quiet, bottom-most, exactly where a visitor expects it and
-  nowhere it competes with real content.
-- **Copyright** — plain text, no styling flourish. This is the one place on the site
-  that should look completely unremarkable.
+- **No standalone mission-statement band above the grid.** The tagline
+  (`SITE_TAGLINE`, "Islamic scholarship for the modern seeker") sits inline under the
+  inverted logo mark in the first column instead — a real, simpler choice than the
+  originally-planned Harvard/Yaqeen-style opening statement. Reintroducing a
+  standalone mission line is a legitimate 🔵 FUTURE-ASPIRATIONAL idea for a future
+  Editorial Refinement footer pass (see `docs/ROADMAP.md`), not a current gap.
+- **"Explore"** (`FOOTER_EXPLORE`: About, Books, Courses, Articles) and **"Connect"**
+  (`FOOTER_CONNECT`: Ask Ahmad, Newsletter, Contact) are the two real link columns —
+  not "Quick Links" + a dedicated "Books" column. Books stays inside Explore rather
+  than getting its own column; the "ready to become a real catalogue list without
+  changing the footer's grid" future-proofing idea from the original plan no longer
+  applies to this layout and can be dropped rather than carried forward.
+- **Social icons** sit in the first column beside the logo/tagline, not under
+  "Connect" — "Connect" is text links (Ask Ahmad/Newsletter/Contact), a different
+  grouping than originally planned but the same "real, active person" trust-signal
+  intent.
+- **Newsletter** is the fourth column, using the same `NewsletterForm` component the
+  dedicated `/newsletter` page and homepage section use (`variant="footer"`) — matches
+  the original "one input, one button" intent exactly.
+- **Legal row** includes the disabled language `<select>` (see Section 3) alongside
+  Privacy/Terms — there is no "Sitemap" link in the real footer.
+- **Copyright** — plain text, no styling flourish, as originally planned.
 
 ---
 
@@ -222,18 +258,26 @@ map has a complete, standalone wireframe in one place.
 
 ### Home — `/`
 
+🟢 **CURRENT** — real section order (`src/app/(site)/page.tsx`, Sprint 11), replacing
+the original plan below it:
+
 ```
-Navigation (transparent → solid on scroll)
-Hero
-Biography Preview
+Navigation
+Hero (Mode A: emblem anchor; Mode B: portrait, built and ready, not yet wired)
 Featured Book
+About Preview
+Teaching Areas
+Quote (pull-quote interstitial)
 Latest Khutbah
-Featured Video
+Future Courses
+CTA (Ask Ahmad)
 Newsletter
-Final CTA
 Footer
 ```
-*Full rationale in Section 6.*
+
+*Full rationale in Section 6.* There is no separate "Featured Video" section on the
+homepage today — video content isn't modelled as its own homepage section (🔵
+FUTURE-ASPIRATIONAL, see Section 0).
 
 ### About — `/about`
 
@@ -278,6 +322,9 @@ Footer
 
 ### Videos — `/videos`
 
+🔵 **FUTURE-ASPIRATIONAL — no route exists.** Kept documented as the long-term target
+design; do not build without a fresh scoping decision (see Section 0).
+
 ```
 Navigation
 Page Hero ("Lectures & Talks" — framed as occasional, not a channel replica)
@@ -317,9 +364,16 @@ Footer
   widgets crowding the copy, consistent with the "whitespace over decoration"
   instruction in the vision doc.
 
-### Contact — `/contact`
+### Ask Ahmad — `/ask`, and Contact — `/contact`
 
-*Full wireframe and rationale in Section 11.*
+🟢 **CURRENT, but split into two real routes** — the original plan below (Section 11)
+described one `/contact` page with an internal category-selector-then-form flow
+covering both personal questions and business enquiries. In reality these shipped as
+two separate pages with two separate audiences: `/ask` (Ask Ahmad — the categorised
+personal-question form: marriage, family, aqeedah, fiqh, ruqyah, mental health) and
+`/contact` (general/business enquiries: speaking engagements & seminars, media &
+press, book enquiries, plus social links). *Full wireframe and rationale, corrected,
+in Section 11.*
 
 ### Privacy Policy — `/privacy` & Terms — `/terms`
 
@@ -349,6 +403,9 @@ Footer
 
 ### Search — `/search?q=`
 
+🔵 **FUTURE-ASPIRATIONAL — no route exists.** The header's `SearchTrigger` icon is
+real (Section 3) but opens an honest "coming soon" dialog, not this page.
+
 ```
 Navigation (search overlay pre-filled with the query)
 Query Header ("Results for '…'" + result count)
@@ -364,9 +421,19 @@ Footer
 
 ### Newsletter Thank You — `/newsletter/thank-you`
 
-*Full rationale in Section 12.*
+🔵 **FUTURE-ASPIRATIONAL — superseded, not built as a dedicated route.** The real
+`/newsletter` page (Section 0, Site Map) plus `/newsletter/confirm`'s double-opt-in
+flow already cover this job with an inline success state. *Full original rationale
+kept in Section 12* as a reference if a dedicated confirmation page is ever wanted.
 
-### Question Submitted — `/contact/thank-you`
+### Question Submitted — `/contact/thank-you` and `/ask` inline success
+
+🟡 **Real, but not a separate route.** `AskAhmadForm` shows an inline success state
+in place (checkmark + confirmation copy) after submission, matching this section's
+"what happens next" intent, rather than navigating to a dedicated `/contact/
+thank-you` page — that specific route is 🔵 FUTURE-ASPIRATIONAL. The design intent
+below is still worth preserving for whenever a fuller confirmation experience is
+built:
 
 ```
 Navigation
@@ -386,6 +453,10 @@ Footer
 
 ### Book Purchase Thank You — `/books/thank-you`
 
+🔵 **FUTURE-ASPIRATIONAL — no route exists**, and no direct-purchase/Stripe checkout
+exists yet to redirect from (see `docs/PROJECT_MEMORY.md`'s "Features intentionally
+postponed"). Kept as the target design for whenever Stripe/direct sales ship.
+
 ```
 Navigation
 Confirmation Header (adapts to context — see below)
@@ -404,6 +475,13 @@ Footer
 
 ### Courses — Coming Soon — `/courses`
 
+🟢 **CURRENT — closely matches this original plan.** Real structure: Page Hero
+("Structured study, coming soon") → a real grid of in-development courses
+(`getAllCourses()`, `CourseCard`) under an "In development" eyebrow → newsletter
+capture ("Join the newsletter for enrollment," `NewsletterForm source=
+"COURSES_COMING_SOON"`). No separate "In the Meantime" cross-link section exists
+today (🔵 FUTURE-ASPIRATIONAL addition, not a gap in what shipped).
+
 ```
 Navigation
 Page Hero (name the future academy directly: "Courses are coming.")
@@ -419,7 +497,16 @@ Footer
   caps — the same restrained, text-led, serif-forward treatment as every other page,
   so it reads as *forthcoming*, not *placeholder*.
 
-### Student Portal — Coming Soon — *(unlisted)*
+### Student Portal — Coming Soon — `/dashboard`, `/academy` *(unlisted)*
+
+🟡 **PLANNED — routes reserved, real content not built.** Both routes exist today,
+`noindex`, unauthenticated, and unlinked from navigation — but each currently
+renders a plain `EmptyState` ("The dashboard isn't built yet. This is a reserved
+route for the future student dashboard."), not the designed waiting-list page
+below. The design intent — a warm, on-brand "coming soon" page rather than a bare
+placeholder, reached only via a link from Courses — remains the right target and is
+worth building whenever the student portal moves from "reserved route" to "actively
+planned":
 
 ```
 Navigation
@@ -437,84 +524,129 @@ Footer
 
 ## 6. Deep Dive — Homepage
 
+🟢 **CURRENT** — this entire section is corrected to describe the real Sprint 11
+homepage (`src/app/(site)/page.tsx` and its section components). The original plan
+below it is superseded, not merely inaccurate in details — kept as a historical
+record of the pre-Sprint-11 thinking; do not treat any of it as current.
+
 ```
-Navigation (transparent → solid on scroll)
+Navigation
 Hero
-Biography Preview
 Featured Book
+About Preview
+Teaching Areas
+Quote
 Latest Khutbah
-Featured Video
+Future Courses
+CTA
 Newsletter
-Final CTA
 Footer
 ```
 
-**Hero.** Full-bleed, generous vertical space, ivory background with a large serif
-headline (his name or a single teaching-forward line — not a marketing slogan),
-one-line role descriptor ("Islamic Teacher · Author · Khateeb"), and exactly one gold
-button ("Read the Book"). No slider, no auto-rotating claims — a static, confident
-hero is itself a premium signal (this is precisely the Apple/Stripe pattern: one
-message, stated once, stated well). A small manuscript-divider motif closes the
-section, tying it visually to the brand rather than a generic underline.
+**Hero** (`hero.tsx`, `hero-emblem.tsx`/`hero-portrait.tsx`). Ivory background with
+the `.manuscript-texture` background utility, a two-column layout (visual left,
+copy right on desktop; stacked, visual-first on mobile). Real copy: eyebrow "Islamic
+Teacher · Author · Khateeb," headline "Ahmad *Mohamed Kassa*" (the surname in
+italic gold), a one-sentence mission line, a trust line ("Khateeb, Masjid Al-Noor ·
+Teaching since 2009 · Arabic & Islamic Studies"), and two CTAs — gold "Explore
+Books" (`/books`) and outline "Ask Ahmad" (`/ask`), not the single "Read the Book"
+button originally planned. The visual side is the `HERO_VISUAL` Mode A/B switch: the
+emblem (`HeroEmblem`, live today) or a future portrait (`HeroPortrait`, built,
+unwired) in the identical composition slot — see `docs/PROJECT_MEMORY.md`. A
+`ManuscriptDivider` closes the section, fading in after the rest of the content, as
+originally planned.
 
-**Biography Preview.** Three to four sentences pulled from the full About page, set
-in serif at a larger-than-body size, paired with a single portrait photo. Its entire
-job is to answer "who is this person" in under ten seconds and hand off to the full
-story — a "Read his full story →" link, never a button competing with the hero's CTA.
-*Exists because:* trust has to be established before the book is asked to sell
-itself; this is the first proof point.
+**Featured Book** (`featured-book-section.tsx`) — promoted to position 2, right
+after Hero (originally planned as position 3, after a Biography Preview). Reads
+live from `homepageService`/`bookService.resolveFeatured()` (CMS-editable featured
+title, falling back to the newest published book). Large `BookCover` with a soft
+radial gold glow and a small rotated-square "Featured" seal, title, excerpt, and up
+to three CTAs (Learn more; Buy on Amazon if set; Purchase direct, only if the
+`directBookSales` flag is on and a direct link exists). *Exists because:* the book
+is the site's clearest "we're real" signal — matches the original plan's reasoning
+even though its position and visual treatment changed.
 
-**Featured Book.** The one published book, presented like a hero product shot — cover
-image with real weight (not a thumbnail), title, one-sentence hook, and the same gold
-"Buy the book" CTA repeated here (consistency, not novelty). *Exists because:* the
-book is the site's only current revenue driver and its clearest "we're real, ask
-serious" signal — it deserves its own full section, not a passing mention.
+**About Preview** (`about-preview-section.tsx`) — moved to position 3 (after
+Featured Book, not immediately after Hero as originally planned). `PortraitFrame` +
+a real short bio paragraph (Religious Institute in Kuwait, Khateeb at Masjid
+Al-Noor) + a five-item credentials list (Khateeb — Masjid Al-Noor; Author — The
+Great Debate; Teaching since 2009; Arabic & Islamic Studies; Computer Science &
+Education) + "Read full biography" outline button to `/about`. Same "answer who
+this person is, then hand off" intent as the original "Biography Preview" plan,
+different copy/position.
 
-**Latest Khutbah.** A single card: thumbnail, date, title, a small "▶" play affordance
-linking through to the Khutbah library. If no khutbah has been uploaded yet, this
-section is replaced — not hidden — by a quiet "Khutbah recordings begin soon; subscribe
-to be notified" card in the same visual slot, so the homepage's rhythm never breaks
-because of what hasn't been recorded yet. *Exists because:* it signals an *active,
-ongoing* practice (not a one-off book launch), which is core to the "long-term
-academy" positioning.
+**Teaching Areas** (`teaching-areas-section.tsx`) — new in Sprint 11, not part of
+the original plan at all. Five cards (Aqeedah, Fiqh, Marriage & Family, Ruqyah,
+Mental Health) — deliberately the same real taxonomy already used by Ask Ahmad's
+question categories, not an invented marketing list. Fills the conceptual slot the
+old, now-deleted `PillarsSection` used to occupy, rebuilt fresh for the new visual
+language rather than restored.
 
-**Featured Video.** One embedded/thumbnail video, chosen manually (not "most recent,"
-since with so few videos, manual curation always beats an algorithmic pick from a
-pool this small). If
-zero videos exist, this section is omitted entirely from the homepage rather than
-shown empty — Latest Khutbah alone can carry the "active teacher" signal.
-*Exists because:* video is the lowest-trust-cost way for a brand-new visitor to
-sample his teaching style before committing to a book purchase.
+**Quote** (`quote-section.tsx`) — a navy-background pull-quote interstitial with a
+faint (5% opacity) full-bleed emblem watermark behind the text — the site's rhythm
+break between the lighter sections above and below it, an idea the original plan
+didn't call out by this name but that fulfils the same "alternate layouts" instinct
+it asked for.
 
-**Newsletter.** A dedicated, unmissable but not desperate section — short headline
-("Stay close to new lessons"), one input, one button, one line of reassurance ("no
-spam, unsubscribe anytime"). *Exists because:* with thin content today, the
-newsletter is the primary mechanism for turning a one-time visitor into a returning
-one — see the User Journey in Section 16.
+**Latest Khutbah** (`featured-lectures-section.tsx`, exported as
+`LatestKhutbahSection`) — a single editorial spotlight card (not a grid, and not
+linking to a `/khutbahs` library page, which doesn't exist — see Section 0),
+featuring the one lecture already categorized `"Weekly Khutbah"` in
+`src/lib/data/lectures.ts`. Every lecture in that file is honestly
+`status: "coming-soon"`, so the section keeps that framing ("recordings are on the
+way") rather than implying a real upload exists, plus a "Watch more on YouTube"
+outside link. This replaces the original plan's separate "Latest Khutbah" +
+"Featured Video" sections with one combined, honestly-framed spotlight.
 
-**Final CTA.** A closing full-width band (navy background, ivory text, gold button)
-restating the single most important next step for a visitor who scrolled the whole
-page without acting yet — mirrors the hero's CTA exactly, closing the loop.
+**Future Courses** (`future-courses-section.tsx`) — not part of the original plan.
+Mirrors the real `/courses` page's course grid (`getAllCourses()`, `CourseCard`)
+under an "The academy — coming soon" eyebrow, with a "View the academy" link to
+`/courses`.
+
+**CTA** (`cta-section.tsx`) — a paper-tone Ask Ahmad prompt ("Have a question in
+mind?") with a mark-glyph `ManuscriptDivider`, gold "Ask a question" (`/ask`) and
+ghost "Join the newsletter instead" (`/newsletter`) buttons. Functionally the
+original plan's "Final CTA," but focused on Ask Ahmad rather than repeating the
+hero's book CTA.
+
+**Newsletter** (`newsletter-section.tsx`) — navy background, same faint emblem
+watermark treatment as Quote, headline "One email, every new release," the shared
+`NewsletterForm`. Matches the original plan's intent closely (short headline, one
+field, one button, no-spam reassurance folded into the surrounding copy).
 
 **Footer.** As specified in Section 4.
 
 ---
 
-## 7. Deep Dive — Book Section (`/books/the-great-debate`)
+## 7. Deep Dive — Book Section (`/books/[slug]`)
+
+🟡 **PARTIALLY CURRENT — the real page (`src/app/(site)/books/[slug]/page.tsx`) is
+simpler than this original plan in several real ways.** Corrected structure:
 
 ```
 Navigation
-Book Hero — cover, title, one-line premise, price/format, Buy Now (primary),
-  Read a Sample (secondary)
-Contents Preview — chapter/section list
-Sample Pages — first chapter or a curated excerpt, distraction-free reader
-Author Notes — a short passage from Ahmad on why he wrote it
-Reviews — reserved, future-ready layout (see below)
-Related Resources — khutbahs/videos that reference the book's themes
-Future Titles — quiet placeholder for what's next
+Book Hero — cover, title, status badge, category, author byline, excerpt,
+  publication/ISBN/language details, Buy on Amazon (or "Coming soon" disabled
+  state), directBookSales-flag-gated purchase options, share buttons
+Description (CMS rich text, only if the editor set one)
+Gallery (only if gallery images exist)
+About the Author — short blurb + link to /about (not a distinct "Author Notes"
+  passage in Ahmad's own voice)
+Reviews — real section, always rendered, showing an honest EmptyState
+  ("Reviews aren't open yet") rather than being conditionally hidden
+Related — real books from bookService.getRelated(), only if any exist
 Newsletter
-Footer
 ```
+
+**What didn't ship, and remains 🔵 FUTURE-ASPIRATIONAL:** a Contents/chapter-list
+preview, a distraction-free Sample Pages reader, a dedicated "Author Notes" block
+written in Ahmad's own voice (distinct from the shorter About-the-Author blurb that
+did ship), and a "Future Titles" placeholder line. The reasoning behind each — see
+the original bullets below — is still worth pursuing; none of it has been built.
+**What shipped differently than planned:** Reviews is a real, always-visible section
+using the project's standard `EmptyState` pattern, not a carousel component that's
+entirely unrendered until the first review exists — a real UX difference worth
+noting if a future Editorial Refinement pass wants to reconcile the two approaches.
 
 With one title, the temptation is to build a thin product page. Instead this page is
 built to the depth a *flagship* title on a real publisher's site would get — because
@@ -562,6 +694,13 @@ right now, it effectively is the flagship.
 ---
 
 ## 8. Deep Dive — Khutbah Library (`/khutbahs`)
+
+🔵 **FUTURE-ASPIRATIONAL — no route exists.** Today, Khutbah content is a single
+homepage section (`LatestKhutbahSection`, Section 6) pulling from
+`src/lib/data/lectures.ts`, where every lecture is honestly `status: "coming-soon"`.
+This entire section is kept as the long-term target design for once a real,
+dedicated Khutbah library is scoped — none of it should be treated as a near-term
+build.
 
 ```
 Navigation
@@ -614,16 +753,23 @@ here is chosen for how it behaves at 1 khutbah as much as at 200.
 
 ## 9. Deep Dive — Articles (`/articles`)
 
+🟡 **PARTIALLY CURRENT — simpler than planned.** The real page
+(`src/app/(site)/articles/page.tsx`) is a `PageHeader` + a paginated **list**
+(`getArticlesPage()`, real page-number pagination via `Pagination`), not a grid:
+
 ```
 Navigation
-Page Hero ("Articles" + framing line — or, at zero content, an honest "Coming Soon"
-  variant of the same hero)
-Category filter bar (same conditional-visibility rule as Khutbahs' filters)
-Featured Article (large, top of page)
-Grid of article cards (title, category, excerpt, read time, date)
-Newsletter ("Be the first to read new articles")
+Page Header ("Articles" / "Writing" + framing line)
+Vertical list of article cards (ArticleCard, one per row, not a multi-column grid)
+Pagination (real page-number controls, once content exceeds one page)
 Footer
 ```
+
+**What didn't ship, and remains 🔵 FUTURE-ASPIRATIONAL:** a category filter bar, a
+separately-treated Featured Article slot, and a dedicated Newsletter section on this
+specific page (the site-wide footer newsletter still appears, just not a second
+in-page one). None of the reasoning below about category filters or a Featured slot
+is wrong — it just hasn't been built, and shouldn't be assumed to exist.
 
 Designed to scale from **zero** articles today to hundreds later without ever being
 rebuilt — this is the page most literally asked ("design so it scales to hundreds
@@ -654,20 +800,40 @@ later") to prove out the plan's "scale without redesign" principle.
 
 ## 10. Deep Dive — About Page (`/about`)
 
+🟢 **CURRENT, and more developed than this original plan** — the real page
+(`src/app/(site)/about/page.tsx`) shipped more sections than originally scoped, in a
+different order. Still 100% hardcoded content (see `docs/PROJECT_MEMORY.md`'s Known
+Limitations — the Homepage/About CMS editors persist real rows with zero effect on
+this page). Real structure:
+
 ```
 Navigation
-Page Hero — portrait + name + one-line role
-The Story — 3–4 narrative movements (not one continuous block)
-  1. Early life / how his Islamic education began
-  2. Formal study — teachers, institutions, ijazah/qira'ah if applicable
-  3. Becoming a Khateeb — his role at Masjid Al-Noor, East London
-  4. Why he writes and teaches today — the throughline into his book/khutbahs
-Teaching Philosophy — a short, quotable statement of how he approaches teaching
-Pull-Quote — a single striking line, set large, in his own words
-CTA — "Read the Book" (primary) / "Ask a Question" (secondary)
-Newsletter
-Footer
+Page Hero — portrait + name + one-line description + 4 identity badges
+  (Khateeb · Author · Islamic Speaker · Ruqyah since 2009)
+Biography (4 short paragraphs — Kuwait study, academic background, Khateeb role,
+  Ruqyah practice since 2009)
+Education / Professional Background (two columns: formal training list,
+  academia & consultancy)
+Islamic Teaching / Public Speaking (two columns: teaching philosophy,
+  minbar & seminars)
+Books / Research Interests (two columns: The Great Debate + "Explore the books,"
+  a tag list of research areas)
+Timeline — 8-step numbered path (Foundations → Undergraduate → Postgraduate →
+  Career → Community → 2009 Ruqyah → 2024 Books → Ahead: The Academy) — a
+  richer, more literal timeline than the original plan's "restrained
+  timeline/credentials" guidance called for
+Mission (navy pull-quote band, his mission statement)
+Future Academy CTA — "Join the newsletter" (primary) / "Ask a question"
+  (secondary) — not "Read the Book," a real difference from the original plan
 ```
+
+The original plan's four-movement narrative structure, dedicated "Teaching
+Philosophy" section, and single striking pull-quote are all present in spirit but
+reorganized into more, shorter, two-column sections rather than four narrative
+movements — worth a look during a future Editorial Refinement pass (Section 3 of
+`docs/ROADMAP.md`'s proposed sequence) given the original "not one continuous block"
+intent has arguably been satisfied a different way. Original reasoning kept below
+for that future review.
 
 **Why it's broken into movements, not one block.** A single unbroken biography reads
 like a CV; four short, titled movements read like a story — each gets its own
@@ -693,21 +859,48 @@ higher-commitment ask, so it's offered but not pushed first.
 
 ---
 
-## 11. Deep Dive — Contact (`/contact`)
+## 11. Deep Dive — Ask Ahmad (`/ask`) and Contact (`/contact`)
+
+🟢 **CURRENT, but shipped as two separate real routes, not one page with an internal
+category-then-form flow as originally planned** (see Section 0). Each page's real
+structure:
+
+**Ask Ahmad — `/ask`** (`AskPage` + `AskAhmadForm`):
 
 ```
 Navigation
-Page Hero ("Ask Ahmad" framing — personal, not corporate "Contact Us")
-Category Selector — Marriage · Family · Aqeedah · Fiqh · Ruqyah · Mental Health · Other
-Question Form (adapts slightly per category — see below)
-Privacy/Confidentiality Reassurance (short, explicit line)
-Divider
-General/Business Enquiries — a separate, smaller block (press, events, collaborations)
-Footer
+Page Header ("Ask Ahmad" — personal framing, matches the original intent)
+Question Form:
+  Name + Email
+  Category (dropdown Select: Marriage · Family · Aqeedah · Fiqh · Ruqyah ·
+    Mental Health · Other)
+  Question (single textarea, 2000-char counter, same shape for every category)
+  Consent checkbox (privacy reassurance folded into its own label text)
+  Submit → inline success screen (checkmark, reference number with copy button,
+    "Ask another question")
 ```
 
-**Why a category selector, not a single generic form.** These categories are not
-decorative — the whole page is designed around them:
+**Contact — `/contact`** (`ContactPage` + `ContactForm`):
+
+```
+Navigation
+Page Header ("Get in touch" — explicitly redirects Islamic-knowledge questions to
+  Ask Ahmad in its own description line)
+Enquiry-type list (Speaking engagements & seminars · Media & press ·
+  Book enquiries) + "Based in: East London, United Kingdom" + social icons
+Contact form (general enquiry — separate component, not read in this pass)
+```
+
+**What matches the original plan:** the categorised-question concept (now `/ask`'s
+Category field), the privacy/confidentiality reassurance near the form, and the
+clear separation between personal-question and business-enquiry audiences/tone —
+all present, just expressed as two pages instead of one page with a divider.
+
+**What didn't ship, and remains 🔵 FUTURE-ASPIRATIONAL:** the tappable-tile category
+selector (today it's a standard dropdown `Select`), the Ruqyah/Mental-Health
+crisis-resource note, and the Aqeedah/Fiqh optional "reference/madhhab context"
+field. All three are genuine duty-of-care/quality ideas worth revisiting — none of
+the reasoning below is wrong, none of it has been built yet:
 
 - The selector is presented as large, tappable tiles (not a dropdown) — the act of
   choosing "Mental Health" or "Marriage" is itself a small, sensitive decision for a
@@ -719,74 +912,68 @@ decorative — the whole page is designed around them:
 - Selecting **Aqeedah** or **Fiqh** surfaces an optional "reference/madhhab context"
   field — these questions often benefit from knowing the asker's background; it's
   optional, never required.
-- **Marriage** and **Family** share the same form shape but different placeholder
-  copy, tuned to the kind of detail that's actually useful for each.
-- **Other** is a deliberately plain fallback — no visitor should ever feel their
-  question doesn't fit anywhere.
-
-**Privacy reassurance.** One explicit sentence near the form — *"Your question is
-read only by Ahmad and is never shared publicly without your permission."* — placed
-here because personal/Aqeedah/mental-health questions carry real emotional weight;
-trust copy earns its place directly beside the submit button, not buried in the
-Privacy Policy alone.
-
-**General/Business Enquiries — kept separate and smaller.** Press, event bookings,
-and collaboration requests are a fundamentally different audience and tone from a
-personal Fiqh question — visually demoting this to a smaller block beneath a divider
-keeps the page's primary energy focused on the community-facing Q&A experience,
-while still giving professional enquiries a clear, findable path (a plain email
-link is enough here; it doesn't need its own categorised form).
 
 ---
 
 ## 12. Deep Dive — Newsletter (signup UX + confirmation)
 
-**Where signup appears:** homepage dedicated section, every page's footer, and as a
-secondary CTA on Home/About/Book Detail/Khutbahs. Never as an interrupting popup or
-exit-intent modal — those patterns actively work against "calm" and "trustworthy."
+🟡 **PARTIALLY CURRENT — real double opt-in exists, but the signup UX and
+confirmation differ from this original plan.**
 
-**The signup UX itself:**
+**Where signup appears — matches the plan, plus one more:** a dedicated `/newsletter`
+page (not originally planned as its own route), the homepage's `NewsletterSection`,
+every page's footer, and secondary CTAs on the homepage `CtaSection` ("Join the
+newsletter instead") and `/courses`/`/books/[slug]`. Never an interrupting popup —
+still true.
 
-```
-[ Email address input ]  [ Subscribe → ]
-"No spam. Unsubscribe anytime."
-```
-
-- Single field, single button, one line of reassurance — no name field, no interest
-  checkboxes, no "how did you hear about us" survey. Every extra field measurably
-  lowers signup rate, and nothing here needs more than an email address to work.
-- Inline success state first: on submit, the input/button pair itself morphs into a
-  small checkmark + "You're subscribed" message *without* a full page navigation —
-  fast, low-friction confirmation for the common case.
-- The **dedicated `/newsletter/thank-you` page** is reserved for the cases that
-  benefit from a full page: a direct link shared from an email campaign, or a
-  double-opt-in confirmation click (recommended, given the personal/Islamic-content
-  nature of this list — a confirmed list is a healthier, more trusted one).
-
-**`/newsletter/thank-you` wireframe:**
+**The real signup UX** (`NewsletterForm`, `src/components/forms/newsletter-form.tsx`):
 
 ```
-Navigation
-Confirmation (manuscript-divider-styled checkmark, on-brand — not a generic icon)
-"You're in." + one warm line about what to expect (cadence, content type)
-While You Wait — Book / Khutbahs / About cross-links
-Footer
+[ First name (optional) — non-footer variant only ]
+[ Email address input ]  [ Join Newsletter ]
+"By subscribing you agree to receive occasional email updates. Unsubscribe anytime."
 ```
 
-**Success messaging, written deliberately:**
-- Inline: *"You're subscribed — thank you."*
+- A real difference from the original plan: there **is** an optional first-name
+  field on the non-footer variant (the plan explicitly said "no name field" to
+  maximise conversion) — kept because personalised email greetings were judged worth
+  the small friction. The footer variant stays email-only, closer to the original
+  minimal-friction intent.
+- **Success is a toast notification** (`sonner`, "your subscription is pending
+  confirmation" — see below), not the inline checkmark-morph originally planned.
+  There is no dedicated `/newsletter/thank-you` page (🔵 FUTURE-ASPIRATIONAL,
+  superseded — see Section 5); a direct link from a campaign email lands on
+  `/newsletter/confirm` instead.
+- **Real double opt-in** (Sprint 8): signup creates a `PENDING` subscriber; only
+  clicking the confirmation link (`/newsletter/confirm`) flips it to `ACTIVE` — this
+  matches the original plan's "recommended, given the personal/Islamic-content
+  nature of this list" reasoning closely, just implemented as a real confirm route
+  rather than a thank-you-page-with-a-click-through.
+
+**What didn't ship, and remains 🔵 FUTURE-ASPIRATIONAL:** the dedicated
+`/newsletter/thank-you` "You're in" page with cross-links, and the specific inline
+checkmark-morph success animation. The cadence-setting copy principle below is still
+sound and worth applying to `/newsletter/confirm`'s real copy if it doesn't already:
+
 - Page: *"You're in. You'll hear from us when there's something worth sharing — new
   khutbahs, new writing, and news about future courses."* This line does real work:
   it sets a *cadence* expectation (not "every day") and previews exactly the content
   types this plan is built around, turning a first-time subscriber into someone who
   now has a concrete reason to return (see the User Journey below).
-- Error state (invalid email, already subscribed): calm, specific, never alarmist —
-  *"That doesn't look like a valid email — mind checking it?"* / *"You're already on
-  the list — thank you!"* (the second one framed warmly, not as a rejection).
 
 ---
 
 ## 13. Animations
+
+🟡 **Directionally current; exact values superseded.** `docs/DESIGN_SYSTEM.md`'s
+Motion section is now the authoritative implementation reference (constants,
+variants, the `ScrollReveal`/`useReducedMotion` pattern) — treat the specific
+timing/distance numbers below as the original design intent, not verified current
+values. One concrete example: the real scroll-reveal fade (`src/constants/
+motion.ts`'s `fadeUp`) settles 16px over 600ms with a `[0.16, 1, 0.3, 1]` ease, not
+the "8-12px, near-instant" figure below — same restrained spirit, different exact
+numbers. The overall philosophy (restraint, one-time reveals, no parallax/
+auto-playing carousels/scroll-jacking) still holds and is still followed.
 
 Restraint is the animation strategy, not an afterthought to it — nothing here should
 ever be the reason a visitor notices "an animation" rather than simply feeling the
@@ -823,6 +1010,14 @@ page respond well.
 
 ## 14. Accessibility
 
+🟡 **Principles still followed; treat `docs/ACCESSIBILITY.md` as the authoritative,
+current reference for what's actually implemented** (reduced-motion coverage,
+RTL/logical-property status, live-region form errors) rather than this section —
+this plan predates that document and hasn't been reconciled line-by-line against it
+in this pass. One known inaccuracy: the `/` keyboard shortcut for opening search
+described below is not confirmed wired up to the real `SearchTrigger` (Section 3);
+verify before relying on it.
+
 - **Keyboard navigation.** Full site operable without a mouse: logical tab order
   following visual order, a visible focus ring (gold, matching the brand accent,
   never suppressed for aesthetics), `/` opens search from anywhere, `Escape` closes
@@ -851,6 +1046,14 @@ page respond well.
 ---
 
 ## 15. Mobile Experience
+
+🟡 **Principles still sound; some specifics superseded by Section 3's corrections**
+— notably, the mobile nav is a right-side sliding drawer (`Sheet`) today, not the
+full-screen overlay this section (and Section 3) originally specified. The
+Khutbah/Article/Video grid, filter-bar-as-bottom-sheet, and sticky mini-player
+material below is 🔵 FUTURE-ASPIRATIONAL wherever it depends on pages that don't
+exist yet (Khutbah library, Videos — see Section 0); Articles' real pagination
+(Section 9) doesn't yet have the column-count/filter behavior described here.
 
 Given the audience ("practising Muslims of all ages"), a meaningful share of visits —
 likely the majority — will be mobile, often on the way to or from the masjid. Every
@@ -895,6 +1098,16 @@ responsive change below is written with that specific, real use-case in mind.
 ---
 
 ## 16. End-to-End User Journey
+
+🔵 **Directionally FUTURE-ASPIRATIONAL from step 5 onward** — steps 1–4 describe
+real, buildable behavior (homepage → About → Book Detail → Newsletter signup all
+exist, with real routes and forms, per Sections 6, 10, 7, 12 above). Step 5 assumes
+a Khutbah library page that doesn't exist yet (Section 8); step 6 assumes a live,
+purchasable Courses catalogue and Stripe checkout, both explicitly deferred (see
+`docs/PROJECT_MEMORY.md`'s "Features intentionally postponed"). The overall
+narrative arc — trust before content before commitment — remains the right guiding
+principle for real work; treat the specific pages/routes named in later steps as
+aspirational, not as claims about what exists today.
 
 ```
 1. LANDS ON HOMEPAGE
