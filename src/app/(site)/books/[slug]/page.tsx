@@ -12,11 +12,13 @@ import { BookCard } from "@/components/cards/book-card";
 import { ShareButtons } from "@/components/shared/share-buttons";
 import { NewsletterSection } from "@/components/sections/newsletter-section";
 import { JsonLd } from "@/components/shared/json-ld";
+import { TrackedLink } from "@/components/shared/tracked-link";
+import { TrackEventOnMount } from "@/components/shared/track-event-on-mount";
 import { bookService } from "@/services/book.service";
 import { aboutService } from "@/services/about.service";
 import { isFeatureEnabled } from "@/features/flags";
 import { formatDate } from "@/lib/format";
-import { buildBookJsonLd, buildMetadata } from "@/lib/seo";
+import { buildBookJsonLd, buildBreadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 import { siteConfig } from "@/config/site";
 import { Star } from "lucide-react";
 
@@ -52,6 +54,10 @@ export async function generateMetadata({ params }: BookPageProps): Promise<Metad
     path: `/books/${book.slug}`,
     canonicalUrl: book.seo?.canonicalUrl || undefined,
     ogImage: book.seo?.ogImage?.url || book.coverImage?.url || undefined,
+    // Falls back to the generated branded card (opengraph-image.tsx,
+    // co-located with this route) only when neither an editor-set OG
+    // image nor a cover image exists — either real image always wins.
+    useRouteOgImage: true,
     noIndex: book.status !== "PUBLISHED",
   });
 }
@@ -87,6 +93,8 @@ export default async function BookDetailPage({ params }: BookPageProps) {
           coverImageUrl: book.coverImage?.url,
         })}
       />
+      <JsonLd data={buildBreadcrumbJsonLd([{ label: "Books", href: "/books" }, { label: book.title }])} />
+      <TrackEventOnMount event={{ name: "book_detail_view", props: { bookSlug: book.slug } }} />
       <Section containerWidth="wide">
         <PageBreadcrumbs items={[{ label: "Books", href: "/books" }, { label: book.title }]} />
 
@@ -144,9 +152,14 @@ export default async function BookDetailPage({ params }: BookPageProps) {
             <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               {book.amazonUrl ? (
                 <Button asChild variant="gold" size="xl">
-                  <a href={book.amazonUrl} target="_blank" rel="noopener noreferrer">
+                  <TrackedLink
+                    href={book.amazonUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    event={{ name: "amazon_link_click", props: { bookSlug: book.slug } }}
+                  >
                     Buy on Amazon
-                  </a>
+                  </TrackedLink>
                 </Button>
               ) : (
                 <Button variant="gold" size="xl" disabled title="Coming soon">
@@ -265,7 +278,7 @@ export default async function BookDetailPage({ params }: BookPageProps) {
         </Section>
       )}
 
-      <NewsletterSection />
+      <NewsletterSection source="BOOK_PAGE" />
     </>
   );
 }

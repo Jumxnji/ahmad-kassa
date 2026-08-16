@@ -14,6 +14,7 @@ export const metadata: Metadata = buildMetadata({
   title: "Courses",
   description: "Structured courses from Ahmad Mohamed Kassa — coming soon.",
   path: "/courses",
+  useRouteOgImage: true,
 });
 
 export default function CoursesPage() {
@@ -57,7 +58,7 @@ export default function CoursesPage() {
           enrollment opens.
         </p>
         <div className="mx-auto mt-8 max-w-sm">
-          <NewsletterForm />
+          <NewsletterForm source="COURSES_COMING_SOON" />
         </div>
       </Section>
     </>

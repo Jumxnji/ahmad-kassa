@@ -87,7 +87,3 @@ export const COURSES: readonly Course[] = [
 export function getAllCourses(): readonly Course[] {
   return COURSES;
 }
-
-export function getCourseBySlug(slug: string): Course | undefined {
-  return COURSES.find((course) => course.slug === slug);
-}

@@ -44,7 +44,7 @@ export default function NewsletterPage() {
       </ul>
 
       <div className="mx-auto mt-10 max-w-sm">
-        <NewsletterForm />
+        <NewsletterForm source="NEWSLETTER_PAGE" />
       </div>
     </Section>
   );

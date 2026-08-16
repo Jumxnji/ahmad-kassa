@@ -15,7 +15,8 @@ import {
   getRelatedArticles,
 } from "@/lib/data/articles";
 import { formatDate } from "@/lib/format";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, buildArticleJsonLd, buildBreadcrumbJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/shared/json-ld";
 import { siteConfig } from "@/config/site";
 
 interface ArticlePageProps {
@@ -45,6 +46,8 @@ export async function generateMetadata({
     title: article.seo?.title ?? article.title,
     description: article.seo?.description ?? article.excerpt,
     path: `/articles/${article.slug}`,
+    ogImage: article.seo?.ogImage,
+    useRouteOgImage: true,
   });
 }
 
@@ -64,6 +67,19 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
 
   return (
     <>
+      <JsonLd
+        data={buildArticleJsonLd({
+          title: article.title,
+          excerpt: article.excerpt,
+          slug: article.slug,
+          authorName: article.author.name,
+          publishedAt: article.publishedAt,
+          coverImageUrl: article.coverImageUrl,
+        })}
+      />
+      <JsonLd
+        data={buildBreadcrumbJsonLd([{ label: "Articles", href: "/articles" }, { label: article.title }])}
+      />
       <ReadingProgressBar />
 
       <Section containerWidth="wide">

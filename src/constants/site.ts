@@ -1,6 +1,14 @@
 import type { SocialLink } from "@/types/site";
 
-export const SITE_URL = "https://ahmadkassa.com";
+/**
+ * Environment-aware — prefers NEXT_PUBLIC_SITE_URL (e.g. a preview
+ * deployment or a not-yet-connected production domain) and falls back
+ * to the real domain otherwise. Every canonical/OG/sitemap/robots
+ * consumer reads through `siteConfig.url`, which is sourced from this
+ * constant, so setting the env var once fixes all of them. Mirrors
+ * the same pattern already established in src/lib/newsletter-urls.ts.
+ */
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://ahmadkassa.com";
 
 export const SITE_NAME = "Ahmad Mohamed Kassa";
 

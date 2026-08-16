@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { Calendar, Mail, Mic, Newspaper } from "lucide-react";
+import { Calendar, Mic, Newspaper } from "lucide-react";
 import { Section } from "@/components/shared/section";
 import { PageHeader } from "@/components/shared/page-header";
+import { PageBreadcrumbs } from "@/components/navigation/page-breadcrumbs";
 import { ContactForm } from "@/components/forms/contact-form";
 import {
   InstagramIcon,
@@ -9,7 +10,8 @@ import {
   YoutubeIcon,
 } from "@/components/shared/social-icons";
 import { SOCIAL_LINKS } from "@/constants/site";
-import { buildMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/shared/json-ld";
+import { buildMetadata, buildBreadcrumbJsonLd, buildContactPageJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Contact",
@@ -33,6 +35,9 @@ const SOCIAL_ICONS = {
 export default function ContactPage() {
   return (
     <Section containerWidth="wide">
+      <JsonLd data={buildContactPageJsonLd()} />
+      <JsonLd data={buildBreadcrumbJsonLd([{ label: "Contact" }])} />
+      <PageBreadcrumbs items={[{ label: "Contact" }]} />
       <PageHeader
         eyebrow="Contact"
         title="Get in touch"
@@ -74,13 +79,6 @@ export default function ContactPage() {
                 </a>
               );
             })}
-            <a
-              href="mailto:hello@ahmadkassa.com"
-              aria-label="Email"
-              className="flex size-9 items-center justify-center rounded-full border border-border text-stone-600 transition-colors hover:border-gold-400/60 hover:text-gold-600"
-            >
-              <Mail className="size-4" strokeWidth={1.5} />
-            </a>
           </div>
         </div>
 

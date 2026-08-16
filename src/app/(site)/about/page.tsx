@@ -5,16 +5,32 @@ import { Section } from "@/components/shared/section";
 import { Eyebrow } from "@/components/shared/eyebrow";
 import { ManuscriptDivider } from "@/components/shared/manuscript-divider";
 import { PortraitFrame } from "@/components/media/portrait-frame";
+import { PageBreadcrumbs } from "@/components/navigation/page-breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { buildMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/shared/json-ld";
+import {
+  buildMetadata,
+  buildAboutPageJsonLd,
+  buildBreadcrumbJsonLd,
+  buildPersonJsonLd,
+} from "@/lib/seo";
+import { aboutService } from "@/services/about.service";
 
-export const metadata: Metadata = buildMetadata({
-  title: "About",
-  description:
-    "About Ahmad Mohamed Kassa — Islamic teacher, author, and Khateeb at Masjid Al-Noor, East London, teaching Ruqyah since 2009.",
-  path: "/about",
-});
+const DEFAULT_DESCRIPTION =
+  "About Ahmad Mohamed Kassa — Islamic teacher, author, and Khateeb at Masjid Al-Noor, East London, teaching Ruqyah since 2009.";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const about = await aboutService.get();
+
+  return buildMetadata({
+    title: about?.seo?.metaTitle || "About",
+    description: about?.seo?.metaDescription || DEFAULT_DESCRIPTION,
+    path: "/about",
+    noIndex: about?.seo?.noindex ?? false,
+    useRouteOgImage: true,
+  });
+}
 
 const BADGES = ["Khateeb", "Author", "Islamic Speaker", "Ruqyah since 2009"] as const;
 
@@ -91,8 +107,12 @@ const TIMELINE = [
 export default function AboutPage() {
   return (
     <>
+      <JsonLd data={buildAboutPageJsonLd()} />
+      <JsonLd data={buildPersonJsonLd()} />
+      <JsonLd data={buildBreadcrumbJsonLd([{ label: "About" }])} />
       <Section>
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.85fr)_1fr] lg:gap-20">
+        <PageBreadcrumbs items={[{ label: "About" }]} />
+        <div className="mt-8 grid items-center gap-12 lg:grid-cols-[minmax(0,0.85fr)_1fr] lg:gap-20">
           <PortraitFrame className="mx-auto max-w-sm lg:max-w-none" />
           <div>
             <Eyebrow>About</Eyebrow>
