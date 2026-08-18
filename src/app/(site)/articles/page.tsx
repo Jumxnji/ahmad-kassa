@@ -27,11 +27,17 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
         title="Writing"
         description="Shorter reflections on belief, practice, and the questions that come up in ordinary life."
       />
-      <div className="mt-14 space-y-10">
-        {items.map((article) => (
-          <ArticleCard key={article.id} article={article} />
-        ))}
-      </div>
+      {items.length > 0 ? (
+        <div className="mt-14 space-y-10">
+          {items.map((article) => (
+            <ArticleCard key={article.id} article={article} />
+          ))}
+        </div>
+      ) : (
+        <p className="mt-16 text-center text-sm text-muted-foreground">
+          No articles published yet — new writing will appear here as it&apos;s ready.
+        </p>
+      )}
       <Pagination currentPage={currentPage} totalPages={totalPages} basePath="/articles" />
     </Section>
   );

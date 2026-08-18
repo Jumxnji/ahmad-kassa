@@ -6,9 +6,20 @@ function blocks(entries: readonly ArticleBlock[]): readonly ArticleBlock[] {
 }
 
 /**
- * Placeholder editorial catalog — no CMS yet. `content` blocks power
- * the long-form reading page (headings become TOC anchors); list
- * pages only need the metadata fields above them.
+ * Draft editorial catalog — no CMS yet, and none of these ten pieces
+ * has been confirmed for real publication. `status: "draft"` keeps
+ * every one of them out of every public surface — the `/articles`
+ * index, individual `/articles/[slug]` routes, the sitemap, and
+ * related-reading — via the `status === "published"` filter in
+ * `getAllArticles()` below, which every other getter in this file is
+ * built on. The drafts themselves are preserved, not deleted, for
+ * whenever real writing is ready. Flip an entry's `status` to
+ * `"published"` (with an accurate `publishedAt`) only once it is
+ * genuinely ready to be public — never to fill out an empty page. See
+ * `docs/PROJECT_MEMORY.md`'s "Content truth" note.
+ *
+ * `content` blocks power the long-form reading page (headings become
+ * TOC anchors); list pages only need the metadata fields above them.
  */
 export const ARTICLES: readonly Article[] = [
   {
@@ -17,7 +28,7 @@ export const ARTICLES: readonly Article[] = [
     title: "Understanding Tawakkul",
     excerpt:
       "Reliance on God is not passivity. It's the discipline of acting fully while releasing the outcome — and it changes how anxiety works.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Aqeedah",
     readingTimeMinutes: 6,
@@ -64,7 +75,7 @@ export const ARTICLES: readonly Article[] = [
     title: "Marriage and Mercy",
     excerpt:
       "The Qur'an pairs marriage with tranquility and mercy, not romance. That ordering says something about what actually sustains a household.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Marriage & Family",
     readingTimeMinutes: 7,
@@ -107,7 +118,7 @@ export const ARTICLES: readonly Article[] = [
     title: "The Purpose of Ruqyah",
     excerpt:
       "Ruqyah is a means of treatment grounded in revelation, not a performance. Two decades of practice have made the distinction clearer, not murkier.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Ruqyah",
     readingTimeMinutes: 8,
@@ -150,7 +161,7 @@ export const ARTICLES: readonly Article[] = [
     title: "Signs of Sincerity",
     excerpt:
       "Ikhlas is invisible by definition, which makes it tempting to stop examining it. A few honest questions make it visible enough to work on.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Spirituality",
     readingTimeMinutes: 5,
@@ -188,7 +199,7 @@ export const ARTICLES: readonly Article[] = [
     title: "The Weight of Intention",
     excerpt:
       "Actions are judged by intentions — a hadith so familiar it's easy to stop noticing how much work it's actually doing.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Aqeedah",
     readingTimeMinutes: 5,
@@ -220,7 +231,7 @@ export const ARTICLES: readonly Article[] = [
     title: "Grief and Gratitude",
     excerpt:
       "The two aren't opposites. Islam asks for both at once, which is harder — and more honest — than asking for either alone.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Spirituality",
     readingTimeMinutes: 6,
@@ -252,7 +263,7 @@ export const ARTICLES: readonly Article[] = [
     title: "Why We Doubt",
     excerpt:
       "Doubt is not automatically a crisis of faith. Sometimes it's just the mind doing its job, and the response matters more than the doubt itself.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Aqeedah",
     readingTimeMinutes: 7,
@@ -284,7 +295,7 @@ export const ARTICLES: readonly Article[] = [
     title: "The Quiet Discipline of Dua",
     excerpt:
       "Dua is treated as a last resort by habit, when the texts describe it as the whole relationship — not the emergency exit from it.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Fiqh",
     readingTimeMinutes: 4,
@@ -312,7 +323,7 @@ export const ARTICLES: readonly Article[] = [
     title: "Preparing for Hajj",
     excerpt:
       "The rites matter, but so does the state you arrive in. What to settle before you travel, and what to expect once you're there.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Hajj & Umrah",
     readingTimeMinutes: 7,
@@ -353,7 +364,7 @@ export const ARTICLES: readonly Article[] = [
     title: "Protecting the Heart",
     excerpt:
       "The heart is described as the seat of belief and easily diseased. What the tradition actually prescribes for guarding it, in plain terms.",
-    status: "published",
+    status: "draft",
     author: AHMAD,
     category: "Spirituality",
     readingTimeMinutes: 6,
@@ -388,22 +399,24 @@ export const ARTICLES: readonly Article[] = [
 
 export const ARTICLES_PER_PAGE = 6;
 
+/** The only public-facing article list — every other getter below is built on this. */
 export function getAllArticles(): readonly Article[] {
-  return ARTICLES;
+  return ARTICLES.filter((article) => article.status === "published");
 }
 
 export function getFeaturedArticles(limit = 4): readonly Article[] {
-  const featured = ARTICLES.filter((article) => article.featured);
-  return (featured.length ? featured : ARTICLES).slice(0, limit);
+  const published = getAllArticles();
+  const featured = published.filter((article) => article.featured);
+  return (featured.length ? featured : published).slice(0, limit);
 }
 
 export function getArticleBySlug(slug: string): Article | undefined {
-  return ARTICLES.find((article) => article.slug === slug);
+  return getAllArticles().find((article) => article.slug === slug);
 }
 
 export function getRelatedArticles(slug: string, limit = 3): readonly Article[] {
   const current = getArticleBySlug(slug);
-  const pool = ARTICLES.filter((article) => article.slug !== slug);
+  const pool = getAllArticles().filter((article) => article.slug !== slug);
   if (!current?.category) return pool.slice(0, limit);
 
   const sameCategory = pool.filter((article) => article.category === current.category);
@@ -416,11 +429,12 @@ export function getArticlesPage(page: number): {
   readonly totalPages: number;
   readonly currentPage: number;
 } {
-  const totalPages = Math.max(1, Math.ceil(ARTICLES.length / ARTICLES_PER_PAGE));
+  const published = getAllArticles();
+  const totalPages = Math.max(1, Math.ceil(published.length / ARTICLES_PER_PAGE));
   const currentPage = Math.min(Math.max(1, page), totalPages);
   const start = (currentPage - 1) * ARTICLES_PER_PAGE;
   return {
-    items: ARTICLES.slice(start, start + ARTICLES_PER_PAGE),
+    items: published.slice(start, start + ARTICLES_PER_PAGE),
     totalPages,
     currentPage,
   };

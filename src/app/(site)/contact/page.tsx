@@ -9,7 +9,7 @@ import {
   TikTokIcon,
   YoutubeIcon,
 } from "@/components/shared/social-icons";
-import { SOCIAL_LINKS } from "@/constants/site";
+import { SOCIAL_LINKS, hasConfirmedProfile } from "@/constants/site";
 import { JsonLd } from "@/components/shared/json-ld";
 import { buildMetadata, buildBreadcrumbJsonLd, buildContactPageJsonLd } from "@/lib/seo";
 
@@ -31,6 +31,9 @@ const SOCIAL_ICONS = {
   instagram: InstagramIcon,
   tiktok: TikTokIcon,
 } as const;
+
+/** Same confirmed-profile gate the footer uses — see `hasConfirmedProfile`. */
+const CONFIRMED_SOCIAL_LINKS = SOCIAL_LINKS.filter(hasConfirmedProfile);
 
 export default function ContactPage() {
   return (
@@ -64,22 +67,24 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="mt-8 flex items-center gap-3">
-            {SOCIAL_LINKS.map((link) => {
-              const Icon = SOCIAL_ICONS[link.platform as keyof typeof SOCIAL_ICONS];
-              if (!Icon) return null;
-              return (
-                <a
-                  key={link.platform}
-                  href={link.href}
-                  aria-label={link.label}
-                  className="flex size-9 items-center justify-center rounded-full border border-border text-stone-600 transition-colors hover:border-gold-400/60 hover:text-gold-600"
-                >
-                  <Icon className="size-4" />
-                </a>
-              );
-            })}
-          </div>
+          {CONFIRMED_SOCIAL_LINKS.length > 0 && (
+            <div className="mt-8 flex items-center gap-3">
+              {CONFIRMED_SOCIAL_LINKS.map((link) => {
+                const Icon = SOCIAL_ICONS[link.platform as keyof typeof SOCIAL_ICONS];
+                if (!Icon) return null;
+                return (
+                  <a
+                    key={link.platform}
+                    href={link.href}
+                    aria-label={link.label}
+                    className="flex size-9 items-center justify-center rounded-full border border-border text-stone-600 transition-colors hover:border-gold-400/60 hover:text-gold-600"
+                  >
+                    <Icon className="size-4" />
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <ContactForm />

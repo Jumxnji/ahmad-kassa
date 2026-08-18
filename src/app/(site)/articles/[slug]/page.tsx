@@ -27,6 +27,18 @@ export function generateStaticParams() {
   return getAllArticles().map((article) => ({ slug: article.slug }));
 }
 
+/**
+ * Locks this route to exactly the published slugs above — a slug not in
+ * that list 404s at the routing layer itself, before the page ever
+ * renders. Without this, an unpublished/draft slug still resolves this
+ * dynamic segment on demand, and `notFound()` inside the page body only
+ * produces a "soft 404" (404-looking content shipped with a 200 status)
+ * once streaming has already started — the wrong signal to send crawlers
+ * for content that must not be publicly reachable. See the content-truth
+ * note in `docs/PROJECT_MEMORY.md`.
+ */
+export const dynamicParams = false;
+
 export async function generateMetadata({
   params,
 }: ArticlePageProps): Promise<Metadata> {

@@ -701,6 +701,33 @@ sprints — do not build these without being asked again:
   guarded file, extract it to a plain module first (see
   `src/lib/normalize-email.ts`, `src/schemas/newsletter.schema.ts`'s
   `canReceiveCampaign()`) rather than skipping the test.
+- **Content truth: placeholder/draft editorial content must never be
+  presented publicly as genuine authored/published material.** A
+  content-truth correction found the `/articles` catalog's ten entries
+  — fully-written but explicitly commented `"Placeholder editorial
+  catalog"`, with a `features.articles` flag that already said "don't
+  render this yet" but was never actually checked anywhere — publicly
+  live with fabricated `status: "published"` and `publishedAt` dates,
+  submitted to the sitemap and emitting real `Article` JSON-LD. Fixed
+  by correcting `status` to `"draft"` (the `ContentStatus` type already
+  had this value; it just wasn't being used) and filtering every
+  getter in `src/lib/data/articles.ts` through `getAllArticles()`,
+  which now excludes non-published entries — the single choke point
+  every consumer (index, detail route, sitemap, related-reading) reads
+  through. Draft content is preserved in the data file, not deleted;
+  only its public reachability is gated on `status`. A dynamic route
+  whose valid slugs are fully known at build time (backed by static
+  data, not a live CMS) should also set `export const dynamicParams =
+  false` — without it, `notFound()` still renders correctly but can
+  ship as a "soft 404" (real 404 content, HTTP 200 status) because
+  Next.js's streaming can flush the response shell before the dynamic
+  `notFound()` determination resolves; `dynamicParams = false` resolves
+  it at the routing layer instead, before any streaming starts, giving
+  a genuine 404 status. Separately, `/contact` was found rendering all
+  three `SOCIAL_LINKS` unconditionally instead of filtering through the
+  already-correct `hasConfirmedProfile()` gate the footer uses — fixed
+  to use the same filter, so an unconfirmed placeholder profile never
+  displays on any page, not just the footer.
 
 ## Reasons behind technical choices
 
