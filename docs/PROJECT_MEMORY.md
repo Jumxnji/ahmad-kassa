@@ -933,6 +933,30 @@ sprints — do not build these without being asked again:
   if a fresh `next dev`/`next build` ever panics with `"is a symlink
   causes that causes an infinite loop"`, check `src/generated/prisma/`
   for a self-referencing symlink first, not the Tailwind config.
+- **Overriding a `Section`'s `py-*` on just one side needs the same
+  responsive prefixes as what it's overriding, or the override silently
+  loses at that breakpoint.** Found in Sprint 23: `<Section
+  className="pt-12">` looked correct (the class was present in the DOM)
+  but `getComputedStyle` showed the original `sm:py-28`'s top value
+  still winning at `sm:` and above — `pt-12` (unprefixed) and `sm:py-28`
+  are different Tailwind utilities to `tailwind-merge`, so it doesn't
+  dedupe them, and the `sm:` media query wins the cascade regardless of
+  source order. The fix is always to mirror every breakpoint being
+  overridden (`pt-16 sm:pt-20`, not just `pt-16`) — and to verify with
+  `getComputedStyle(el).paddingTop` at the actual target width, not by
+  trusting that the className string looks right.
+- **A lockup that's mathematically centered can still read as visually
+  misaligned, and the fix is optical, not arithmetic.** Found in Sprint
+  23 auditing the header: `Logo`'s emblem and wordmark were correctly
+  centered against each other by `items-center`, but the droplet mark's
+  own ink sits low in its box while the descender-free wordmark's ink
+  sits high in its line-box, so two "correct" centerings still visually
+  disagreed. When a lockup or icon+label pairing looks subtly "off" but
+  the alignment CSS is provably centered, check whether either element's
+  visual weight is asymmetric within its own box before assuming the
+  layout math is wrong — the fix is usually a small manual optical
+  offset (a `-translate-y` nudge), tuned by eye/zoom screenshot
+  comparison, not a bigger box-model change.
 
 ## Reasons behind technical choices
 

@@ -7,7 +7,7 @@ import { ScrollReveal } from "@/components/shared/scroll-reveal";
 
 export function CtaSection() {
   return (
-    <Section tone="paper" containerWidth="content" className="text-center">
+    <Section tone="paper" containerWidth="content" className="pt-12 sm:pt-12 text-center">
       <ScrollReveal>
         <ManuscriptDivider mark className="mx-auto mb-14 max-w-xs" />
         <Eyebrow>Ask Ahmad</Eyebrow>

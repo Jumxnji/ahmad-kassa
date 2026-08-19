@@ -36,7 +36,7 @@ const TEACHING_AREAS = [
 
 export function TeachingAreasSection() {
   return (
-    <Section size="lg">
+    <Section size="lg" className="pt-16 sm:pt-20">
       <ScrollReveal>
         <div className="max-w-xl">
           <Eyebrow>Teaching areas</Eyebrow>

@@ -1209,3 +1209,51 @@ unreferenced anywhere in `src/` (the homepage moved off `CourseCard`
 in Sprint 19) but were left in place, not deleted — flagged as a safe
 future cleanup, not part of this sprint's scope. Full reasoning:
 `docs/sprints/SPRINT-22.md`.
+
+---
+
+## v0.21.0 — Sprint 23: Header lockup, homepage transitions, footer composition
+
+### Fixed
+
+- `Logo`: the emblem/wordmark relationship was mathematically centered
+  but optically misaligned — the droplet mark's visual weight sits low
+  in its own box while the descender-free wordmark's ink sits high in
+  its line-box. Mark resized `h-9`→`h-8`, gap tightened to `gap-2.5` at
+  `sm:`, and the mark given a `-translate-y-0.5` (-2px) correction,
+  tuned live in-browser rather than applied blind. No SVG geometry
+  touched; fix applies identically in both the header (`tone="default"`)
+  and footer (`tone="inverted"`) contexts.
+- `TeachingAreasSection`: the combined gap after `AboutPreviewSection`
+  (256px at desktop) read as excessive rather than deliberate. Reduced
+  the section's own top padding only (`pt-16 sm:pt-20`, a ~25%
+  reduction) — `AboutPreviewSection` untouched.
+- `CtaSection` (Ask Ahmad): the combined gap after `FutureCoursesSection`
+  (192px before its own divider) made the divider read as floating
+  rather than as the section's opener. Reduced the section's own top
+  padding (`pt-12`, flat across breakpoints) — `FutureCoursesSection`
+  and Ask Ahmad's own centred composition/copy are unchanged.
+
+### Changed
+
+- `SiteFooter`: opening row restructured from a split logo-left/
+  tagline-right layout into two zones at `lg` (1024px)+ — brand lockup
+  with the tagline stacked directly beneath it on the left (~38%),
+  Explore/Connect balanced on the right (~52%), closing the large
+  unused field on wide desktop and giving the tagline a visible home
+  next to the mark it belongs to. Below `lg`, both zones stack in one
+  column in source order, matching the mobile layout's already-good
+  behavior. Mission wording, `hasConfirmedProfile()` gating, legal
+  row, and language selector are unchanged.
+
+### Notes
+
+Exactly four component files touched, no content/copy/colour/font/nav
+change anywhere. Three stale footer descriptions were reconciled: two
+in `docs/UX_ARCHITECTURE.md` (a pre-Sprint-16 newsletter-column
+wireframe and a pre-Sprint-14 four-column-accordion mobile plan), and
+one in `docs/DESIGN_SYSTEM.md` Section 9 (still specified "mission
+statement above a four-column grid," predating even the Sprint 14
+mission-line change this footer already had before this sprint). All
+three now describe the two-zone layout as it actually ships. Full
+reasoning: `docs/sprints/SPRINT-23.md`.

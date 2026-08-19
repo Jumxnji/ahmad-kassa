@@ -26,7 +26,7 @@ export function Logo({ className, tone = "default" }: LogoProps) {
     <Link
       href="/"
       className={cn(
-        "group flex items-center gap-2 sm:gap-3",
+        "group flex items-center gap-2 sm:gap-2.5",
         className
       )}
       aria-label={`${siteConfig.name} — home`}
@@ -36,7 +36,7 @@ export function Logo({ className, tone = "default" }: LogoProps) {
         alt=""
         width={28}
         height={40}
-        className="h-9 w-auto shrink-0 self-center transition-opacity duration-300 group-hover:opacity-80"
+        className="h-8 w-auto shrink-0 -translate-y-0.5 self-center transition-opacity duration-300 group-hover:opacity-80"
         priority
       />
       <span

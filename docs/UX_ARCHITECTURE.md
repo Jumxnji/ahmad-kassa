@@ -212,50 +212,55 @@ Search, once real translated content exists, remains 🔵 FUTURE-ASPIRATIONAL.
 
 ## 4. Global Footer
 
-🟢 **CURRENT** — updated for Sprint 14 (Editorial Refinement 2), which added a
-standalone mission-statement line and made social icons conditional on a real
-profile URL existing:
+🟢 **CURRENT** — updated for Sprint 23's two-zone composition. At `lg`
+(1024px) and above:
 
 ```
-[Logo mark, inverted] + [Ahmad Mohamed Kassa]      "Islamic scholarship for the
-                                                     modern seeker." (large, italic)
-─────────────────────────────────────────────────────────────────────────────────
-Social icons (only rendered   Explore      Connect        Newsletter
- if a real profile URL         About       Ask Ahmad      [email input] [Subscribe]
- exists — currently none)      Books       Newsletter     "Book announcements,
-                                Courses     Contact         courses, seminars &
-                                Articles                    articles — no spam."
+[Logo mark, inverted]                                  Explore      Connect
+ Ahmad Mohamed Kassa                                     About       Ask Ahmad
+"Islamic scholarship for the                             Books       Newsletter
+ modern seeker." (large, italic)                         Courses     Contact
+                                                           Articles
+   (left zone, ~38–40%)                                (right zone, ~52–60%)
 ─────────────────────────────────────────────────────────────────────────────────────────
 © {year} Ahmad Mohamed Kassa. All rights reserved.    Privacy Policy · Terms   [language select, disabled]
 ```
 
-**What's real vs. what the original (pre-Sprint-14) plan proposed:**
+Below `lg`, the lockup+tagline block and the Explore/Connect columns stack
+in a single column instead, in the same source order — no side-by-side
+zones, no accordion.
 
-- **Standalone mission-statement band — now real** (Sprint 14). `SITE_TAGLINE`
-  ("Islamic scholarship for the modern seeker") is promoted to a large Newsreader
-  italic line, set beside the logo in a masthead-style row at desktop (stacked at
-  mobile) — the originally-planned Harvard/Yaqeen-style opening statement this
-  section used to flag as future-aspirational is now shipped, using the existing
-  tagline rather than new copy.
-- **Social icons are conditionally rendered** (Sprint 14): `hasConfirmedProfile()`
-  (`src/constants/site.ts`) filters `SOCIAL_LINKS` before rendering — since none of
-  YouTube/Instagram/TikTok are confirmed real profiles yet (see Section 2/
-  `docs/PROJECT_MEMORY.md`), the icon row currently renders nothing at all, and the
-  link-column grid collapses from 4 to 3 columns rather than leaving a visibly empty
-  one. The moment a real profile URL is set, its icon appears automatically — no
-  code change needed.
-- **"Explore"** (`FOOTER_EXPLORE`: About, Books, Courses, Articles) and **"Connect"**
-  (`FOOTER_CONNECT`: Ask Ahmad, Newsletter, Contact) are the two real link columns —
-  not "Quick Links" + a dedicated "Books" column. Books stays inside Explore rather
-  than getting its own column; the "ready to become a real catalogue list without
-  changing the footer's grid" future-proofing idea from the original plan no longer
-  applies to this layout and can be dropped rather than carried forward.
-- **Newsletter** is the last column, using the same `NewsletterForm` component the
-  dedicated `/newsletter` page and homepage section use (`variant="footer"`) — matches
-  the original "one input, one button" intent exactly.
-- **Legal row** includes the disabled language `<select>` (see Section 3) alongside
-  Privacy/Terms — there is no "Sitemap" link in the real footer.
-- **Copyright** — plain text, no styling flourish, as originally planned.
+**What's real vs. what earlier plans described:**
+
+- **Two-zone desktop layout** (Sprint 23): the brand lockup and
+  `SITE_TAGLINE` now sit together as one block in a left zone, with
+  Explore/Connect balanced in a right zone — replacing an earlier layout
+  that split the lockup (left) and tagline (far right) across one row,
+  which left the tagline reading as detached and the right half of the
+  wide `container-ultra` field empty. Mission wording, `hasConfirmedProfile()`
+  gating, and both link columns' contents are unchanged — this was a
+  rearrangement, not a content change.
+- **No footer newsletter column.** An earlier plan (and an earlier shipped
+  version, Sprint 3–15) included a `NewsletterForm` as a fourth footer
+  column; it was removed in Sprint 16 as a third "join the newsletter"
+  touchpoint in one scroll (see `docs/PROJECT_MEMORY.md`'s Sprint 16 note)
+  and has not returned. The footer's own path to the newsletter is the
+  "Newsletter" link inside **Connect**, plus the dedicated
+  `NewsletterSection` earlier on the homepage.
+- **Social icons are conditionally rendered**: `hasConfirmedProfile()`
+  (`src/constants/site.ts`) filters `SOCIAL_LINKS` before rendering — since
+  none of YouTube/Instagram/TikTok are confirmed real profiles yet (see
+  Section 2/`docs/PROJECT_MEMORY.md`), the icon row currently renders
+  nothing at all, and the link-column grid collapses from 3 columns to 2
+  rather than leaving a visibly empty one. The moment a real profile URL
+  is set, its icon appears automatically — no code change needed.
+- **"Explore"** (`FOOTER_EXPLORE`: About, Books, Courses, Articles) and
+  **"Connect"** (`FOOTER_CONNECT`: Ask Ahmad, Newsletter, Contact) are the
+  two real link columns — not "Quick Links" + a dedicated "Books" column.
+  Books stays inside Explore rather than getting its own column.
+- **Legal row** includes the disabled language `<select>` (see Section 3)
+  alongside Privacy/Terms — there is no "Sitemap" link in the real footer.
+- **Copyright** — plain text, no styling flourish.
 
 ---
 
@@ -1100,11 +1105,18 @@ responsive change below is written with that specific, real use-case in mind.
 - **Contact category tiles.** 3-across grid on desktop becomes a single-column
   stacked list on mobile — tiles stay large and easy to tap rather than shrinking to
   fit a multi-column grid on a small screen.
-- **Footer.** Four columns collapse to a single stacked column, with Quick Links and
-  Books each becoming a tidy accordion (tap to expand) so the footer doesn't become
-  an enormous scroll-past wall on mobile — Connect (social icons) and the newsletter
-  input stay always-visible, not hidden behind an accordion, since they're the two
-  actions worth keeping frictionless.
+- **Footer** (updated for Sprint 23's two-zone composition). Below `lg`
+  (1024px), the brand lockup, tagline, and the Explore/Connect columns stack
+  in a single column, in source order — no accordion, nothing hidden behind
+  a tap-to-expand control. At `lg` and above, the lockup+tagline sit in a
+  left zone and Explore/Connect sit in a right zone (roughly 40/60), so the
+  wide desktop field doesn't leave one side empty while the other carries
+  everything. The legal row (copyright, Privacy/Terms, language selector)
+  stays a single full-width row below both, at every width. There is no
+  newsletter input in the footer — the dedicated `NewsletterSection` and
+  the footer's own "Connect → Newsletter" link cover that already (see
+  `docs/PROJECT_MEMORY.md`'s Sprint 16 note on why a second inline form
+  was removed).
 - **Reading pages (Article/Book sample/Legal).** Column width goes full-viewport
   with generous side padding (never edge-to-edge text) and the type scale steps down
   one notch from desktop, not more — long-form reading is the one place mobile type

@@ -844,9 +844,14 @@ this section is on-brand usage guidance for the public site, not new primitives.
 - **Navigation.** Per the UX plan's navigation spec (Section 3 there) — solid navy
   bar, transparent-to-solid crossfade on the homepage only, no dropdowns/mega menu
   at current content volume.
-- **Footer.** Per the UX plan's footer spec — mission statement in Newsreader above
-  a four-column grid, `navy-900` background with `paper-50` text (the one place the
-  full palette inverts, giving the footer a distinct "closing" weight).
+- **Footer.** `navy-900` background with `paper-50` text (the one place the full
+  palette inverts, giving the footer a distinct "closing" weight). As shipped
+  (Sprint 14, rebalanced Sprint 23): a two-zone composition at `lg`+ — the brand
+  lockup with the mission statement (Newsreader) stacked directly beneath it on
+  the left (~38%), Explore/Connect navigation on the right (~52%) — rather than
+  the originally-planned four-column grid, which read as under-using the field
+  once the mission line moved out of a standalone band. Both zones stack to one
+  column, in source order, below `lg`.
 - **Hero.** Full-bleed section, `paper-50` (or the rare photographic treatment per
   Section 10), generous vertical padding (`space-32` desktop), Newsreader display
   headline, single gold CTA.
