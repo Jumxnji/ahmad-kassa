@@ -1025,3 +1025,79 @@ interaction language already established elsewhere on the homepage —
 no scale, shadow, or glow. This was a local, content-driven refinement
 of one section under the existing homepage design freeze (Sprint 18) —
 no other section changed. Full reasoning: `docs/sprints/SPRINT-19.md`.
+
+---
+
+## v0.18.0 — Sprint 20: Books index, publication archetype
+
+### Added
+
+- `PublicationEntry`/`PublicationIndex` — a numbered editorial spread
+  for `/books` (archival "01 / Published" label, a dominant real-
+  aspect-ratio cover, a narrow restrained text column, an understated
+  "Read about the book" link). Renders the same way at one title or
+  several — a future second or third book becomes entry 02/03 in the
+  same list, not a redesign.
+
+### Fixed
+
+- **Content truth**: "The Great Debate"'s `excerpt`/`description` were
+  seed-time placeholder copy about general theism apologetics, written
+  before a real cover existed and never reconciled once one was
+  uploaded through the admin Media Library. The real cover's own
+  printed subtitle — "Is It Permissible to Use Jinn in Islamic Exorcism
+  (Ruqyah)?" — shows the book's actual subject, corroborated
+  independently by its own Amazon listing URL. Corrected via a guarded
+  `prisma/seed.ts` backfill (same shape as the existing Amazon-URL
+  backfill) using only the book's own real, verbatim cover text — no
+  invented marketing copy. Because `excerpt` also feeds the book detail
+  page, its meta description, its JSON-LD, and the homepage's Featured
+  Book section, this single data correction fixed the same wrong copy
+  everywhere it appeared, including the frozen homepage (a content
+  change, not a design one — permitted under the existing freeze).
+
+### Changed
+
+- `/books`: replaced the 3-column `BooksGrid`/`BookCard` treatment with
+  `PublicationIndex`; header copy changed from "The catalog" (implied
+  more items should follow) to "Published works"; `Section` given
+  `size="lg"` so the page-ending gap before the footer closes
+  compositionally, without filler copy.
+
+### Notes
+
+`BookCard`/`BooksGrid` are untouched and still used by Book Detail's
+"Related" section, a genuine multi-item grid where a card treatment
+remains correct. Full reasoning: `docs/sprints/SPRINT-20.md`.
+
+---
+
+## v0.18.1 — Sprint 20 correction: proportion, pacing & hierarchy
+
+### Changed
+
+- `/books`: the opening's `Section size="lg"` (applied symmetrically
+  top and bottom) inflated the space before the publication as much as
+  it fixed the space after it — split into asymmetric `pt-14 sm:pt-16
+  pb-28 sm:pb-36`, keeping the generous bottom that already solved the
+  footer transition while tightening the top so the publication now
+  appears within the first viewport at normal desktop widths.
+- `PublicationEntry`: cover max-width reduced roughly 20% (17rem→13rem
+  range across breakpoints) — clearly dominant without being
+  poster-sized. Text column widened (`max-w-md`→`max-w-lg`) and given
+  larger type (title `text-4xl/5xl`, subtitle `text-2xl`) so it earns
+  real visual weight next to the smaller cover, while the composition
+  stays asymmetric rather than 50/50.
+- The invented intro paragraph ("Long-form writing on belief and
+  practice... not released on a schedule") was removed rather than
+  replaced — it existed nowhere else as approved copy.
+
+### Notes
+
+The concept from the original Sprint 20 pass — the numbered publication
+entry, `PublicationIndex`'s scalability, no ecommerce grid, the internal
+"Read about the book" CTA with Amazon reserved for the detail page, and
+Sprint 20's content-truth correction — are all unchanged — this is a
+proportion correction to the same architecture, not a new direction.
+Full reasoning: `docs/sprints/SPRINT-20.md`'s "Correction — Proportion,
+Pacing & Hierarchy."

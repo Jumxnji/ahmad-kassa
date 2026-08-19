@@ -585,6 +585,18 @@ in the media aspect ratio and metadata content:
   background, paper-50 text, single button, used only where a full-width CTA band
   would be too heavy for the surrounding content density.
 
+**Numbered publication entry** (Sprint 20) — not a card, the deliberate alternative
+to one. Used on `/books` where a genuine multi-item *grid* (Book detail's "Related"
+section still uses the Book card above) would misrepresent how few titles actually
+exist: a vertical list of full-width editorial spreads, each led by an archival
+`0X / {status}` mono label instead of a badge, a dominant fixed-width cover, and a
+narrow restrained text column — never stretched into equal grid cells. Reach for
+this pattern (`PublicationEntry`/`PublicationIndex`,
+`src/components/catalog/publication-entry.tsx`) whenever a catalogue-shaped page has
+too few genuine items for its grid to read as intentional rather than sparse; reach
+for the ordinary card grid once there are enough real items that a grid stops
+looking like it's apologizing for empty cells.
+
 ---
 
 ## 9. Icons

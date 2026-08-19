@@ -123,23 +123,51 @@ async function main() {
     "https://www.amazon.co.uk/GREAT-DEBATE-Permissible-Exorcism-Critical-ebook/dp/B0FMYG5YJT/ref=sr_1_1?crid=3V5EV5FKHX4YZ&dib=eyJ2IjoiMSJ9.ZBRv04JZdNMlGYffRW8AWzcpVVQbQO-aXmcpUo6w-CE.fXkFxY_ybyTlOayVbTkANoAGoicuu4moKAS7zrLz-u4&dib_tag=se&keywords=the+great+debate+ahmad+kassa&qid=1785525085&sprefix=the+great+debate+ahmad+kassa%2Caps%2C120&sr=8-1";
   const PLACEHOLDER_AMAZON_URLS = new Set(["https://amazon.com", ""]);
 
+  // This book's `excerpt`/`description` were written at seed time, before
+  // a real cover existed, and speculatively described a general
+  // for-or-against-theism book. The real cover (uploaded via the Media
+  // Library on 2026-08-01, `public/uploads/…-cover.jpg`) shows the book
+  // is actually a fiqh analysis of using jinn in Ruqyah — its own printed
+  // subtitle and strapline, quoted verbatim below, not paraphrased or
+  // invented. The Amazon listing corroborates this independently (its
+  // own URL slug reads "...Permissible-Exorcism-Critical..."). Content
+  // truth (Sprint 20) corrects both fields to that verbatim cover text —
+  // guarded the same way as the Amazon URL backfill above, so a
+  // subsequent genuine editor rewrite through the CMS is never
+  // overwritten by a repeat `db seed` run. See `docs/PROJECT_MEMORY.md`'s
+  // "Content truth" note.
+  const PLACEHOLDER_EXCERPT =
+    "A clear-eyed examination of the arguments for and against belief in God — weighing philosophy, revelation, and reason without flattening the difficulty of the question.";
+  const REAL_EXCERPT = "Is It Permissible to Use Jinn in Islamic Exorcism (Ruqyah)?";
+  const PLACEHOLDER_DESCRIPTION =
+    "The Great Debate examines belief in God with the same rigor Ahmad brings to teaching — walking through the philosophical case for a creator, the problem of evil, and revelation as evidence, before turning to what living with certainty actually looks like.";
+  const REAL_DESCRIPTION =
+    "<p>A critical analysis of Ruqyah, and the use of jinn, in light of the Qur'an and Sunnah.</p>";
+
   const existingBook = await db.book.findUnique({ where: { slug: "the-great-debate" } });
 
   const book = existingBook
-    ? // Backfill the real Amazon link only if it's still missing/the old
-      // placeholder — never overwrite a link an editor has since updated
-      // through the CMS.
-      PLACEHOLDER_AMAZON_URLS.has(existingBook.amazonUrl ?? "")
-      ? await db.book.update({ where: { id: existingBook.id }, data: { amazonUrl: REAL_AMAZON_URL } })
-      : existingBook
+    ? await db.book.update({
+        where: { id: existingBook.id },
+        data: {
+          // Backfill real values only where the field still holds the
+          // exact old placeholder — never overwrite anything an editor
+          // has since updated through the CMS.
+          ...(PLACEHOLDER_AMAZON_URLS.has(existingBook.amazonUrl ?? "")
+            ? { amazonUrl: REAL_AMAZON_URL }
+            : {}),
+          ...(existingBook.excerpt === PLACEHOLDER_EXCERPT ? { excerpt: REAL_EXCERPT } : {}),
+          ...(existingBook.description === PLACEHOLDER_DESCRIPTION
+            ? { description: REAL_DESCRIPTION }
+            : {}),
+        },
+      })
     : await db.book.create({
         data: {
           title: "The Great Debate",
           slug: "the-great-debate",
-          excerpt:
-            "A clear-eyed examination of the arguments for and against belief in God — weighing philosophy, revelation, and reason without flattening the difficulty of the question.",
-          description:
-            "The Great Debate examines belief in God with the same rigor Ahmad brings to teaching — walking through the philosophical case for a creator, the problem of evil, and revelation as evidence, before turning to what living with certainty actually looks like.",
+          excerpt: REAL_EXCERPT,
+          description: REAL_DESCRIPTION,
           amazonUrl: REAL_AMAZON_URL,
           directPurchaseUrl: null, // direct purchase intentionally disabled in V1
           status: "PUBLISHED",

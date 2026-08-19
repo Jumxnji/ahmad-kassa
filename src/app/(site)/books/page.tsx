@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Section } from "@/components/shared/section";
 import { PageHeader } from "@/components/shared/page-header";
-import { BooksGrid } from "@/components/catalog/books-grid";
+import { PublicationIndex } from "@/components/catalog/publication-index";
 import { bookService } from "@/services/book.service";
 import { buildMetadata } from "@/lib/seo";
 
@@ -15,15 +15,9 @@ export default async function BooksPage() {
   const books = await bookService.listPublic();
 
   return (
-    <Section containerWidth="wide">
-      <PageHeader
-        eyebrow="Books"
-        title="The catalog"
-        description="Long-form works on belief, practice, and the life of the Prophet, peace be upon him — written to build real understanding."
-      />
-      <div className="mt-12">
-        <BooksGrid books={books} />
-      </div>
+    <Section containerWidth="wide" className="pt-14 pb-28 sm:pt-16 sm:pb-36">
+      <PageHeader eyebrow="Books" title="Published works" />
+      <PublicationIndex books={books} />
     </Section>
   );
 }

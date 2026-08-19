@@ -583,6 +583,32 @@ scoped like a bespoke platform rather than a generic template.
   `DESIGN FROZEN — CONTENT-DRIVEN CHANGES ONLY`** (see `docs/ROADMAP.md`
   for what that does and doesn't permit going forward). Full reasoning:
   `docs/sprints/SPRINT-18.md`.
+- **Sprint 20 rebuilt `/books`'s index around a "numbered publication
+  entry" (`src/components/catalog/publication-entry.tsx`) instead of the
+  multi-item book-card grid** — for a genuinely short catalogue, a
+  vertical list of full-width editorial spreads (archival "0X /
+  {status}" label, dominant fixed-width cover, narrow text column) reads
+  as intentional at any item count, where a grid built for many items
+  reads as sparse with few. `BookCard`/`BooksGrid` were left untouched —
+  Book Detail's "Related" section is a genuine multi-item grid, where a
+  card treatment is still the correct choice; the two patterns coexist
+  by design (see `docs/DESIGN_SYSTEM.md` Section 8 for when to use
+  which). The same sprint also found and fixed a real content-truth bug
+  discovered mid-investigation: "The Great Debate"'s `excerpt`/
+  `description` described a different book than its real, later-uploaded
+  cover — corrected via a guarded `prisma/seed.ts` backfill (same
+  pattern as the pre-existing Amazon-URL backfill) using only the book's
+  own verbatim cover text, which also silently fixed the same wrong copy
+  on the frozen homepage's Featured Book section (a content correction,
+  not a design change — see the "Content truth" convention above).
+  **Corrected in the same sprint, post-review:** the first pass's
+  proportions were wrong — opening whitespace too generous, cover
+  grown poster-sized, text column stranded. Fixed by splitting the
+  `Section`'s padding asymmetrically (tight `pt`, the same generous
+  `pb` that already solved the footer transition) instead of one
+  blanket `size` token, and rebalancing cover/text sizing — the
+  underlying architecture didn't change. Full reasoning: `docs/sprints/
+  SPRINT-20.md`.
 - The `/admin` dashboard deliberately echoes the public site's design
   language (same palette/typography) rather than looking like a
   generic admin template (explicitly: "Not WordPress. Not Bootstrap.
@@ -749,6 +775,14 @@ sprints — do not build these without being asked again:
   primitive's source before trusting them — the shadcn CLI's default
   output for this project's style preset (`radix-nova`) got this wrong
   in multiple components.
+- **Deferred (Sprint 20): the footer's vertical proportion should be
+  reassessed during the eventual cross-site editorial polish pass.** Its
+  apparent oversized feel on `/books` pre-Sprint-20 was, on inspection,
+  mostly amplified by the weak/sparse composition immediately above it,
+  not the footer's own sizing — so it was deliberately left unchanged in
+  Sprint 20. Worth a real look once every secondary page has its own
+  intentional composition and the footer's proportion can be judged
+  against a page that isn't itself the problem.
 
 ## Things discussed with the client
 
