@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BookOpen, School, GraduationCap, Briefcase } from "lucide-react";
 import { Section } from "@/components/shared/section";
 import { Eyebrow } from "@/components/shared/eyebrow";
 import { ManuscriptDivider } from "@/components/shared/manuscript-divider";
 import { PortraitFrame } from "@/components/media/portrait-frame";
 import { PageBreadcrumbs } from "@/components/navigation/page-breadcrumbs";
+import { ScrollReveal } from "@/components/shared/scroll-reveal";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { JsonLd } from "@/components/shared/json-ld";
 import {
   buildMetadata,
@@ -16,6 +15,7 @@ import {
   buildPersonJsonLd,
 } from "@/lib/seo";
 import { aboutService } from "@/services/about.service";
+import { CURRENT_PORTRAIT } from "@/config/portrait";
 
 const DEFAULT_DESCRIPTION =
   "About Ahmad Mohamed Kassa — Islamic teacher, author, and Khateeb at Masjid Al-Noor, East London, teaching Ruqyah since 2009.";
@@ -32,21 +32,27 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-const BADGES = ["Khateeb", "Author", "Islamic Speaker", "Ruqyah since 2009"] as const;
+/** Same verified facts as the homepage About Preview's margin index — one set of truth, reused, not re-derived. */
+const CREDENTIAL_INDEX = [
+  "Arabic & Islamic Studies — Kuwait",
+  "PGCE — University of London",
+  "Khateeb — Masjid Al-Noor, East London",
+  "Ruqyah — practising and teaching since 2009",
+] as const;
 
 const EDUCATION = [
   {
-    icon: School,
+    label: "Foundations",
     title: "Religious Institute, Kuwait",
     detail: "Arabic and Islamic Studies, with foundational training under respected scholars.",
   },
   {
-    icon: GraduationCap,
+    label: "Undergraduate",
     title: "Computer Science & Telecommunications",
     detail: "An undergraduate degree preceding his professional academic career.",
   },
   {
-    icon: GraduationCap,
+    label: "Postgraduate",
     title: "PGCE, University of London",
     detail: "Postgraduate Certificate in Education — formal teacher training.",
   },
@@ -61,80 +67,39 @@ const RESEARCH_INTERESTS = [
   "Comparative religion",
 ] as const;
 
-const TIMELINE = [
-  {
-    year: "Foundations",
-    title: "Religious Institute, Kuwait",
-    detail: "Arabic and Islamic Studies, receiving foundational training under respected scholars.",
-  },
-  {
-    year: "Undergraduate",
-    title: "Computer Science & Telecommunications",
-    detail: "Completed a degree preceding his academic and consultancy career.",
-  },
-  {
-    year: "Postgraduate",
-    title: "PGCE, University of London",
-    detail: "Postgraduate Certificate in Education, formalizing a teaching methodology.",
-  },
-  {
-    year: "Career",
-    title: "Academia & consultancy",
-    detail: "Built a professional career alongside his Islamic studies and teaching.",
-  },
-  {
-    year: "Community",
-    title: "Khateeb, Masjid Al-Noor",
-    detail: "Serves as Khateeb at Masjid Al-Noor in East London.",
-  },
-  {
-    year: "2009",
-    title: "Ruqyah education & practice",
-    detail: "Actively involved in Ruqyah education and practice, teaching throughout the United Kingdom and internationally.",
-  },
-  {
-    year: "2024",
-    title: "Books published",
-    detail: "The Great Debate released, with further titles on Ruqyah, Aqeedah, and Hajj in progress.",
-  },
-  {
-    year: "Ahead",
-    title: "The Academy",
-    detail: "Structured courses are in active development.",
-  },
-] as const;
-
 export default function AboutPage() {
   return (
     <>
       <JsonLd data={buildAboutPageJsonLd()} />
       <JsonLd data={buildPersonJsonLd()} />
       <JsonLd data={buildBreadcrumbJsonLd([{ label: "About" }])} />
-      <Section>
+
+      <Section className="pt-14 sm:pt-16">
         <PageBreadcrumbs items={[{ label: "About" }]} />
-        <div className="mt-8 grid items-center gap-12 lg:grid-cols-[minmax(0,0.85fr)_1fr] lg:gap-20">
-          <PortraitFrame className="mx-auto max-w-sm lg:max-w-none" />
+        <div className="mt-10 grid items-start gap-12 lg:grid-cols-[0.55fr_1.45fr] lg:gap-20">
+          <PortraitFrame
+            src={CURRENT_PORTRAIT.about.src}
+            alt={CURRENT_PORTRAIT.alt}
+            priority
+            className="mx-auto max-w-[14rem] sm:max-w-sm lg:sticky lg:top-28 lg:max-w-none"
+          />
+
           <div>
             <Eyebrow>About</Eyebrow>
             <h1 className="mt-3 text-4xl leading-tight text-balance sm:text-5xl">
               Ahmad Mohamed Kassa
             </h1>
-            <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
-              An Islamic teacher, author, and Khateeb committed to grounded
-              scholarship — carried with the clarity today&rsquo;s seeker
-              needs, without cutting corners on the tradition itself.
+            <p className="mt-7 max-w-2xl font-display text-2xl leading-snug text-balance text-foreground/90 sm:text-3xl">
+              An Islamic teacher, author, and Khateeb — trained in Arabic and
+              Islamic Studies in Kuwait, and shaped by a parallel career in
+              academia and consultancy.
             </p>
-            <div className="mt-7 flex flex-wrap gap-2">
-              {BADGES.map((label) => (
-                <Badge
-                  key={label}
-                  variant="secondary"
-                  className="border-none bg-gold-100 text-gold-700"
-                >
-                  {label}
-                </Badge>
+
+            <ul className="mt-8 max-w-sm space-y-2.5 border-t border-stone-200 pt-6 font-mono text-[11px] tracking-[0.06em] text-stone-500">
+              {CREDENTIAL_INDEX.map((item) => (
+                <li key={item}>{item}</li>
               ))}
-            </div>
+            </ul>
           </div>
         </div>
       </Section>
@@ -166,148 +131,98 @@ export default function AboutPage() {
       </Section>
 
       <Section>
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <ScrollReveal className="grid gap-12 lg:grid-cols-[0.42fr_0.58fr] lg:gap-16">
           <div>
             <Eyebrow>Education</Eyebrow>
-            <h2 className="mt-3 text-3xl">Formal training</h2>
-            <ul className="mt-8 space-y-6">
-              {EDUCATION.map(({ icon: Icon, title, detail }) => (
-                <li key={title} className="flex gap-4">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-navy-50 text-navy-800">
-                    <Icon className="size-4" strokeWidth={1.5} />
-                  </span>
-                  <div>
-                    <p className="font-medium text-foreground">{title}</p>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                      {detail}
-                    </p>
-                  </div>
+            <ul className="mt-6 space-y-6 border-t border-stone-200 pt-6">
+              {EDUCATION.map(({ label, title, detail }) => (
+                <li key={title}>
+                  <p className="font-mono text-[11px] tracking-[0.06em] text-stone-400 uppercase">
+                    {label}
+                  </p>
+                  <p className="mt-1.5 font-medium text-foreground">{title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {detail}
+                  </p>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div>
-            <Eyebrow>Professional background</Eyebrow>
-            <h2 className="mt-3 text-3xl">Academia & consultancy</h2>
+          <div className="lg:pt-9">
+            <h2 className="text-3xl">Academia & consultancy</h2>
             <p className="mt-6 text-base leading-relaxed text-foreground/90">
               Alongside his Islamic studies, Ahmad has built a professional
               career in academia and consultancy. That background shapes the
               same structured, evidence-led approach he brings to teaching
-              and writing.
-            </p>
-            <p className="mt-4 flex items-start gap-3 text-base leading-relaxed text-foreground/90">
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-navy-50 text-navy-800">
-                <Briefcase className="size-4" strokeWidth={1.5} />
-              </span>
-              <span>
-                Two disciplines, one method: precision, structure, and
-                evidence, applied equally to consultancy work and to Islamic
-                scholarship.
-              </span>
+              and writing — two disciplines, one method: precision,
+              structure, and evidence, applied equally to consultancy work
+              and to Islamic scholarship.
             </p>
           </div>
-        </div>
+        </ScrollReveal>
       </Section>
 
       <Section tone="alt">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-          <div>
-            <Eyebrow>Islamic teaching</Eyebrow>
-            <h2 className="mt-3 text-3xl">In the classroom</h2>
-            <p className="mt-6 text-base leading-relaxed text-foreground/90">
-              Ahmad&rsquo;s teaching favors first principles over
-              memorization — building each subject from its foundations in
-              the Qur&rsquo;an and Sunnah before layering in the reasoning
-              of the classical scholars. Classes move deliberately, on the
-              assumption that real competence takes longer than a single
-              sitting.
-            </p>
-            <p className="mt-4 text-base leading-relaxed text-foreground/90">
-              This same approach carries into the academy currently in
-              development — sequenced courses rather than standalone
-              lectures, so a student leaves with a structure to keep
-              building on.
-            </p>
-          </div>
+        <ScrollReveal>
+          <Eyebrow>Teaching & speaking</Eyebrow>
+          <div className="mt-8 grid gap-10 border-t border-stone-200 pt-8 lg:grid-cols-2 lg:gap-16">
+            <div>
+              <p className="font-mono text-[11px] tracking-[0.06em] text-stone-400 uppercase">
+                In the classroom
+              </p>
+              <p className="mt-3 text-base leading-relaxed text-foreground/90">
+                Ahmad&rsquo;s teaching favors first principles over
+                memorization — building each subject from its foundations in
+                the Qur&rsquo;an and Sunnah before layering in the reasoning
+                of the classical scholars. Classes move deliberately, on the
+                assumption that real competence takes longer than a single
+                sitting. This same approach carries into the academy
+                currently in development — sequenced courses rather than
+                standalone lectures, so a student leaves with a structure to
+                keep building on.
+              </p>
+            </div>
 
-          <div>
-            <Eyebrow>Public speaking</Eyebrow>
-            <h2 className="mt-3 text-3xl">On the minbar and beyond</h2>
-            <p className="mt-6 text-base leading-relaxed text-foreground/90">
-              As Khateeb at Masjid Al-Noor in East London, Ahmad delivers
-              weekly Khutbahs addressing both timeless obligations and
-              present concerns. Beyond the Masjid, he teaches Ruqyah and
-              speaks at seminars across the United Kingdom and
-              internationally.
-            </p>
+            <div>
+              <p className="font-mono text-[11px] tracking-[0.06em] text-stone-400 uppercase">
+                On the minbar and beyond
+              </p>
+              <p className="mt-3 text-base leading-relaxed text-foreground/90">
+                As Khateeb at Masjid Al-Noor in East London, Ahmad delivers
+                weekly Khutbahs addressing both timeless obligations and
+                present concerns. Beyond the Masjid, he teaches Ruqyah and
+                speaks at seminars across the United Kingdom and
+                internationally.
+              </p>
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
       </Section>
 
       <Section>
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <ScrollReveal className="grid gap-12 lg:grid-cols-[0.6fr_0.4fr] lg:gap-16">
           <div>
             <Eyebrow>Books</Eyebrow>
             <h2 className="mt-3 text-3xl">Long-form writing</h2>
             <p className="mt-6 text-base leading-relaxed text-foreground/90">
               <em className="font-display italic">The Great Debate</em>,
-              Ahmad&rsquo;s first published work, examines belief in God with
-              the same rigor he brings to teaching. Further titles on
-              Ruqyah, Aqeedah, and Hajj are in progress.
+              Ahmad&rsquo;s first published work, is a critical analysis of
+              Ruqyah and the use of jinn in light of the Qur&rsquo;an and
+              Sunnah. Further titles on Aqeedah and Hajj are in progress.
             </p>
             <Button asChild variant="outline" size="lg" className="mt-6">
-              <Link href="/books">
-                <BookOpen data-icon="inline-start" />
-                Explore the books
-              </Link>
+              <Link href="/books">Explore the books</Link>
             </Button>
           </div>
 
           <div>
             <Eyebrow>Research interests</Eyebrow>
-            <h2 className="mt-3 text-3xl">What Ahmad studies</h2>
-            <div className="mt-6 flex flex-wrap gap-2.5">
-              {RESEARCH_INTERESTS.map((interest) => (
-                <Badge
-                  key={interest}
-                  variant="outline"
-                  className="px-3 py-1 text-sm font-normal text-foreground/80"
-                >
-                  {interest}
-                </Badge>
-              ))}
-            </div>
+            <p className="mt-6 max-w-xs font-mono text-sm leading-loose tracking-[0.02em] text-stone-600">
+              {RESEARCH_INTERESTS.join(" · ")}
+            </p>
           </div>
-        </div>
-      </Section>
-
-      <Section tone="alt">
-        <Eyebrow>Timeline</Eyebrow>
-        <h2 className="mt-3 max-w-lg text-3xl">A path through study and practice</h2>
-        <ol className="mt-12 space-y-0">
-          {TIMELINE.map((item, index) => (
-            <li key={item.year} className="relative flex gap-6 pb-10 last:pb-0">
-              <div className="flex flex-col items-center">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-gold-400 bg-background font-mono text-[0.65rem] text-gold-700">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                {index < TIMELINE.length - 1 && (
-                  <span className="mt-1 w-px flex-1 bg-gold-300/50" />
-                )}
-              </div>
-              <div className="pt-0.5">
-                <p className="text-eyebrow text-navy-600">{item.year}</p>
-                <p className="mt-1.5 font-display text-xl text-foreground">
-                  {item.title}
-                </p>
-                <p className="mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">
-                  {item.detail}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        </ScrollReveal>
       </Section>
 
       <Section tone="navy" containerWidth="content" className="text-center">

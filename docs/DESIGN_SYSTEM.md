@@ -597,6 +597,20 @@ too few genuine items for its grid to read as intentional rather than sparse; re
 for the ordinary card grid once there are enough real items that a grid stops
 looking like it's apologizing for empty cells.
 
+**Chronological/career facts belong inside the section they're relevant to,
+not a standalone timeline.** Sprint 21 first tried a "marginal era-list" —
+a hairline-divided vertical list replacing About's old dotted/connected
+timeline component — before finding, in review, that every one of its
+entries already duplicated a fact stated in Education, Academia, Teaching &
+Speaking, Books, or the credential index elsewhere on the same page. The
+list was removed rather than kept as a second, reskinned restatement of the
+same facts. A dedicated chronological/"journey" component (dotted timeline
+or otherwise) is avoided site-wide for this reason — it isn't just the
+dots-and-connectors styling that reads as a generic "our journey" resume
+widget, it's presenting the same biography a second time as its own
+section. Fold dates/history into the prose or archival index of whichever
+section they actually belong to instead.
+
 ---
 
 ## 9. Icons

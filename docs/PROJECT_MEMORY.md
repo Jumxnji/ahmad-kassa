@@ -609,6 +609,32 @@ scoped like a bespoke platform rather than a generic template.
   blanket `size` token, and rebalancing cover/text sizing — the
   underlying architecture didn't change. Full reasoning: `docs/sprints/
   SPRINT-20.md`.
+- **Sprint 21 replaced `/about`'s emblem placeholder with the real
+  portrait, three sprints after that portrait had already been live on
+  the homepage.** `/about` had been calling `PortraitFrame` with no
+  `src` this whole time — a real gap, not a deliberate choice. Fixed by
+  passing `CURRENT_PORTRAIT.about` (the same crop the homepage About
+  Preview already uses) and rebuilding the opening as a fuller version
+  of that same preview's own composition, since `/about` is that
+  preview's own link destination. **Durable convention:** when a
+  homepage preview section already establishes an approved composition
+  for the full page it links to, extend that same composition on the
+  full page rather than inventing a new one for the same subject —
+  applied here, and worth checking before any future "read more" /
+  detail-page composition decision. Gold credential-pill badges and the
+  Research Interests tag badges were replaced with the site's existing
+  mono/archival index idiom (not a new pattern). The dotted/connected
+  Timeline section was first rebuilt as a hairline-divided era-list,
+  then removed outright in review once every one of its 8 entries
+  turned out to duplicate a fact already stated in Education, Academia,
+  Teaching & Speaking, Books, or the credential index — a second
+  restatement of the same biography, not new information. **Durable
+  convention:** a standalone chronological/"journey" section is
+  avoided site-wide, not because of the dots-and-connectors styling
+  specifically, but because it tends to restate facts that belong
+  inside the section they're actually relevant to (see
+  `docs/DESIGN_SYSTEM.md` Section 8). Full reasoning: `docs/sprints/
+  SPRINT-21.md`.
 - The `/admin` dashboard deliberately echoes the public site's design
   language (same palette/typography) rather than looking like a
   generic admin template (explicitly: "Not WordPress. Not Bootstrap.

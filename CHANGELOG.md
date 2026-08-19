@@ -1101,3 +1101,48 @@ Sprint 20's content-truth correction — are all unchanged — this is a
 proportion correction to the same architecture, not a new direction.
 Full reasoning: `docs/sprints/SPRINT-20.md`'s "Correction — Proportion,
 Pacing & Hierarchy."
+
+---
+
+## v0.19.0 — Sprint 21: About, full editorial rebuild
+
+### Added
+
+- `/about` now uses the real, previously-approved portrait
+  (`CURRENT_PORTRAIT.about`, the same crop the homepage's About Preview
+  has used since Sprint 17) in place of the "no photo yet" emblem
+  placeholder it had been showing for four sprints. The opening is
+  rebuilt around it as a fuller version of that same homepage preview's
+  proven composition, since `/about` is literally its link destination.
+
+### Changed
+
+- Gold pill credential badges (Khateeb / Author / Islamic Speaker /
+  Ruqyah since 2009) and the Research Interests tag badges are gone —
+  reinterpreted as mono/archival index text, the idiom already
+  established elsewhere on the site (About Preview's margin index,
+  Future Courses, Latest Khutbah).
+- The dotted/connected Timeline section is removed outright, not
+  reskinned — every one of its 8 entries duplicated a fact already
+  stated in Education, Academia, Teaching & Speaking, Books, or the
+  credential index; it was a second restatement of the same biography,
+  not new information.
+- Education and Professional background merged into one asymmetric
+  spread; Islamic Teaching and Public Speaking merged under one shared
+  eyebrow with two mono-labeled sub-blocks — reducing repeated
+  eyebrow → heading → paragraph blocks to a handful of varied
+  compositions.
+- The opening lede replaced with the same factual framing the homepage
+  About Preview already uses (trained in Kuwait, academia/consultancy
+  career) — the previous "committed to grounded scholarship... clarity
+  today's seeker needs" was unsourced positioning language, not present
+  anywhere else in the site's approved copy.
+- The Books section's description updated to match Sprint 20's
+  corrected book excerpt — this page had been quietly carrying the same
+  stale placeholder text.
+
+### Notes
+
+Exactly one portrait treatment appears on the page; the brand mark
+remains the site's only repeated identity device via header/footer.
+Full reasoning: `docs/sprints/SPRINT-21.md`.

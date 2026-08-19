@@ -1015,3 +1015,55 @@ upsizing the text column so title and cover now read as one spread
 rather than two competing objects. The architecture, CTA, and content-
 truth fix above were untouched. Full reasoning: `docs/sprints/
 SPRINT-20.md`'s "Correction — Proportion, Pacing & Hierarchy."
+
+## About Editorial Rebuild Outcome — Sprint 21
+
+About scored 6/10 in the pass above — clean content, but still
+presenting the "no photo yet" emblem placeholder a full four sprints
+after Sprint 17 put the real, approved portrait into production
+elsewhere on the site, plus gold pill credential badges and a body
+that repeated the same eyebrow → heading → paragraph shape six times,
+including a dotted/connected Timeline component.
+
+**Portrait:** replaced the placeholder with `CURRENT_PORTRAIT.about` —
+the same crop the homepage's own About Preview section has used since
+Sprint 17, not a new commission or a copy of Hero's tighter crop. The
+opening was rebuilt around it (not the old panel's dimensions reused
+with a swapped image) as a fuller version of the homepage preview's own
+proven composition — `lg:grid-cols-[0.55fr_1.45fr]`, sticky portrait,
+unquoted factual lede, mono margin index — since this page is literally
+where that preview's "Read the full biography" link leads. Exactly one
+portrait treatment appears on the page; the mark remains the site's
+only repeated identity device, via header/footer alone.
+
+**Removed:** all four gold `Badge` credential pills and the `Badge`
+"tag" treatment on Research Interests — both replaced with the same
+mono/archival idiom already established elsewhere (About Preview's
+margin index, Future Courses' status line, Latest Khutbah's metadata
+line), not a new visual system. The dotted/connected Timeline component
+— explicitly named as an anti-pattern in the brief — was first rebuilt
+as a hairline-divided era-list, then removed outright once review
+showed every one of its 8 entries duplicated a fact already covered in
+Education, Academia, Teaching & Speaking, Books, or the credential
+index — a second restatement of the same biography, not a genuinely
+distinct section. No biography content was lost by removing it; every
+fact it held already lives in the section it's actually about.
+
+**Copy audit:** the previous lede's "committed to grounded
+scholarship... clarity today's seeker needs" used none of the site's
+forbidden titles but was vaguer positioning language, absent from every
+other approved source in the repo. Replaced with the same factual
+framing the homepage About Preview already uses (trained in Kuwait,
+academia/consultancy career) — traceable directly to the Biography
+section's own paragraphs, not invented. The Books section's stale
+"examines belief in God" line — the same placeholder text Sprint 20
+corrected on `/books` — was also carrying over onto this page; now
+quotes the book's real, corrected description.
+
+**What this changes about the page overall:** About moves from "clean
+content, dated presentation" to the same restrained, typography-led
+register as the rest of the site's corrected secondary pages — the
+real portrait finally appears where a full profile most needs it, and
+no section on the page still relies on a pill, badge, or connected-line
+graphic to carry information typography already does better elsewhere
+on this site. Full reasoning: `docs/sprints/SPRINT-21.md`.
