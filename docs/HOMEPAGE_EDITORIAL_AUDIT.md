@@ -1269,3 +1269,29 @@ section order, or any decorative motif. The homepage is now formally
 `docs/PROJECT_MEMORY.md` and `docs/ROADMAP.md` for what that does and
 doesn't permit going forward). Full reasoning: `docs/sprints/
 SPRINT-18.md`.
+
+## Future Courses Correction Outcome — Sprint 19
+
+Future Courses was the one remaining homepage section still carrying its
+original Sprint-1-era presentation: an icon/thumbnail panel per card and,
+once a fifth genuine course existed, an orphaned card on its own second
+grid row — flagged but not fixed in ER4, and noted again at the end of
+the Sprint 18 entry above.
+
+The fix was compositional, not additive: no new imagery replaced the
+removed icons. A mono/tracked archival label, the title, the excerpt, and
+a hairline rule now carry each card, matching the idiom About's marginal
+index and Khutbah's metadata line already established. The orphan-card
+problem was resolved by curating exactly four of the five courses onto
+the homepage via a new `Course.featured` flag — the fifth, Islamic
+Family Guidance, remains a fully genuine course, still visible on
+`/courses`, held back only to avoid two courses competing for the same
+"Marriage & Family" subject on one promoted grid.
+
+**What this changes about the page overall:** every content-bearing
+homepage section now shares the same restrained, typography-led register
+— no section still relies on decorative iconography or an unresolved
+layout edge case to carry its content. The design-frozen status set at
+the end of Sprint 18 continues to hold; this was a local correction to
+one section's presentation, not a reopening of the homepage's composition.
+Full reasoning: `docs/sprints/SPRINT-19.md`.

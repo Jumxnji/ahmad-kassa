@@ -1,15 +1,19 @@
 import Link from "next/link";
-import { Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/shared/section";
 import { Eyebrow } from "@/components/shared/eyebrow";
 import { ScrollReveal } from "@/components/shared/scroll-reveal";
-import { CourseCard } from "@/components/cards/course-card";
-import { COURSE_ICONS } from "@/components/cards/course-icons";
+import { FutureCourseCard } from "@/components/cards/future-course-card";
 import { getAllCourses } from "@/lib/data/courses";
 
+/**
+ * The homepage teaser shows only the courses editorially marked
+ * `featured` (Sprint 19) — a curated four, not the full catalog. Every
+ * genuine course, featured or not, still appears on `/courses` via the
+ * same `getAllCourses()` there.
+ */
 export function FutureCoursesSection() {
-  const courses = getAllCourses();
+  const courses = getAllCourses().filter((course) => course.featured);
 
   return (
     <Section>
@@ -30,11 +34,7 @@ export function FutureCoursesSection() {
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {courses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              icon={COURSE_ICONS[course.slug] ?? Brain}
-            />
+            <FutureCourseCard key={course.id} course={course} />
           ))}
         </div>
       </ScrollReveal>

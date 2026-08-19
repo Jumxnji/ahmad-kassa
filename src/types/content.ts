@@ -67,6 +67,8 @@ export interface Course extends ContentBase {
   readonly priceCents?: number;
   readonly currency?: "USD" | "GBP" | "EUR";
   readonly durationHours?: number;
+  /** Same convention as `Article.featured` — an explicit editorial choice for a promoted slot (the homepage teaser), not every genuine course. */
+  readonly featured?: boolean;
 }
 
 export interface Seminar extends ContentBase {

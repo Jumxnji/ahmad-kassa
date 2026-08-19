@@ -989,3 +989,39 @@ actual talk title are unchanged. This remains a content-driven layout
 correction under the existing design freeze, not a new design sprint —
 no section outside Latest Khutbah changed. Full reasoning: `docs/sprints/
 SPRINT-18.md`'s "Correction — Three-Khutbah Editorial Layout" addendum.
+
+---
+
+## v0.17.0 — Sprint 19: Future Courses editorial cards
+
+### Added
+
+- `Course.featured?: boolean` (`src/types/content.ts`), mirroring the
+  existing `Article.featured` convention — marks the 4 courses (of 5)
+  shown on the homepage teaser: Psychology in Islam, Marriage in Islam,
+  Foundations of Ruqyah, Understanding Aqeedah. Islamic Family Guidance
+  is held back only because it and Marriage in Islam both sit under
+  "Marriage & Family," not for weaker content — it remains a genuine,
+  undeleted course, fully visible on `/courses`.
+- `FutureCourseCard` — a new homepage-only card. No thumbnail, icon, or
+  illustration; a mono/tracked "Coming soon · {Level}" label, title,
+  excerpt, hairline divider, and the existing "Notify me at launch"
+  link carry the whole card. Deliberately separate from the existing
+  `CourseCard`, which `/courses` continues to use unmodified.
+
+### Changed
+
+- `FutureCoursesSection`: now filters `getAllCourses()` by `.featured`
+  and renders `FutureCourseCard`. With exactly 4 curated courses, the
+  existing grid (`sm:grid-cols-2 lg:grid-cols-4`) produces a clean
+  1 → 2×2 → 4 responsive flow with no orphaned fifth card. Section
+  header copy and the "View the academy" action are unchanged.
+
+### Notes
+
+Card hover/keyboard-focus treatment (`-translate-y-1` + a gold border
+tint, 300ms, `focus-within:` parity) reuses the same subtle-editorial
+interaction language already established elsewhere on the homepage —
+no scale, shadow, or glow. This was a local, content-driven refinement
+of one section under the existing homepage design freeze (Sprint 18) —
+no other section changed. Full reasoning: `docs/sprints/SPRINT-19.md`.

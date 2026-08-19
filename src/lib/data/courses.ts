@@ -5,6 +5,18 @@ import { AHMAD } from "@/lib/data/authors";
  * The academy hasn't launched — these are the courses in active
  * planning, shown as "Coming soon" so visitors know what to expect
  * and can join the newsletter for the enrollment announcement.
+ *
+ * `featured: true` (Sprint 19) marks the four shown on the homepage
+ * teaser — a curated subset, not every genuine course. `/courses`
+ * itself always renders the full list via `getAllCourses()` regardless
+ * of this flag, so nothing here is ever hidden, only de-prioritised for
+ * one promoted slot. The four chosen are the ones that, together, span
+ * the widest real spread of subjects already established by Teaching
+ * Areas (Aqeedah, Mental Health, Marriage & Family, Ruqyah) rather than
+ * letting two courses compete for the same topic (Marriage in Islam and
+ * Islamic Family Guidance both sit under "Marriage & Family") while
+ * Aqeedah goes unrepresented — Islamic Family Guidance is the one held
+ * back for this reason, not because it's weaker content.
  */
 export const COURSES: readonly Course[] = [
   {
@@ -14,6 +26,7 @@ export const COURSES: readonly Course[] = [
     excerpt:
       "How the Qur'an and Sunnah describe the nafs, the heart, and desire — and what that framework offers modern mental health.",
     status: "coming-soon",
+    featured: true,
     instructor: AHMAD,
     level: "intermediate",
     modules: [
@@ -29,6 +42,7 @@ export const COURSES: readonly Course[] = [
     excerpt:
       "A sequenced course on rights, expectations, and mercy — for engaged couples and anyone rebuilding a marriage's foundation.",
     status: "coming-soon",
+    featured: true,
     instructor: AHMAD,
     level: "beginner",
     modules: [
@@ -44,6 +58,7 @@ export const COURSES: readonly Course[] = [
     excerpt:
       "A practical, text-grounded course on Ruqyah — what it is, what it isn't, and how to practice it soundly.",
     status: "coming-soon",
+    featured: true,
     instructor: AHMAD,
     level: "beginner",
     modules: [
@@ -74,6 +89,7 @@ export const COURSES: readonly Course[] = [
     excerpt:
       "The foundations of Islamic belief, built from first principles — for the student who wants certainty grounded in evidence, not assumption.",
     status: "coming-soon",
+    featured: true,
     instructor: AHMAD,
     level: "beginner",
     modules: [

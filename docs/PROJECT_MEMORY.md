@@ -855,3 +855,19 @@ sprints — do not build these without being asked again:
 - Tiptap chosen for rich text over a heavier alternative — minimal
   footprint (`@tiptap/react` + `@tiptap/starter-kit` + `@tiptap/pm`),
   and only one field in the whole project currently needs it.
+- **`featured?: boolean` is this project's convention for "curated
+  subset shown on the homepage, full set shown on the dedicated page"**
+  — first established on `Article`, reused identically on `Course` in
+  Sprint 19. When a homepage teaser needs to show fewer items than its
+  full catalog, add this boolean to the content type and filter in the
+  homepage section rather than hard-coding array positions/slicing or
+  duplicating data — the dedicated page (`/articles`, `/courses`) should
+  always call the unfiltered `getAll*()` so nothing is ever hidden, only
+  de-prioritised for one promoted slot.
+- **A homepage section that needs a different visual treatment than the
+  shared page it also appears on gets its own small presentational
+  component, not a prop-driven variant of the shared one** —
+  `VideoCard`/`KhutbahEntry` (Sprint 18) and `CourseCard`/
+  `FutureCourseCard` (Sprint 19) are the two instances of this pattern.
+  Keeps the homepage's own editorial refinements from becoming implicit
+  regressions on `/articles`, `/courses`, etc.
