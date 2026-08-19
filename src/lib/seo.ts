@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/config/site";
+import { hasConfirmedProfile } from "@/constants/site";
 
 interface BuildMetadataOptions {
   title: string | { default: string; template: string };
@@ -78,15 +79,7 @@ export function buildMetadata({
  * data must never claim an unconfirmed profile as `sameAs`.
  */
 function confirmedSocialUrls(): string[] {
-  return siteConfig.socialLinks
-    .filter((link) => {
-      try {
-        return new URL(link.href).pathname.length > 1;
-      } catch {
-        return false;
-      }
-    })
-    .map((link) => link.href);
+  return siteConfig.socialLinks.filter(hasConfirmedProfile).map((link) => link.href);
 }
 
 export function buildPersonJsonLd() {

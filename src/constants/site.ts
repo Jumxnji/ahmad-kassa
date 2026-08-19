@@ -26,3 +26,19 @@ export const SOCIAL_LINKS: readonly SocialLink[] = [
   { platform: "instagram", label: "Instagram", href: "https://instagram.com" },
   { platform: "tiktok", label: "TikTok", href: "https://tiktok.com" },
 ] as const;
+
+/**
+ * `SOCIAL_LINKS` still holds generic placeholder domains, not real
+ * profile URLs (see docs/PROJECT_MEMORY.md) — a bare platform
+ * homepage has a `/` pathname, a real profile doesn't. Used so
+ * nothing ever presents a placeholder as an active social profile
+ * (structured data's `sameAs`, the public footer's social row) —
+ * update to real URLs here and every consumer picks them up.
+ */
+export function hasConfirmedProfile(link: SocialLink): boolean {
+  try {
+    return new URL(link.href).pathname.length > 1;
+  } catch {
+    return false;
+  }
+}

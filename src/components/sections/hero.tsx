@@ -17,8 +17,6 @@ import { fadeUp, staggerContainer } from "@/constants/motion";
  */
 const HERO_VISUAL: "emblem" | "portrait" = "emblem";
 
-const TRUST_LINE = "Khateeb, Masjid Al-Noor  ·  Teaching since 2009  ·  Arabic & Islamic Studies" as const;
-
 export function Hero() {
   const shouldReduceMotion = useReducedMotion();
   const HeroVisual = HERO_VISUAL === "portrait" ? HeroPortrait : HeroEmblem;
@@ -30,7 +28,7 @@ export function Hero() {
           initial={shouldReduceMotion ? "visible" : "hidden"}
           animate="visible"
           variants={staggerContainer}
-          className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16"
+          className="grid items-center gap-12 lg:grid-cols-[2fr_3fr] lg:gap-20"
         >
           <motion.div variants={fadeUp} className="order-2 lg:order-1">
             <HeroVisual />
@@ -38,29 +36,29 @@ export function Hero() {
 
           <div className="order-1 text-center lg:order-2 lg:text-left">
             <motion.p variants={fadeUp} className="text-eyebrow">
-              Islamic Teacher &middot; Author &middot; Khateeb
+              Arabic &amp; Islamic Studies
             </motion.p>
 
             <motion.h1
               variants={fadeUp}
-              className="mx-auto mt-6 max-w-xl text-5xl leading-[1.08] text-balance sm:text-6xl lg:mx-0 lg:text-7xl"
+              className="mx-auto mt-6 max-w-2xl text-4xl leading-[1.1] text-balance sm:text-5xl lg:mx-0 lg:text-6xl"
             >
-              Ahmad <span className="italic text-gold-600">Mohamed Kassa</span>
+              Ahmad Mohamed <span className="italic text-gold-600">Kassa</span>
             </motion.h1>
 
             <motion.p
               variants={fadeUp}
-              className="mx-auto mt-7 max-w-lg text-lg leading-relaxed text-muted-foreground text-balance lg:mx-0"
+              className="mx-auto mt-4 text-sm tracking-[0.08em] text-stone-600 uppercase lg:mx-0"
             >
-              Helping Muslims strengthen their understanding of Islam through
-              authentic knowledge, thoughtful research and practical guidance.
+              Author &middot; Teacher &middot; Khateeb
             </motion.p>
 
             <motion.p
               variants={fadeUp}
-              className="mx-auto mt-5 max-w-lg text-sm text-stone-600 text-balance lg:mx-0"
+              className="mx-auto mt-7 max-w-md text-lg leading-relaxed text-muted-foreground text-balance lg:mx-0"
             >
-              {TRUST_LINE}
+              Helping Muslims strengthen their understanding of Islam through
+              authentic knowledge and practical guidance.
             </motion.p>
 
             <motion.div

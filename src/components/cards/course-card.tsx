@@ -16,8 +16,6 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course, icon }: CourseCardProps) {
-  const lessonCount = course.modules.reduce((sum, m) => sum + m.lessonCount, 0);
-
   return (
     <div className="flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-border">
       <CourseIllustration icon={icon} />
@@ -35,9 +33,6 @@ export function CourseCard({ course, icon }: CourseCardProps) {
         </h3>
         <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
           {course.excerpt}
-        </p>
-        <p className="mt-4 text-xs text-stone-500">
-          {course.modules.length} modules · {lessonCount} lessons
         </p>
         <CourseInterestLink courseSlug={course.slug} />
       </div>

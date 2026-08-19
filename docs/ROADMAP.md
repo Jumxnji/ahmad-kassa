@@ -124,6 +124,19 @@ and `docs/sprints/SPRINT-XX.md` for per-sprint detail.
   `DEPLOYMENT.md`, `public/brand/README.md`). No visual redesign, no
   new features — a repair-and-reconcile pass. Full detail in
   `docs/sprints/SPRINT-13.md`.
+- **Sprint 14 — Editorial Refinement 1 & 2.** ER1: an in-browser,
+  critique-only homepage audit against the creative-direction/design-system
+  documents (`docs/HOMEPAGE_EDITORIAL_AUDIT.md`). ER2: implemented the
+  audit's Tier 1 findings only — the header/footer digital lockup restored
+  to the full name with corrected optical alignment; the hero rebuilt with
+  a genuinely asymmetric column split and a unified single-line name
+  treatment; Teaching Areas' icon-grid replaced with a numbered editorial
+  index; About's placeholder switched from generic initials to the emblem;
+  the Featured Book badge and Future Courses' fake module/lesson metadata
+  removed; the footer given a standalone mission-statement line and
+  confirmed-only social icons; one section promoted to break a flat rhythm
+  run. No Tier 2/3 changes, no new pages, no logo redesign. Full detail in
+  `docs/sprints/SPRINT-14.md`.
 
 ## Immediate priority
 

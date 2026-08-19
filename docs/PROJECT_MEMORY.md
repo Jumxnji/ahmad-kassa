@@ -473,6 +473,69 @@ scoped like a bespoke platform rather than a generic template.
   `docs/CREATIVE_DIRECTION.md`, the emblem should remain part of the
   hero composition even after Mode B ships, not be fully replaced by
   the photo.
+- **Sprint 14 (Editorial Refinement 1 & 2) refined — did not replace —
+  Sprint 11's homepage.** ER1 was a critique-only audit
+  (`docs/HOMEPAGE_EDITORIAL_AUDIT.md`); ER2 implemented that audit's
+  highest-confidence findings only. Durable decisions from this pass:
+  the header/footer `Logo` component always renders the full name
+  (`siteConfig.name`), never the shortened form, matching the
+  client's standing policy — the mark and wordmark are composed live
+  (the digital-lockup approach `public/brand/README.md` already
+  documented, now actually applied to the header, not just email).
+  The hero's `lg:grid-cols-[2fr_3fr]` asymmetric ratio and its
+  single-line "Ahmad Mohamed *Kassa*" headline treatment (surname
+  only in italic gold, not the full "Mohamed Kassa") are the current
+  baseline — any future hero work should treat *this* as the starting
+  point, not the original Sprint 11 near-even split. Teaching Areas
+  (`TeachingAreaRow`) and the "no photo yet" placeholder convention
+  (`PortraitFrame`, now emblem-based, shared by About and the dormant
+  Hero Mode B slot) are both now-established patterns — reuse them
+  rather than reintroducing a card/icon grid or a generic initials
+  monogram elsewhere on the site. Full reasoning and what's still
+  open: `docs/sprints/SPRINT-14.md`.
+- **Sprint 15 (Editorial Refinement 3) rebuilt About and Featured Book
+  only** — header, hero, Teaching Areas, and footer were explicitly
+  out of scope. About Preview is now text-dominant: a narrow sticky
+  `PortraitFrame` column (`lg:grid-cols-[0.55fr_1.45fr]`) beside a wide
+  text column with an unquoted editorial lede statement above the full
+  biography and a four-line marginal index — this replaced Sprint 14's
+  flowing single-line credential sentence, which itself replaced
+  Sprint 11's bulleted list. **Convention going forward: never
+  quotation-mark editorial copy in About unless it is a genuine direct
+  quote supplied by the client** — the lede is deliberately unquoted
+  for this reason, and any future editorial "pull quote" moment must
+  hold to the same rule. Featured Book's cover column and cap were
+  both widened (`lg:grid-cols-[minmax(0,0.62fr)_1fr]`,
+  `lg:max-w-md`) so the cover is the largest single visual element on
+  the homepage; a conditionally-rendered publication caption
+  (`book.category`/`publicationDate` year, only real schema fields,
+  never fabricated) and a plain "By {authorName}" line were added.
+  **Convention going forward: the Featured Book section does not
+  carry the brand emblem** — a deliberate, repeated decision (also
+  true of Sprint 14) reasoning that a second mark would compete with
+  the cover, which is the section's own visual anchor. Full reasoning
+  and what's still open: `docs/sprints/SPRINT-15.md`.
+- **Sprint 16 (Editorial Refinement 4) was a full-page creative-director
+  polish pass, not a redesign** — the ER1–ER3 architecture (section order,
+  About/Featured Book composition, hero, Teaching Areas, footer structure)
+  was treated as the stable baseline and left alone; only small, low-risk
+  refinements shipped. **Conventions going forward:** (1) gold (`variant
+  ="gold"`) is reserved for a page's own genuine primary CTA — persistent
+  chrome (the header nav) should not use it, since it competes with
+  whatever section-level gold CTA is also on screen; the header's
+  "Newsletter" nav button is now `variant="outline"` for this reason. (2)
+  Logo/mark hover anywhere on the site is opacity-only, never a scale
+  transform — the header/footer `Logo`'s `group-hover:scale-105` was
+  removed in this pass as the last remaining instance of this rule not
+  being followed. (3) Marginal/archival index-style content (About's
+  credential list is the current example) uses the site's mono/tracked
+  `text-eyebrow`-family treatment, not plain small body text, to read as
+  editorial notation. (4) The homepage's newsletter CTA should appear at
+  most twice in one scroll — the dedicated `NewsletterSection` plus one
+  link elsewhere (footer's "Connect" column) — a third inline form (the
+  footer previously had its own) reads as insistent, not restrained; the
+  footer's own form was removed for this reason. Full reasoning, what was
+  considered and rejected, and remaining gaps: `docs/sprints/SPRINT-16.md`.
 - The `/admin` dashboard deliberately echoes the public site's design
   language (same palette/typography) rather than looking like a
   generic admin template (explicitly: "Not WordPress. Not Bootstrap.

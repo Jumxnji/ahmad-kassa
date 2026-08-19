@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface PortraitFrameProps {
@@ -25,7 +26,13 @@ export function PortraitFrame({ className }: PortraitFrameProps) {
     >
       <div className="absolute inset-4 rounded-xl border border-gold-400/25" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-display text-8xl italic text-gold-300/80">AK</span>
+        <Image
+          src="/brand/logo-mark-white.svg"
+          alt=""
+          width={140}
+          height={200}
+          className="h-[34%] w-auto opacity-90"
+        />
       </div>
       <span
         aria-hidden="true"

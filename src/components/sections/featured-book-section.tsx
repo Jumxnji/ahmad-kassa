@@ -24,23 +24,31 @@ export async function FeaturedBookSection() {
 
   const directBookSales = isFeatureEnabled("directBookSales");
 
+  const publicationYear = book.publicationDate
+    ? new Date(book.publicationDate).getFullYear()
+    : null;
+  const caption = [book.category, publicationYear].filter(Boolean).join(" · ");
+
   return (
     <Section tone="alt" size="lg">
-      <ScrollReveal className="grid items-center gap-14 lg:grid-cols-[minmax(0,0.55fr)_1fr] lg:gap-24">
-        <div className="relative mx-auto w-full max-w-xs lg:max-w-sm">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 -z-10 scale-110 rounded-full opacity-70"
-            style={{
-              backgroundImage:
-                "radial-gradient(60% 60% at 50% 45%, var(--gold-50) 0%, transparent 75%)",
-            }}
-          />
-          <BookCover title={book.title} size="lg" cover={book.coverImage} />
-          <span className="absolute -top-3 -right-3 flex items-center gap-1.5 rounded-full border border-gold-400/50 bg-background px-3 py-1.5 shadow-sm">
-            <span aria-hidden="true" className="size-1.5 rotate-45 bg-gold-500" />
-            <span className="text-eyebrow text-[0.65rem]">Featured</span>
-          </span>
+      <ScrollReveal className="grid items-center gap-14 lg:grid-cols-[minmax(0,0.62fr)_1fr] lg:gap-24">
+        <div className="mx-auto w-full max-w-xs lg:max-w-md">
+          <div className="relative">
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 -z-10 scale-110 rounded-full opacity-70"
+              style={{
+                backgroundImage:
+                  "radial-gradient(60% 60% at 50% 45%, var(--gold-50) 0%, transparent 75%)",
+              }}
+            />
+            <BookCover title={book.title} size="lg" cover={book.coverImage} />
+          </div>
+          {caption && (
+            <p className="mt-4 text-center text-xs tracking-[0.14em] text-stone-500 uppercase lg:text-left">
+              {caption}
+            </p>
+          )}
         </div>
 
         <div className="text-center lg:text-left">
@@ -48,6 +56,9 @@ export async function FeaturedBookSection() {
           <h2 className="mx-auto mt-3 max-w-lg text-4xl sm:text-5xl lg:mx-0">
             {book.title}
           </h2>
+          <p className="mx-auto mt-3 max-w-lg text-sm text-stone-600 lg:mx-0">
+            By {book.authorName}
+          </p>
           <p className="mx-auto mt-6 max-w-lg font-display text-xl italic leading-relaxed text-muted-foreground text-balance lg:mx-0">
             {book.excerpt}
           </p>

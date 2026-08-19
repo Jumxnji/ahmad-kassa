@@ -755,3 +755,128 @@ features shipped. Full detail in `docs/sprints/SPRINT-13.md`.
 Per the client's explicit instruction, no visual redesign, no new features —
 this closes out the two remaining items from Sprint 13's baseline recovery
 report before Editorial Refinement begins.
+
+---
+
+## v0.12.0 — Sprint 14: Editorial Refinement 1 & 2 (homepage audit + Tier 1)
+
+### Added
+
+- `docs/HOMEPAGE_EDITORIAL_AUDIT.md` — a full critique of the live homepage
+  (Editorial Refinement 1), studied in-browser and cross-checked against the
+  creative-direction and design-system documents. Three proposed hero
+  directions, a section-by-section audit, and a tiered recommendation list.
+- `TeachingAreaRow` (`src/components/cards/teaching-area-card.tsx`) — a
+  numbered editorial index row, replacing the icon-in-circle card grid.
+- `hasConfirmedProfile()` (`src/constants/site.ts`) — shared logic for
+  "is this a real social profile URL or a placeholder domain," now used by
+  both the footer's social icon row and `src/lib/seo.ts`'s structured-data
+  `sameAs` filtering, which previously duplicated the same check.
+
+### Changed
+
+Editorial Refinement 2 — the audit's Tier 1 recommendations only, per the
+client's explicit scope:
+
+- Header/footer (`Logo`): full name ("Ahmad Mohamed Kassa") restored, mark
+  enlarged and re-aligned — both surfaces share one component, so one fix
+  covered both.
+- Hero: genuinely asymmetric column ratio (`2fr`/`3fr`, not the prior
+  near-even `1.05fr`/`0.95fr`); the name now sets on one line at common
+  desktop widths; the emblem's bounding box widened to read as a
+  counterweight; the redundant trust line removed in favour of an
+  overline + role-line pair; body copy tightened.
+- Teaching Areas: icon-in-circle cards replaced with `TeachingAreaRow`.
+- About: the `AK` initials placeholder replaced with the brand mark
+  (`PortraitFrame`, shared with the dormant Hero Mode B slot); layout
+  widened to a genuine asymmetric split; the bulleted credentials list
+  replaced with one flowing typographic line.
+- Featured Book: the "Featured" corner badge removed (redundant with the
+  section's own eyebrow).
+- Future Courses / `/courses`: module/lesson-count metadata removed from
+  `CourseCard`.
+- Footer: a standalone mission-statement line added above the link grid;
+  social icons now render only for confirmed profile URLs (currently none,
+  so the row doesn't render at all rather than showing placeholder icons).
+- Homepage rhythm: Latest Khutbah promoted to `size="lg"`, breaking a
+  three-consecutive-default-size run between Quote and Newsletter.
+- `docs/DESIGN_SYSTEM.md` — one row added to the existing mark-touchpoint
+  table for the new `PortraitFrame` placement.
+
+### Notes
+
+Tier 1 only, per the client's explicit "do not begin Tier 2 refinements."
+Full before/after reasoning, what was deliberately not implemented, and
+remaining gaps toward a 9.7+ homepage: `docs/sprints/SPRINT-14.md` and
+`docs/HOMEPAGE_EDITORIAL_AUDIT.md`'s Implementation Outcome section.
+
+---
+
+## v0.13.0 — Sprint 15: Editorial Refinement 3 (About profile + Featured Book)
+
+### Changed
+
+A new, narrowly-scoped client brief covering exactly two homepage sections —
+header, hero, Teaching Areas, and footer explicitly untouched:
+
+- About preview (`about-preview-section.tsx`): rebuilt as a text-dominant
+  editorial profile — a narrow sticky `PortraitFrame` column beside a wide
+  text column carrying an unquoted editorial lede statement (the section's
+  "one strong typographic moment," deliberately not quotation-marked, since
+  no genuine direct quote exists to attribute), the full biography, and a
+  restrained four-line marginal index, replacing Sprint 14's flowing
+  credential sentence.
+- Featured Book (`featured-book-section.tsx`): cover column and cap both
+  widened so the cover reads as the largest single visual element on the
+  homepage; an honest, conditionally rendered publication caption
+  (category/year, only when the CMS data actually has them) and a plain
+  "By {authorName}" line added. CTA structure and the `directBookSales`
+  flag gate left untouched.
+
+### Notes
+
+Neither section's emblem placement changed — About's `PortraitFrame`
+already accepts a future portrait with no architectural change, and the
+Featured Book section deliberately does not add a second mark, since the
+brief warns against stamping it in "simply because it exists." Full
+reasoning, directions considered, and remaining gaps:
+`docs/sprints/SPRINT-15.md` and `docs/HOMEPAGE_EDITORIAL_AUDIT.md`'s
+Editorial Refinement 3 Implementation Outcome section.
+
+---
+
+## v0.14.0 — Sprint 16: Editorial Refinement 4 (full homepage creative director pass)
+
+### Changed
+
+A full-page micro-polish pass — the homepage architecture from ER1–ER3
+treated as stable; no sections, features, colours, fonts, or logo geometry
+added or changed:
+
+- `Logo`: removed the header/footer mark's hover scale transform, leaving
+  an opacity-only dim — closes a Tier 3 deviation from the design system's
+  "never scale on hover" rule flagged since Sprint 14's audit.
+- `SiteHeader`: the persistent nav "Newsletter" button demoted from gold to
+  outline, so it stops competing with each page's own primary CTA for
+  gold's "single most important action" meaning.
+- `AboutPreviewSection`: the marginal index restyled to the site's existing
+  mono/tracked archival-label idiom, reading as editorial notation rather
+  than smaller body text.
+- `HeroEmblem`/`HeroPortrait`: mobile width capped at `260px` (previously
+  unconstrained, filling nearly the full mobile viewport) — desktop
+  unchanged.
+- `SiteFooter`: removed the footer's duplicate inline newsletter form (a
+  third signup touchpoint stacked directly beneath the dedicated Newsletter
+  section); the link grid now sits compactly under the mission line instead
+  of stretching full-width.
+
+### Notes
+
+Several changes were considered and explicitly rejected rather than
+shipped — softening the paper/navy tone transitions with additional
+mark-dividers, demoting Featured Book's CTA, converting Future Courses to
+a list, and adjusting watermark opacity — each judged to either dilute an
+already-correct restraint or fix a problem that live inspection didn't
+actually confirm. Full reasoning: `docs/sprints/SPRINT-16.md` and `docs/
+HOMEPAGE_EDITORIAL_AUDIT.md`'s Editorial Refinement 4 Implementation
+Outcome section.

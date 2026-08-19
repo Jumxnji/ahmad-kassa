@@ -16,7 +16,7 @@ export function HeroEmblem({ className }: HeroEmblemProps) {
   return (
     <div
       className={cn(
-        "relative mx-auto flex aspect-square w-full max-w-md items-center justify-center",
+        "relative mx-auto flex aspect-square w-full max-w-[260px] items-center justify-center sm:max-w-sm lg:max-w-lg",
         className
       )}
     >

@@ -126,12 +126,16 @@ Two intentional decisions worth flagging (still true today):
 🟢 **CURRENT**, corrected to match the real implementation (`src/components/layout/
 site-header.tsx`, `main-nav.tsx`, `mobile-nav.tsx`, `search-trigger.tsx`) — this
 section originally described a planned nav that differs from what actually shipped
-in Sprint 11 in several concrete ways, noted inline below.
+in Sprint 11 in several concrete ways, noted inline below. The logo lockup shown
+below uses the full name as of Sprint 14 (Editorial Refinement 2) — it briefly
+showed the shortened "AMK"/"Ahmad Kassa" form between Sprint 11 and Sprint 14,
+corrected back to the full name per the client's standing "never shorten unless
+there's a compelling UX reason" policy.
 
 ### Desktop (≥1024px)
 
 ```
-[Logo mark + "AMK"]      About   Books   Courses   Articles   Ask Ahmad      [Search icon]  [Log in]  [Newsletter →]
+[Logo mark + "Ahmad Mohamed Kassa"]      About   Books   Courses   Articles   Ask Ahmad      [Search icon]  [Log in]  [Newsletter →]
 ```
 
 - **Five text links** (`PRIMARY_NAV` in `src/constants/navigation.ts`) — About,
@@ -208,39 +212,45 @@ Search, once real translated content exists, remains 🔵 FUTURE-ASPIRATIONAL.
 
 ## 4. Global Footer
 
-🟢 **CURRENT**, corrected — the real footer (`src/components/layout/site-footer.tsx`)
-is a 4-column grid, not the 4-column-plus-mission-statement layout originally
-planned, and there's no separate dedicated "Books" column:
+🟢 **CURRENT** — updated for Sprint 14 (Editorial Refinement 2), which added a
+standalone mission-statement line and made social icons conditional on a real
+profile URL existing:
 
 ```
-[Logo mark, inverted] + SITE_TAGLINE                Explore      Connect        Newsletter
- Social icons (YouTube/Instagram/TikTok)              About       Ask Ahmad      [email input] [Subscribe]
-                                                       Books       Newsletter     "Book announcements,
-                                                       Courses     Contact         courses, seminars &
-                                                       Articles                    articles — no spam."
+[Logo mark, inverted] + [Ahmad Mohamed Kassa]      "Islamic scholarship for the
+                                                     modern seeker." (large, italic)
+─────────────────────────────────────────────────────────────────────────────────
+Social icons (only rendered   Explore      Connect        Newsletter
+ if a real profile URL         About       Ask Ahmad      [email input] [Subscribe]
+ exists — currently none)      Books       Newsletter     "Book announcements,
+                                Courses     Contact         courses, seminars &
+                                Articles                    articles — no spam."
 ─────────────────────────────────────────────────────────────────────────────────────────
 © {year} Ahmad Mohamed Kassa. All rights reserved.    Privacy Policy · Terms   [language select, disabled]
 ```
 
-**What's real vs. what the original plan proposed:**
+**What's real vs. what the original (pre-Sprint-14) plan proposed:**
 
-- **No standalone mission-statement band above the grid.** The tagline
-  (`SITE_TAGLINE`, "Islamic scholarship for the modern seeker") sits inline under the
-  inverted logo mark in the first column instead — a real, simpler choice than the
-  originally-planned Harvard/Yaqeen-style opening statement. Reintroducing a
-  standalone mission line is a legitimate 🔵 FUTURE-ASPIRATIONAL idea for a future
-  Editorial Refinement footer pass (see `docs/ROADMAP.md`), not a current gap.
+- **Standalone mission-statement band — now real** (Sprint 14). `SITE_TAGLINE`
+  ("Islamic scholarship for the modern seeker") is promoted to a large Newsreader
+  italic line, set beside the logo in a masthead-style row at desktop (stacked at
+  mobile) — the originally-planned Harvard/Yaqeen-style opening statement this
+  section used to flag as future-aspirational is now shipped, using the existing
+  tagline rather than new copy.
+- **Social icons are conditionally rendered** (Sprint 14): `hasConfirmedProfile()`
+  (`src/constants/site.ts`) filters `SOCIAL_LINKS` before rendering — since none of
+  YouTube/Instagram/TikTok are confirmed real profiles yet (see Section 2/
+  `docs/PROJECT_MEMORY.md`), the icon row currently renders nothing at all, and the
+  link-column grid collapses from 4 to 3 columns rather than leaving a visibly empty
+  one. The moment a real profile URL is set, its icon appears automatically — no
+  code change needed.
 - **"Explore"** (`FOOTER_EXPLORE`: About, Books, Courses, Articles) and **"Connect"**
   (`FOOTER_CONNECT`: Ask Ahmad, Newsletter, Contact) are the two real link columns —
   not "Quick Links" + a dedicated "Books" column. Books stays inside Explore rather
   than getting its own column; the "ready to become a real catalogue list without
   changing the footer's grid" future-proofing idea from the original plan no longer
   applies to this layout and can be dropped rather than carried forward.
-- **Social icons** sit in the first column beside the logo/tagline, not under
-  "Connect" — "Connect" is text links (Ask Ahmad/Newsletter/Contact), a different
-  grouping than originally planned but the same "real, active person" trust-signal
-  intent.
-- **Newsletter** is the fourth column, using the same `NewsletterForm` component the
+- **Newsletter** is the last column, using the same `NewsletterForm` component the
   dedicated `/newsletter` page and homepage section use (`variant="footer"`) — matches
   the original "one input, one button" intent exactly.
 - **Legal row** includes the disabled language `<select>` (see Section 3) alongside

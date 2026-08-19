@@ -448,6 +448,16 @@ mapped onto what exists.
 | Icon | `ghost` / `outline` + `icon` sizes | as ghost/outline | as ghost/outline | Search trigger, social icons, media controls |
 | Destructive (rare on public site) | `destructive` | `destructive/10` → `destructive/20` | `destructive` | Only realistic public-site use: a "remove from list"-type action, if ever needed |
 
+**Gold in persistent chrome.** The "single most important action per page"
+rule above governs page content — it does not cover the header/nav, which
+renders identically on every page and at every scroll position. A gold
+button living there is gold on every page simultaneously, competing with
+whatever the current page's own real primary action is. Persistent chrome
+(header nav, sticky utility bars) should use `outline` or `ghost`, never
+`gold` — reserve gold for the CTA that is actually this specific page's
+one most important action (added Sprint 16, after the header's nav
+"Newsletter" button was found doing exactly this).
+
 **Sizes.** `xs`(24px)/`sm`(28px)/`default`(32px)/`lg`(36px)/`xl`(48px) height, plus
 matching `icon`/`icon-xs`/`icon-sm`/`icon-lg` square variants. **On the public site,
 `default` is the floor and `lg`/`xl` are the norm** for primary CTAs — the compact
@@ -628,6 +638,7 @@ live in `public/brand/README.md`.
 | Hero (Mode B — once a portrait exists) | `src/components/sections/hero-portrait.tsx` | Occupies the identical aspect box as Mode A; swapping is a one-line constant change in `hero.tsx` (`HERO_VISUAL`), never a layout change |
 | Background watermark | `QuoteSection`, `NewsletterSection` | The white mark colourway, `opacity-[0.05]`, large scale, absolutely positioned, on navy sections only — never on paper/ivory backgrounds (see the explicit warning below) |
 | Section-transition accent | `src/components/shared/manuscript-divider.tsx`'s `mark` prop | Swaps the usual rotated-gold-square accent for a small mark glyph, reserved for one or two genuinely significant transitions per page (currently: before "Ask Ahmad" on the homepage) |
+| "No photo yet" placeholder | `src/components/media/portrait-frame.tsx` (Sprint 14) | The white mark colourway, centred on the same navy card treatment `HeroEmblem`'s "no portrait" state uses conceptually — replaces a generic initials monogram, so About and the dormant Hero Mode B slot share one "not a photo yet" convention instead of two |
 
 **Why the watermark is navy-only, not a stylistic preference.** The mark
 reads as a considered texture at low opacity against navy; on paper/ivory
