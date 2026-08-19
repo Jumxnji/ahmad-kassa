@@ -599,14 +599,24 @@ didn't call out by this name but that fulfils the same "alternate layouts" insti
 it asked for.
 
 **Latest Khutbah** (`featured-lectures-section.tsx`, exported as
-`LatestKhutbahSection`) — a single editorial spotlight card (not a grid, and not
-linking to a `/khutbahs` library page, which doesn't exist — see Section 0),
-featuring the one lecture already categorized `"Weekly Khutbah"` in
-`src/lib/data/lectures.ts`. Every lecture in that file is honestly
-`status: "coming-soon"`, so the section keeps that framing ("recordings are on the
-way") rather than implying a real upload exists, plus a "Watch more on YouTube"
-outside link. This replaces the original plan's separate "Latest Khutbah" +
-"Featured Video" sections with one combined, honestly-framed spotlight.
+`LatestKhutbahSection`) — not linking to a `/khutbahs` library page, which
+doesn't exist (see Section 0). As of Sprint 18, two real published khutbahs
+exist in `src/lib/data/lectures.ts` (`category: "Weekly Khutbah"`,
+real `youtubeId`s) — the section selects them by genuine `publishedAt`
+recency (never array/URL order) and presents an editorial primary +
+quieter secondary pairing (`KhutbahEntry`, `VideoThumbnail` extended to
+render real thumbnails) rather than the single spotlight card this
+section used before real content existed. The three remaining
+`coming-soon` lectures in that file are under other categories (Lecture,
+Conference Talk, Seminar) and never surface here — if/when all published
+"Weekly Khutbah" entries are ever removed again, the section falls back
+to rendering nothing (`null`) rather than a placeholder, the same honesty
+this section held to before. "Watch more on YouTube" now links to the
+real, verified Masjid Al-Noor channel for this section specifically, not
+the sitewide (still-placeholder) social config. This replaces the
+original plan's separate "Latest Khutbah" + "Featured Video" sections
+with one combined spotlight, now content-driven rather than
+permanently placeholder.
 
 **Future Courses** (`future-courses-section.tsx`) — not part of the original plan.
 Mirrors the real `/courses` page's course grid (`getAllCourses()`, `CourseCard`)

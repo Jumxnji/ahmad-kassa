@@ -190,50 +190,95 @@ and `docs/sprints/SPRINT-XX.md` for per-sprint detail.
     `BING_SITE_VERIFICATION`), and spot-check social sharing previews
     against the new dynamic OG images.
 
-## Editorial Refinement (proposed, not started)
+## Homepage design status: FROZEN — content-driven changes only
 
-**Document only — nothing below has been executed.** Once Sprint 13's baseline
-repair is reviewed and approved by the client, this is the proposed next sequence
-of *design* work (as opposed to the backend/infra items in "Immediate priority"
-above). Per the client's explicit instruction: *"I want to review this baseline
-first"* — do not begin any stage below without that review, and do not begin it
-just because it's written down here. Each stage follows the project's permanent
-design process (`docs/CREATIVE_DIRECTION.md`'s closing rule): study the existing
-implementation, critique it, propose alternatives with reasoning, get direction
-confirmed, *then* implement — never code first.
+As of Sprint 18 (Real Khutbah Integration), the homepage is formally
+**DESIGN FROZEN — CONTENT-DRIVEN CHANGES ONLY**. The client directed five
+Editorial Refinement stages in sequence (Sprints 14–17: audit + Tier 1,
+About/Featured Book, a full creative-director polish pass, professional
+portrait integration) followed by this content-integration sprint, each
+confirming the previous stage's decisions rather than reopening them. Full
+detail lives in `docs/PROJECT_MEMORY.md`'s Sprint 14–18 entries and each
+`docs/sprints/SPRINT-1{4,5,6,7,8}.md`.
 
-1. **ER1 — Homepage Design Audit.** In-browser study only, no code. Compare the
-   current homepage against the *principles* (not the visual style) of Aesop,
-   Kinfolk, Monocle, Aman Resorts, Norm Architects, premium publishing/book design,
-   and Pentagram's editorial identity work — for each, name the one specific
-   principle that's actually useful and why, not just the brand name. Produces a
-   critique, not a redesign.
-2. **ER2 — Typography & Hero.** The highest-priority future sprint: the header's
-   digital lockup (full name vs. "AMK," optical alignment, small-size legibility —
-   see `docs/CREATIVE_DIRECTION.md` Section 6 and `public/brand/README.md`'s
-   digital-lockup policy), hero composition, typography hierarchy, line breaks,
-   tracking, leading, measure, CTA hierarchy, emblem integration, watermark
-   restraint. Identity copy should explore registers like "Arabic & Islamic
-   Studies" or "Author · Teacher · Khateeb" — never "Scholar." Produce three
-   distinct hero composition directions before implementing anything, and pick the
-   strongest with explicit reasoning, not by default.
-3. **ER3 — Section Hierarchy & About.** An editorial profile treatment for About:
-   a pull quote, a restrained timeline/credentials treatment (the current 8-step
-   numbered timeline may be more literal than the "restrained" brief called for —
-   worth revisiting here, see `docs/UX_ARCHITECTURE.md` Section 10), asymmetric
-   composition, a reserved slot for a future portrait. Don't manufacture facts not
-   already established.
-4. **ER4 — Premium Component Language.** Book presentation, teaching-area cards,
-   CTAs, buttons, metadata, dividers, section labels, interactive states.
-   Whitespace over borders, hierarchy over decoration, typography over icons,
-   restraint over effects — per `docs/CREATIVE_DIRECTION.md` Section 11.
-5. **ER5 — Footer.** Treat the footer as the closing page of a premium
-   publication (`docs/CREATIVE_DIRECTION.md` Section 14) — a restrained large
-   emblem/watermark, the newsletter, navigation, contact, confirmed social links
-   only (see `SOCIAL_LINKS` still being placeholder domains), language readiness,
-   an elegant brand statement. Don't "enrich" the footer by adding more things —
-   the current 4-column layout (Section 4 of `docs/UX_ARCHITECTURE.md`) is the
-   real baseline to critique, not the original pre-Sprint-11 plan.
+**Allowed without further design review:** real content replacement (new
+books, courses, articles, khutbahs, portraits using the established
+patterns), accessibility fixes, bug fixes, content-driven layout
+corrections (e.g. a genuinely long title needing a wrap fix), and
+adding real content through existing data/CMS architecture.
+
+**Not allowed without explicit client-directed design review:** a hero
+redesign, a new typography system, a new colour palette, arbitrary
+section reordering, new decorative motifs, or another "make it more
+premium" pass. If real content ever exposes an actual defect (not just an
+opportunity to improve), fix that defect locally and document why —
+don't use it as licence to reopen the whole section.
+
+**Note on the ER1–ER8 numbering below:** this section predates the
+client's own sequential Editorial Refinement briefs and uses a different
+internal numbering than what was actually executed (the client's "ER3"
+became Sprint 15, their "ER4" Sprint 16, their "ER5" Sprint 17 — none map
+one-to-one onto the ER3–ER8 items below). Treat everything below as
+historical planning context, already superseded by the Sprint 14–18
+record above, not a literal remaining to-do list — see each numbered
+item's own "(partially done)"/"(done)" annotation for what's still real.
+
+## Editorial Refinement
+
+**ER1 and ER2 are complete (Sprint 14) — everything below ER2 is still
+document-only, nothing executed.** ER1 (the homepage audit) and ER2 (as
+actually directed by the client) ran back to back; ER2 turned out to be
+broader than this section originally scoped it — rather than "Typography &
+Hero" alone, the client's brief bundled the audit's highest-confidence
+("Tier 1") findings across the header, hero, Teaching Areas, About, Featured
+Book, Future Courses, and the footer into one implementation pass. See
+`docs/HOMEPAGE_EDITORIAL_AUDIT.md` (the audit, plus its Implementation
+Outcome section) and `docs/sprints/SPRINT-14.md` for what shipped. Because
+ER2 already covered pieces of what ER3/ER4/ER5 below originally described
+(About's placeholder, Teaching Areas' card treatment, the footer mission
+line), **the numbered stages below need re-scoping against what's already
+done before any of them starts** — treat the descriptions below as the
+original intent, not a literal remaining to-do list. Each future stage still
+follows the project's permanent design process
+(`docs/CREATIVE_DIRECTION.md`'s closing rule): study the existing
+implementation, critique it, propose alternatives with reasoning, get
+direction confirmed, *then* implement — never code first. Per the client's
+explicit instruction after ER2: do not begin further stages without review.
+
+1. ~~**ER1 — Homepage Design Audit.**~~ Done — `docs/HOMEPAGE_EDITORIAL_AUDIT.md`.
+2. ~~**ER2 — Tier 1 implementation.**~~ Done — see above. The original
+   "Typography & Hero" scope below is **mostly complete**: the header digital
+   lockup now uses the full name with corrected optical alignment; the hero's
+   asymmetric composition, unified name typography, and identity copy
+   ("Arabic & Islamic Studies" / "Author · Teacher · Khateeb," never
+   "Scholar") all shipped. Not yet done from the original ER2 scope: three
+   distinct hero *composition* directions were proposed and one recommended
+   in the audit, but only the recommended direction (Editorial Split) was
+   implemented — the other two remain document-only concepts if a future
+   session wants to revisit the choice.
+3. **ER3 — Section Hierarchy & About (partially done).** About's placeholder
+   now uses the emblem and the credentials read as one line instead of a
+   bulleted list (Sprint 14) — the fuller "editorial profile" composition
+   (a real pull quote, asymmetric spread, restrained timeline treatment; the
+   current `/about` page's 8-step numbered timeline may still be more literal
+   than "restrained" calls for, see `docs/UX_ARCHITECTURE.md` Section 10) is
+   still open. Don't manufacture facts not already established.
+4. **ER4 — Premium Component Language (partially done).** Teaching-area cards
+   were replaced with a numbered typographic index and Future Courses'
+   fake-precision module/lesson metadata was removed (Sprint 14) — book
+   presentation, CTAs, buttons, dividers, and section labels are still
+   untouched. Whitespace over borders, hierarchy over decoration, typography
+   over icons, restraint over effects — per `docs/CREATIVE_DIRECTION.md`
+   Section 11.
+5. **ER5 — Footer (partially done).** A standalone mission-statement line
+   now sits above the link grid, and social icons only render for confirmed
+   profile URLs — currently none, so the row doesn't render at all rather
+   than showing placeholder icons (`hasConfirmedProfile()`,
+   `src/constants/site.ts`; Sprint 14). Still open: a more considered
+   emblem/watermark treatment, and revisiting navigation/contact grouping.
+   Don't "enrich" the footer by adding more things — the current layout
+   (Section 4 of `docs/UX_ARCHITECTURE.md`, now updated by Sprint 14) is the
+   real baseline to critique next, not the original pre-Sprint-11 plan.
 6. **ER6 — Brand Language Audit.** Audit every legitimate emblem touchpoint against
    `docs/CREATIVE_DIRECTION.md` Section 6's "never more than two per page" rule:
    hero, watermark, dividers, loading screen, newsletter, footer, book/article

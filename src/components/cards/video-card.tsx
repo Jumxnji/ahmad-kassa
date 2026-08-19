@@ -44,7 +44,11 @@ export function VideoCard({ lecture }: VideoCardProps) {
           className="text-left disabled:cursor-default"
           aria-label={canPlay ? `Play ${lecture.title}` : `${lecture.title} — coming soon`}
         >
-          <VideoThumbnail title={lecture.title} durationMinutes={lecture.durationMinutes} />
+          <VideoThumbnail
+            title={lecture.title}
+            durationMinutes={lecture.durationMinutes}
+            thumbnailUrl={lecture.coverImageUrl}
+          />
         </button>
       )}
 

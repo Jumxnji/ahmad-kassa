@@ -916,3 +916,76 @@ explicit warning against stacking "portrait + logo + watermark +
 divider logo" all at once. No mobile reordering, no retouching, no new
 placements elsewhere on the site. Full reasoning: `docs/sprints/
 SPRINT-17.md`, `docs/BRAND_USAGE.md`'s new "The Portrait" section.
+
+---
+
+## v0.16.0 — Sprint 18: Real Khutbah Integration
+
+### Added
+
+- Two real, verified khutbah recordings from Masjid Al-Noor replace the
+  fictional "Weight of Gratitude" placeholder — title, publish date,
+  duration, and thumbnail all confirmed directly against YouTube (oEmbed
+  + the watch page's own structured data), nothing invented. The newest
+  ("Domestic Violence: In Light of the Qur'an and Sunnah," 2024-10-21)
+  leads with full editorial prominence; the next-most-recent ("Parental
+  Conflicts: Impact on Child Mental Health," 2024-09-28) appears as a
+  quieter secondary entry — genuine chronology, not URL order.
+- `KhutbahEntry` — a new presentational component pairing the extended
+  `VideoThumbnail` with editorial typography for this primary/secondary
+  layout, without the badge/excerpt chrome of the existing `VideoCard`.
+
+### Changed
+
+- `VideoThumbnail`: now renders a real thumbnail image + play affordance
+  when given one, falling back to the original placeholder facade when
+  it isn't — one component, not a parallel system.
+- `next.config.ts`: added `i.ytimg.com` to `images.remotePatterns`
+  (HTTPS-only, single hostname, no wildcard) so real YouTube thumbnails
+  can be served through `next/image`'s optimisation pipeline.
+
+### Notes
+
+The homepage design is now formally **frozen — content-driven changes
+only**. This sprint replaced placeholder content inside the existing,
+already-approved Latest Khutbah architecture without touching hero,
+typography, colour, section order, or any decorative motif. Full
+reasoning: `docs/sprints/SPRINT-18.md`.
+
+---
+
+## v0.16.1 — Sprint 18 correction: three-khutbah editorial layout
+
+### Added
+
+- A third real, verified khutbah ("Lessons from the Prophet's Farewell
+  Sermon Part 2," 2023-07-21) — the oldest of the three, so it lands in
+  the least prominent slot under genuine chronological sort with no
+  manual override needed.
+
+### Changed
+
+- `LatestKhutbahSection`: the 1-primary + 1-secondary layout left a large
+  empty area beside the lone secondary item once real content existed —
+  a genuine, in-browser-confirmed composition problem. Corrected to 1
+  primary + 2 secondary (grid ratio `1.6fr/1fr`, ~62/38), with the
+  secondary column stretching to match the primary's height and a
+  hairline divider between its two entries, reading as a curated
+  editorial sidebar rather than an empty quadrant or a third generic
+  card.
+- The bottom action reworded from centred "Watch more on YouTube"
+  (`variant="outline"`) to left-aligned "More khutbahs on YouTube →"
+  (`variant="link"`, the design system's own documented but
+  previously-unused "Text" role) — connects it to the composition instead
+  of floating in empty space, and accurately names the real destination
+  (the full channel, not an Ahmad-only playlist).
+
+### Notes
+
+The third video's real title includes a channel-appended " | Ustadh Ahmad
+Mohamed Kassa" byline, dropped from display per this site's explicit rule
+never to call him "Ustadh" (`docs/BRAND_USAGE.md`) — the words of the
+actual talk title are unchanged. This remains a content-driven layout
+correction under the existing design freeze, not a new design sprint —
+no section outside Latest Khutbah changed. Full reasoning: `docs/sprints/
+SPRINT-18.md`'s "Correction — Three-Khutbah Editorial Layout" addendum.

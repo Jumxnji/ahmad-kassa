@@ -560,6 +560,29 @@ scoped like a bespoke platform rather than a generic template.
   than adding the photo to new surfaces "since it's now available." Full
   reasoning: `docs/sprints/SPRINT-17.md`, `docs/BRAND_USAGE.md`'s "The
   Portrait" section.
+- **Sprint 18 (Real Khutbah Integration) replaced the Latest Khutbah
+  section's placeholder with two real, verified khutbahs, and formally
+  froze the homepage design.** `src/lib/data/lectures.ts`'s `Lecture` type
+  already had everything needed (`youtubeId`, `publishedAt`,
+  `durationMinutes`, `coverImageUrl`) — no CMS/database model or new field
+  was introduced; the fictional "Weight of Gratitude" entry was replaced,
+  not kept alongside real content. **Durable conventions:** (1)
+  `LatestKhutbahSection` selects by genuine `publishedAt` recency, never
+  array/URL order — the newest published khutbah is always primary. (2)
+  `VideoThumbnail` renders a real image when given `thumbnailUrl`, the
+  original placeholder facade when not — extend this one component for
+  any future real-media need rather than building a parallel thumbnail
+  system. (3) YouTube thumbnails are hotlinked from `i.ytimg.com` (now
+  allow-listed in `next.config.ts`), never downloaded into the repo —
+  unlike Ahmad's own commissioned portrait, a third party's video
+  thumbnail isn't an asset this project owns a source copy of. (4) Coming
+  soon lecture placeholders (`status: "coming-soon"`, no `youtubeId`) are
+  legitimate — they represent real planned future talks, not fake content
+  — but must never be presented as if a recording exists once real
+  content is available for that slot. **The homepage is now formally
+  `DESIGN FROZEN — CONTENT-DRIVEN CHANGES ONLY`** (see `docs/ROADMAP.md`
+  for what that does and doesn't permit going forward). Full reasoning:
+  `docs/sprints/SPRINT-18.md`.
 - The `/admin` dashboard deliberately echoes the public site's design
   language (same palette/typography) rather than looking like a
   generic admin template (explicitly: "Not WordPress. Not Bootstrap.

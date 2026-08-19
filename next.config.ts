@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   // needed since Next transcodes on request.
   images: {
     formats: ["image/avif", "image/webp"],
+    // Sprint 18 — real khutbah thumbnails are hotlinked from YouTube's
+    // own oEmbed-documented image host (the standard, expected way to
+    // display a YouTube thumbnail), not downloaded into the repo.
+    remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com" }],
   },
   // Baseline security headers (Sprint 5) — cheap, broadly-recommended
   // hardening that sits alongside the app-level protections (Zod

@@ -1214,3 +1214,58 @@ content — and Future Courses' five real courses still produce one
 orphaned card on its own row at desktop, noted but not fixed in ER4 as a
 content-driven layout issue, not a styling defect. Full reasoning:
 `docs/sprints/SPRINT-17.md`.
+
+## Real Khutbah Integration Outcome — Sprint 18
+
+Latest Khutbah was the one remaining homepage section still carrying a
+fictional placeholder ("Weight of Gratitude") rather than real content.
+Two genuine, verified khutbah recordings — metadata confirmed directly
+against YouTube's oEmbed API and the watch page's own structured data,
+not scraped guesswork — now occupy that slot, selected and ordered by
+genuine `publishedAt` recency rather than the order the two URLs were
+supplied in (the second-supplied video, Domestic Violence, turned out to
+be the more recent one and was correctly promoted to primary).
+
+**Composition:** primary (Domestic Violence, 2024-10-21) is a large
+16:9 real thumbnail with a gold play affordance and a mono/tracked
+metadata line matching the archival-label idiom ER4 already established
+for About's marginal index; secondary (Parental Conflicts, 2024-09-28) is
+a genuinely differently-shaped horizontal row, not a scaled-down copy of
+primary — hierarchy reads immediately without "Featured"/"Latest" labels.
+`VideoThumbnail` was extended, not duplicated, to accept a real
+`thumbnailUrl`, falling back to the original placeholder facade when one
+isn't supplied — the same honest treatment now covers any future
+lecture without a recording yet.
+
+**What had to change outside the section:** `next.config.ts`'s
+`images.remotePatterns` gained one HTTPS-only, single-hostname entry for
+`i.ytimg.com` — additive only, nothing else that already loaded images
+was affected.
+
+**Correction — Three-Khutbah Editorial Layout.** With two real khutbahs,
+the 1-primary + 1-secondary layout left a large empty area beside the
+lone secondary entry — a genuine, in-browser-confirmed composition
+problem. A third real khutbah (Farewell Sermon Part 2, 2023-07-21,
+correctly landing in the least prominent slot under strict chronological
+sort) was added, and the layout corrected to 1 primary + 2 secondary
+(`lg:grid-cols-[1.6fr_1fr]`, ~62/38), with the secondary column
+stretching to match the primary's height and a hairline divider between
+its two entries — reading as a curated editorial sidebar rather than an
+empty quadrant. The bottom action was reworded from centred "Watch more
+on YouTube" (`variant="outline"`) to left-aligned "More khutbahs on
+YouTube →" (`variant="link"`, the design system's own documented but
+previously-unused "Text" role), connecting it to the composition instead
+of floating in empty space. The third video's real title includes a
+channel-appended " | Ustadh Ahmad Mohamed Kassa" byline, dropped from
+display per this site's standing rule never to call him "Ustadh."
+
+**What was removed:** the fictional "Weight of Gratitude" placeholder
+entry — not kept alongside the real content.
+
+**Design freeze.** This sprint replaced real content inside an existing,
+already-approved architecture without altering hero, typography, colour,
+section order, or any decorative motif. The homepage is now formally
+**DESIGN FROZEN — CONTENT-DRIVEN CHANGES ONLY** (see
+`docs/PROJECT_MEMORY.md` and `docs/ROADMAP.md` for what that does and
+doesn't permit going forward). Full reasoning: `docs/sprints/
+SPRINT-18.md`.
