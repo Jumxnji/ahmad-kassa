@@ -1067,3 +1067,68 @@ real portrait finally appears where a full profile most needs it, and
 no section on the page still relies on a pill, badge, or connected-line
 graphic to carry information typography already does better elsewhere
 on this site. Full reasoning: `docs/sprints/SPRINT-21.md`.
+
+## Courses Editorial Rebuild Outcome — Sprint 22
+
+Courses scored 5/10 above — the same course-marketplace visual
+language (illustration cards, icon panels, repeated pill badges, a
+4-column grid that orphaned the fifth real course on its own row) the
+homepage's own Future Courses section had already moved away from in
+Sprint 19.
+
+**Content truth surfaced two real problems before any layout work.**
+The opening copy claimed "a sequenced academy in Aqeedah, Fiqh, and
+Arabic" — only Aqeedah matches any of the five real courses; Fiqh and
+Arabic don't correspond to anything live. Replaced with the homepage's
+own already-approved Future Courses framing, not new invented copy.
+Separately, `Course` has no `category` field in its schema at all —
+the brief's suggested entry metadata was adjusted to omit category
+entirely rather than invent one. The Beginner/Intermediate level
+labels were checked for provenance and found undocumented but
+non-uniform (4 beginner, 1 intermediate) — classified "Supported, not
+Verified" and kept as quiet metadata on that basis, not upgraded to a
+confident claim.
+
+**Design fix:** all five real courses now render as five numbered
+editorial entries (`ProgrammeIndex`/`ProgrammeEntry`) — a fixed-width
+metadata column (number, level) beside title/excerpt/action, hairline
+dividers, collapsing to one stacked column below `lg`. No icons, no
+illustration panels, no repeated "Coming soon" pills — a single
+page-level "Five programmes are currently in development" line does
+that work once instead of five times. `CourseInterestLink`'s bell icon
+was dropped for a plain "Notify me at launch →" text link on this
+page specifically, after confirming the underlying action is
+genuinely the newsletter signup, not course-specific infrastructure
+that doesn't exist — nothing about the label overclaims what actually
+happens on click. Verified live at ~545px, 768px, 1024px (the exact
+breakpoint transition), and 1440px — no half-grid state, no dead
+course-detail links (titles are plain text; a future recommendation
+for wiring a real detail-page link once one exists is documented in
+`docs/sprints/SPRINT-22.md`, not built).
+
+**A genuine engineering bug was found and fixed mid-sprint** — a stray
+self-referencing symlink accidentally left in the gitignored
+`src/generated/prisma/` directory (debris from an earlier session's
+`git worktree` verification step) was crashing Turbopack's CSS build
+pipeline on a cold start. Removed as a minimal, unavoidable fix; no
+design or unrelated code touched to resolve it.
+
+**What this changes about the page overall:** Courses moves off the
+last remaining course-marketplace card grid on the site — About,
+Books, and now Courses all read in the same restrained, typography-led
+register the homepage established across Sprints 14–19.
+
+**Correction, after client review:** the entry index above was
+approved as-is; the opening wasn't. "The academy" (eyebrow) had
+silently dropped the honesty qualifier from the homepage's real
+eyebrow ("The academy — coming soon"), and the heading was an
+unapproved paraphrase, not the homepage's real copy. Corrected to
+eyebrow "Courses," heading "Five programmes in development" (states
+what/how-many/status in one factual sentence, chosen live over two
+other directions — reusing the homepage's exact heading verbatim, and
+a bare "Courses in development" that redundantly echoed the eyebrow).
+A new archival "Programmes ⋯ 01–05" register, reusing Books' own
+mono-label/hairline-rule idiom, now marks the break between the
+introduction and the entry index — the two previously ran together in
+one ivory field with no visual reset. Full reasoning: `docs/sprints/
+SPRINT-22.md`'s "Correction — Opening & Catalogue Register" section.

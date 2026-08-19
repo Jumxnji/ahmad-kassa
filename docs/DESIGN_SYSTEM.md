@@ -597,6 +597,31 @@ too few genuine items for its grid to read as intentional rather than sparse; re
 for the ordinary card grid once there are enough real items that a grid stops
 looking like it's apologizing for empty cells.
 
+**Numbered editorial index** (Sprint 22) — the metadata-forward sibling of the
+pattern above, for a catalogue with no cover image or other single dominant visual
+per item. Used on `/courses` (`ProgrammeEntry`/`ProgrammeIndex`,
+`src/components/catalog/programme-entry.tsx`): a fixed-width left column (`lg:w-36`)
+holding an archival number and level/status metadata, beside a flexible right
+column (title, excerpt, one restrained text action), hairline-divided, collapsing
+to a single stacked column below `lg`. Reach for this variant instead of the
+publication-entry pattern when the items being indexed have no image worth
+anchoring a layout around — text-only prospectus/programme-style content — and
+for the publication-entry pattern itself when a real image (a cover, a portrait)
+is the strongest available visual per item.
+
+**Catalogue register** (Sprint 22 correction) — the transition between an index
+page's introduction and its first entry, when the two would otherwise sit in the
+same field with no visual reset. A single mono row —
+`flex items-baseline gap-3 border-b border-stone-200 pb-3`, a left label
+(what follows) and a right range (`01–0N`, `ml-auto`), both
+`font-mono text-[11px] tracking-[0.08em] uppercase` in `text-stone-500`/`-400` —
+reusing the exact label idiom `PublicationEntry`'s own per-entry header row
+already established, not a new typographic language. No navy band, banner,
+card, gradient, icon, or second emblem — the break is typography, spacing, and
+one hairline rule only. Used on `/courses`, between `PageHeader` and
+`ProgrammeIndex`; reach for it on any future index page with the same
+intro-then-catalogue shape.
+
 **Chronological/career facts belong inside the section they're relevant to,
 not a standalone timeline.** Sprint 21 first tried a "marginal era-list" —
 a hairline-divided vertical list replacing About's old dotted/connected

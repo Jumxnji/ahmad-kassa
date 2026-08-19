@@ -1146,3 +1146,66 @@ Pacing & Hierarchy."
 Exactly one portrait treatment appears on the page; the brand mark
 remains the site's only repeated identity device via header/footer.
 Full reasoning: `docs/sprints/SPRINT-21.md`.
+
+---
+
+## v0.20.0 — Sprint 22: Courses, editorial programme index
+
+### Added
+
+- `ProgrammeEntry`/`ProgrammeIndex` (`src/components/catalog/`) — all
+  five real courses now render as five numbered editorial entries
+  (fixed-width number/level column beside title/excerpt/action,
+  hairline dividers), reading the same at five as it would at six or
+  seven. No icons, no illustration panels, no repeated "Coming soon"
+  pills — a single page-level "Five programmes are currently in
+  development" line replaces five repeated ones.
+
+### Fixed
+
+- **Content truth**: the opening copy claimed "a sequenced academy in
+  Aqeedah, Fiqh, and Arabic" — only Aqeedah matches any of the five
+  real courses. Replaced with the homepage's own already-approved
+  Future Courses framing, not invented copy. `Course` has no
+  `category` field in its schema; the entry composition omits category
+  entirely rather than inventing one. The Beginner/Intermediate level
+  labels' provenance is undocumented but non-uniform across the five
+  courses, classified "Supported, not Verified" and kept as quiet
+  metadata on that basis.
+- A stray, self-referencing symlink accidentally left in the
+  gitignored `src/generated/prisma/` directory (debris from an earlier
+  session's `git worktree` verification step) was crashing Turbopack's
+  CSS build pipeline on a cold start, silently preventing new utility
+  classes from compiling. Removed.
+- **Content truth, opening correction**: the page's own eyebrow, "The
+  academy," silently dropped the honesty qualifier from the homepage's
+  real, approved eyebrow ("The academy — coming soon"), implying an
+  operating academy already exists. The heading, "Structured study, in
+  depth," was a near-paraphrase of the homepage's real heading, not
+  itself approved copy. Both replaced — see Changed, below.
+
+### Changed
+
+- `/courses`: replaced the 4-column `CourseCard`/`CourseIllustration`/
+  `COURSE_ICONS` grid treatment with `ProgrammeIndex`; opening
+  compressed with the same asymmetric section padding used for Books'
+  proportion correction; the page-end newsletter CTA block removed
+  (every entry already links to `/newsletter` via its own "Notify me
+  at launch," making a sixth mention pure repetition) — the page now
+  concludes after entry 05 and flows into the footer.
+- Opening copy corrected to eyebrow "Courses," heading "Five
+  programmes in development" (states what/how-many/status in one
+  factual line, no invented claims), the same already-approved
+  supporting line. A new page-level "catalogue register" — a mono
+  "Programmes ⋯ 01–05" row with a hairline rule, reusing Books'
+  own archival-label idiom — now marks the visual break between the
+  introduction and where the entries begin, which the two previously
+  ran together without.
+
+### Notes
+
+`CourseCard`/`CourseIllustration`/`COURSE_ICONS` are now fully
+unreferenced anywhere in `src/` (the homepage moved off `CourseCard`
+in Sprint 19) but were left in place, not deleted — flagged as a safe
+future cleanup, not part of this sprint's scope. Full reasoning:
+`docs/sprints/SPRINT-22.md`.

@@ -635,6 +635,29 @@ scoped like a bespoke platform rather than a generic template.
   inside the section they're actually relevant to (see
   `docs/DESIGN_SYSTEM.md` Section 8). Full reasoning: `docs/sprints/
   SPRINT-21.md`.
+- **Sprint 22 replaced `/courses`'s icon-card grid with a numbered
+  editorial index** (`ProgrammeEntry`/`ProgrammeIndex`,
+  `src/components/catalog/`) — the same "numbered index, not a grid"
+  family as Books' `PublicationEntry`/`PublicationIndex`, its own
+  dedicated component rather than a reuse of the homepage's
+  `FutureCourseCard` or the now-fully-unreferenced `CourseCard`.
+  **Durable convention:** when a content type has no real `category`
+  field (or any other schema gap a design brief assumes exists),
+  omit that metadata rather than inventing a taxonomy that isn't in
+  the data model — `Course` has no `category`, so `/courses`'s entries
+  show level only, not a fabricated category label.
+  **Correction, after client review:** the opening ("The academy" /
+  "Structured study, in depth") had silently dropped the honesty
+  qualifier from the homepage's real eyebrow ("The academy — coming
+  soon") and paraphrased its heading rather than reusing approved
+  copy — a reminder that reusing *part* of an approved sentence isn't
+  the same as reusing the approved copy; the qualifying half matters
+  as much as the polished half. Corrected to "Courses" / "Five
+  programmes in development." A page-level "catalogue register" (a
+  mono `label ⋯ 01–0N` row + hairline rule, between an index page's
+  intro and its first entry) is a new, genuinely reusable pattern —
+  see `docs/DESIGN_SYSTEM.md`. Full reasoning: `docs/sprints/
+  SPRINT-22.md`.
 - The `/admin` dashboard deliberately echoes the public site's design
   language (same palette/typography) rather than looking like a
   generic admin template (explicitly: "Not WordPress. Not Bootstrap.
@@ -898,6 +921,18 @@ sprints — do not build these without being asked again:
   already-correct `hasConfirmedProfile()` gate the footer uses — fixed
   to use the same filter, so an unconfirmed placeholder profile never
   displays on any page, not just the footer.
+- **A stray symlink inside `src/generated/prisma/` will crash
+  Turbopack's CSS build on a cold start.** Found in Sprint 22: `src/
+  generated/prisma/prisma` had somehow become a symlink pointing back
+  to its own parent directory (`src/generated/prisma → src/generated/
+  prisma`), almost certainly created by accident during an earlier
+  session's `git worktree`-based commit verification (a command meant
+  to symlink Prisma's generated client *into* a temporary worktree ran
+  from the real project directory instead). The whole directory is
+  gitignored, so this kind of debris won't show up in `git status` —
+  if a fresh `next dev`/`next build` ever panics with `"is a symlink
+  causes that causes an infinite loop"`, check `src/generated/prisma/`
+  for a self-referencing symlink first, not the Tailwind config.
 
 ## Reasons behind technical choices
 
