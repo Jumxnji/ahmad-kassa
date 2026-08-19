@@ -10,12 +10,12 @@ import { HeroPortrait } from "@/components/sections/hero-portrait";
 import { fadeUp, staggerContainer } from "@/constants/motion";
 
 /**
- * Hero Mode A/B switch. "emblem" (default) shows the mark as a large
- * seal — see `HeroEmblem`. Once a commissioned portrait exists, flip
- * this to "portrait" — `HeroPortrait` occupies the identical aspect
- * box, so nothing else in this file needs to change.
+ * Hero Mode A/B switch. "portrait" (current, since Sprint 17) shows the
+ * approved professional photograph — see `HeroPortrait`. "emblem" is Mode
+ * A, the mark-as-seal treatment used before a portrait existed — kept in
+ * the codebase as the "no photo yet" fallback.
  */
-const HERO_VISUAL: "emblem" | "portrait" = "emblem";
+const HERO_VISUAL: "emblem" | "portrait" = "portrait";
 
 export function Hero() {
   const shouldReduceMotion = useReducedMotion();

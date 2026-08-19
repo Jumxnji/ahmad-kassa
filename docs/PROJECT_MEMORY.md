@@ -536,6 +536,30 @@ scoped like a bespoke platform rather than a generic template.
   footer previously had its own) reads as insistent, not restrained; the
   footer's own form was removed for this reason. Full reasoning, what was
   considered and rejected, and remaining gaps: `docs/sprints/SPRINT-16.md`.
+- **Sprint 17 (Editorial Refinement 5) activated Hero Mode B and replaced
+  About's emblem placeholder with the first approved professional
+  photograph of Ahmad Mohamed Kassa.** The Mode A/B architecture built in
+  Sprint 11 needed zero layout changes to do this — `HERO_VISUAL` in
+  `hero.tsx` is now `"portrait"`, and `HeroEmblem` (Mode A) stays in the
+  codebase as the "no photo yet" fallback, not deleted. **Durable
+  conventions:** the canonical current portrait — source file and every
+  derived crop — lives in exactly one place, `src/config/portrait.ts`'s
+  `CURRENT_PORTRAIT` constant; swapping in a future approved photograph is
+  editing that one file, not touching `Hero`/`AboutPreviewSection`/
+  `PortraitFrame`. The untouched original is preserved outside `public/`
+  at `portrait-source/`, mirroring the `brand-source/` convention for
+  exactly the same reason (a delivered master has no reason to be publicly
+  servable at full resolution). `PortraitFrame` itself now branches on
+  whether a `src` prop is supplied — real photograph if so, the original
+  emblem placeholder if not — so any future call site without a photo yet
+  automatically gets the same "no photo yet" convention, not a new one.
+  **The portrait is deliberately used in exactly two places (Hero, About)
+  and nowhere else** — footer, header, loading screen, book sections,
+  Newsletter, and the Ask Ahmad CTA all continue using the mark, which
+  remains the site's *repeated* identity device; keep it that way rather
+  than adding the photo to new surfaces "since it's now available." Full
+  reasoning: `docs/sprints/SPRINT-17.md`, `docs/BRAND_USAGE.md`'s "The
+  Portrait" section.
 - The `/admin` dashboard deliberately echoes the public site's design
   language (same palette/typography) rather than looking like a
   generic admin template (explicitly: "Not WordPress. Not Bootstrap.

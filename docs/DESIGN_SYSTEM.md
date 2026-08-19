@@ -662,9 +662,16 @@ colour class should avoid the `bg-` prefix for exactly this reason.
 
 **Portraits (Ahmad).** Natural light, warm colour grading (slightly lifted shadows,
 never high-contrast/dramatic lighting), plain or softly blurred backgrounds — never
-a busy setting competing with the subject. Consistent framing across every portrait
-used site-wide (About hero, Author card, OG images) so he's immediately recognisable
-page to page.
+a busy setting competing with the subject. As implemented since Sprint 17 (the first
+approved photograph): consistent *register* — same photographic session, same
+natural colour, immediately recognisable as the same person — but **not** identical
+crops. Hero and About deliberately use different crops from the one source photo
+(a tighter, more formal square for Hero; a fuller chest-up frame for About) so the
+two placements feel related rather than duplicated — see `src/config/portrait.ts`
+for the current canonical source/crops and `docs/BRAND_USAGE.md`'s "The Portrait"
+section for full placement rules. Live today: Hero (Mode B), About preview only —
+not yet Author card or OG images; extend this same source/crop pattern rather than
+commissioning or cropping independently if those are ever wired up.
 
 **Book covers.** Treated as the single "product hero" image type on the site — shown
 at real size and real proportion (2:3), never cropped or overlaid with UI chrome.

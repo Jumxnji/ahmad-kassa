@@ -3,14 +3,41 @@ import { cn } from "@/lib/utils";
 
 interface PortraitFrameProps {
   className?: string;
+  /** A real photograph's path. Omit to fall back to the "no photo yet" emblem placeholder. */
+  src?: string;
+  alt?: string;
+  /** Set on the one instance that's the largest above-the-fold image (the Hero). */
+  priority?: boolean;
 }
 
 /**
- * Stands in for a commissioned portrait of Ahmad. A photograph will
- * replace this directly inside the same aspect box once available —
- * every call site should keep working unchanged.
+ * Holds a portrait of Ahmad — a real photograph when `src` is supplied
+ * (see `src/config/portrait.ts` for the current canonical crops), or the
+ * emblem placeholder when it isn't, so any future call site without a
+ * photo yet still gets the same "no photo yet" convention `HeroEmblem`
+ * established, rather than a generic initials monogram.
  */
-export function PortraitFrame({ className }: PortraitFrameProps) {
+export function PortraitFrame({ className, src, alt, priority }: PortraitFrameProps) {
+  if (src) {
+    return (
+      <div
+        className={cn(
+          "relative aspect-4/5 w-full overflow-hidden rounded-2xl ring-1 ring-black/10",
+          className
+        )}
+      >
+        <Image
+          src={src}
+          alt={alt ?? "Portrait of Ahmad Mohamed Kassa"}
+          fill
+          priority={priority}
+          sizes="(min-width: 1024px) 40vw, 80vw"
+          className="object-cover"
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(

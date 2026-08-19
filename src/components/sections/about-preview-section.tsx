@@ -4,6 +4,7 @@ import { Section } from "@/components/shared/section";
 import { Eyebrow } from "@/components/shared/eyebrow";
 import { PortraitFrame } from "@/components/media/portrait-frame";
 import { ScrollReveal } from "@/components/shared/scroll-reveal";
+import { CURRENT_PORTRAIT } from "@/config/portrait";
 
 const MARGIN_INDEX = [
   "Arabic & Islamic Studies — Kuwait",
@@ -16,7 +17,11 @@ export function AboutPreviewSection() {
   return (
     <Section>
       <ScrollReveal className="grid items-start gap-12 lg:grid-cols-[0.55fr_1.45fr] lg:gap-20">
-        <PortraitFrame className="mx-auto max-w-xs lg:sticky lg:top-28 lg:max-w-none" />
+        <PortraitFrame
+          src={CURRENT_PORTRAIT.about.src}
+          alt={CURRENT_PORTRAIT.alt}
+          className="mx-auto max-w-xs lg:sticky lg:top-28 lg:max-w-none"
+        />
 
         <div>
           <Eyebrow>Who teaches here</Eyebrow>

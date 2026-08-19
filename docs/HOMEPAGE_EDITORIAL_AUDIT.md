@@ -1163,3 +1163,54 @@ Book publication caption still renders nothing in production pending real
 design pass; both require real assets/data the client controls. No new
 gap was introduced or discovered by this pass — this was confirmed to be
 the same limiting pair as before, not a new finding.
+
+## Portrait Integration Outcome — Editorial Refinement 5
+
+The client supplied the first approved professional photograph of Ahmad
+Mohamed Kassa. This activated the Hero Mode A/B architecture built in
+Sprint 11 for exactly this moment, and replaced About's emblem
+placeholder — the one gap named at the end of ER4 above — without
+redesigning the homepage or undoing ER1–ER4.
+
+**Shipped:** the original file was preserved byte-for-byte at
+`portrait-source/ahmad-mohamed-kassa-headshot-original.png` (mirroring
+`brand-source/`'s provenance convention), with two derived JPEG crops in
+`public/portraits/` — a tighter, shoulders-up 880×880 square for Hero
+(`priority`-loaded, the largest above-the-fold image) and the fuller,
+near-complete 1122×1402 frame for About (lazy-loaded). Both crops come
+from one photograph and read as clearly related without being identical,
+satisfying the brief's "complementary, not duplicated" requirement.
+`HERO_VISUAL` flipped to `"portrait"`; `HeroEmblem` (Mode A) stays in the
+codebase, unchanged, as the documented "no photo yet" fallback rather
+than being deleted.
+
+**No new mark placement was added.** The brief explicitly warned against
+stacking "portrait + giant logo + another watermark + divider logo" —
+the header/footer `Logo` (already visible in the same viewport as Hero)
+and Mode A's continued presence in the codebase were judged sufficient
+supporting brand language.
+
+**Mode A vs Mode B, compared directly in-browser** by toggling
+`HERO_VISUAL` and screenshotting both states: Mode B reads as
+considerably warmer and more trustworthy without losing any editorial
+restraint — no circular avatar, no card chrome, the photograph's own
+cream/ivory tones blend into the hero's paper background rather than
+reading as "a photo pasted into a template."
+
+**Mobile:** no structural reordering — the photograph occupies the same
+`order-1`/`order-2` slot the emblem already held. The mobile width cap
+ER4 had already applied to that shared aspect box (`max-w-[260px]`) meant
+the portrait needed no further constraint; verified at ~390px reading as
+an intentional, correctly-scaled element rather than filling the
+viewport.
+
+**What was removed:** nothing — this was a pure addition to an
+architecture already built to receive it.
+
+**What still prevents 9.7+:** Latest Khutbah is still the fictional
+"Weight of Gratitude" placeholder — the homepage's one remaining section
+that hasn't yet been able to demonstrate what it looks like with real
+content — and Future Courses' five real courses still produce one
+orphaned card on its own row at desktop, noted but not fixed in ER4 as a
+content-driven layout issue, not a styling defect. Full reasoning:
+`docs/sprints/SPRINT-17.md`.

@@ -53,6 +53,45 @@ future audit still finds nothing, or wire up if genuinely wanted:**
 
 ---
 
+## The Portrait
+
+As of Sprint 17, a real, approved professional photograph of Ahmad Mohamed
+Kassa exists and is in use — the mark is no longer standing in for him.
+Source: `portrait-source/ahmad-mohamed-kassa-headshot-original.png` (the
+untouched original, kept outside `public/`, same provenance convention as
+`brand-source/`). The two web-serving crops derived from it, and every
+current placement, are defined in one place — `src/config/portrait.ts`'s
+`CURRENT_PORTRAIT` constant — so a future replacement photograph is a
+one-file swap, not a redesign.
+
+**Confirmed live today:**
+
+- Hero, Mode B (`HeroPortrait`) — a tight, formal, shoulders-up crop.
+  `HERO_VISUAL` in `hero.tsx` is set to `"portrait"`; Mode A (`HeroEmblem`,
+  the mark-as-seal) stays in the codebase as the "no photo yet" fallback.
+- About preview (`AboutPreviewSection`) — a fuller, chest-up crop showing
+  more of the jacket, deliberately different from the Hero crop so the two
+  don't read as duplicates of the same image.
+
+**Deliberately not placed anywhere else** — footer, header/nav, loading
+screen, book sections, Newsletter, Ask Ahmad CTA, or any card. The mark
+remains the site's *repeated* identity device (header, footer, watermark,
+dividers); the portrait stays special by appearing only where a reader is
+actually meeting the person — Hero and About.
+
+**Treatment rules:**
+
+- Natural colour only — never tinted gold/navy, never desaturated. The
+  photograph's own cream/navy palette already sits inside the site's
+  system without grading.
+- No circular avatar crop, thick border, glass-card effect, drop shadow,
+  or gradient overlay — a plain rounded rectangle with a hairline ring,
+  matching every other image treatment on the site (`BookCover`, etc.).
+- No retouching, no AI reconstruction, no altering of facial features,
+  clothing, glasses, or the kufi.
+
+---
+
 ## Background Watermark
 
 Maximum opacity: **5%** (confirmed live: `QuoteSection`/`NewsletterSection` both use

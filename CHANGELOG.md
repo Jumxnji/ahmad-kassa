@@ -880,3 +880,39 @@ already-correct restraint or fix a problem that live inspection didn't
 actually confirm. Full reasoning: `docs/sprints/SPRINT-16.md` and `docs/
 HOMEPAGE_EDITORIAL_AUDIT.md`'s Editorial Refinement 4 Implementation
 Outcome section.
+
+---
+
+## v0.15.0 — Sprint 17: Editorial Refinement 5 (professional portrait integration)
+
+### Added
+
+- The first approved professional photograph of Ahmad Mohamed Kassa,
+  activating the Hero Mode A/B architecture built in Sprint 11 for
+  exactly this moment. The original is preserved byte-for-byte at
+  `portrait-source/ahmad-mohamed-kassa-headshot-original.png`
+  (mirroring `brand-source/`'s provenance convention); two derived
+  crops live in `public/portraits/` — a tighter 880×880 square for
+  Hero (`priority`-loaded), a fuller 1122×1402 frame for About
+  (lazy-loaded). No retouching, no AI reconstruction.
+- `PortraitFrame` now branches on an optional `src` prop — a real
+  photograph when supplied, the original emblem placeholder when not
+  — so any future call site without a photo yet still gets the same
+  "no photo yet" convention.
+
+### Changed
+
+- `HERO_VISUAL` flipped to `"portrait"`; `HeroEmblem` (Mode A) stays in
+  the codebase, unchanged, as the documented fallback.
+- `AboutPreviewSection` now renders the real portrait in place of the
+  emblem, in its existing sticky media column.
+
+### Notes
+
+No new mark/watermark placement was added to either section — the
+header/footer `Logo` and Mode A's continued presence in the codebase
+were judged sufficient supporting brand language, per the brief's
+explicit warning against stacking "portrait + logo + watermark +
+divider logo" all at once. No mobile reordering, no retouching, no new
+placements elsewhere on the site. Full reasoning: `docs/sprints/
+SPRINT-17.md`, `docs/BRAND_USAGE.md`'s new "The Portrait" section.
