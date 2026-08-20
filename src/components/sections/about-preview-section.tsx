@@ -31,9 +31,8 @@ export function AboutPreviewSection() {
           </p>
 
           <p className="mt-6 max-w-xl font-display text-2xl leading-snug text-balance text-foreground/90 sm:text-3xl">
-            Bringing together Islamic teaching, 
-            community service,
-            and over 15 years of experience in Ruqyah.
+            His work brings together Islamic teaching, community service,
+            and more than fifteen years of experience in Ruqyah.
           </p>
 
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
