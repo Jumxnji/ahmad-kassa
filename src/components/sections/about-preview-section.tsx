@@ -26,21 +26,22 @@ export function AboutPreviewSection() {
         <div>
           <Eyebrow>Who teaches here</Eyebrow>
           <h2 className="mt-3 text-4xl sm:text-5xl">Ahmad Mohamed Kassa</h2>
-
-          <p className="mt-7 max-w-2xl font-display text-2xl leading-snug text-balance text-foreground/90 sm:text-3xl">
-            An Islamic teacher, author, and Khateeb — trained in Arabic and
-            Islamic Studies in Kuwait, and shaped by a parallel career in
-            academia and consultancy.
+          <p className="mt-3 text-sm tracking-[0.08em] text-stone-600 uppercase">
+            Author &middot; Teacher &middot; Khateeb
           </p>
 
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            He received foundational training under respected teachers before
-            completing a degree in Computer Science and Telecommunications
-            and a Postgraduate Certificate in Education from the University
-            of London. Since 2009 he has taught Ruqyah in the United Kingdom
-            and abroad, and serves as Khateeb at Masjid Al-Noor in East
-            London — writing, teaching, and speaking within the community he
-            serves.
+          <p className="mt-6 max-w-xl font-display text-2xl leading-snug text-balance text-foreground/90 sm:text-3xl">
+            Bringing together Islamic teaching, 
+            community service,
+            and over 15 years of experience in Ruqyah.
+          </p>
+
+          <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
+            Ahmad Mohamed Kassa studied Arabic and Islamic Studies in Kuwait
+            before completing a degree in Computer Science and
+            Telecommunications and a PGCE at the University of London. He
+            has taught Ruqyah in the UK and abroad since 2009 and serves as
+            Khateeb at Masjid Al-Noor in East London.
           </p>
 
           <ul className="mt-8 max-w-xs space-y-2.5 border-t border-stone-200 pt-6 font-mono text-[11px] tracking-[0.06em] text-stone-500">

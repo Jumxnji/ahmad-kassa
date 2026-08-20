@@ -36,7 +36,7 @@ export function Logo({ className, tone = "default" }: LogoProps) {
         alt=""
         width={28}
         height={40}
-        className="h-8 w-auto shrink-0 -translate-y-0.5 self-center transition-opacity duration-300 group-hover:opacity-80"
+        className="h-6 w-auto shrink-0 translate-y-[1.5px] self-center transition-opacity duration-300 group-hover:opacity-80"
         priority
       />
       <span

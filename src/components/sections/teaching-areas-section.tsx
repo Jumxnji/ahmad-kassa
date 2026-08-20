@@ -38,7 +38,8 @@ export function TeachingAreasSection() {
   return (
     <Section size="lg" className="pt-16 sm:pt-20">
       <ScrollReveal>
-        <div className="max-w-xl">
+        <div className="border-t border-stone-200" />
+        <div className="mt-10 max-w-xl sm:mt-12">
           <Eyebrow>Teaching areas</Eyebrow>
           <h2 className="mt-3 text-3xl sm:text-4xl">What Ahmad teaches</h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground text-balance">
