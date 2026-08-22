@@ -383,19 +383,19 @@ model Seo {
 /// unlimited catalog from day one — nothing here is "the one book"
 /// special-cased.
 model Book {
-  id          String     @id @default(uuid())
-  title       String
-  slug        String     @unique
-  description String? // full, rich-text (HTML) product-page description
-  excerpt     String // short description — cards, previews, meta fallback
-  authorName  String     @default("Ahmad Mohamed Kassa")
+  id              String     @id @default(uuid())
+  title           String
+  slug            String     @unique
+  description     String? // full, rich-text (HTML) product-page description
+  excerpt         String // short description — cards, previews, meta fallback
+  authorName      String     @default("Ahmad Mohamed Kassa")
   publicationDate DateTime?
-  isbn        String?
-  language    String     @default("English")
-  category    String?
-  tags        String[]   @default([])
-  status      BookStatus @default(DRAFT)
-  featured    Boolean    @default(false)
+  isbn            String?
+  language        String     @default("English")
+  category        String?
+  tags            String[]   @default([])
+  status          BookStatus @default(DRAFT)
+  featured        Boolean    @default(false)
 
   coverImageId String? @unique
   coverImage   Media?  @relation("BookCover", fields: [coverImageId], references: [id], onDelete: SetNull)
@@ -403,8 +403,8 @@ model Book {
   // Purchase options — Amazon is the only live channel today; the rest
   // are modelled now so they're a data-entry task, not a migration,
   // once features.directBookSales flips on.
-  amazonUrl         String?
-  directPurchaseUrl String?
+  amazonUrl           String?
+  directPurchaseUrl   String?
   signedCopyAvailable Boolean @default(false)
   ebookUrl            String?
   audiobookUrl        String?
@@ -433,28 +433,121 @@ model Book {
 /// Singleton row (fixed id) — one homepage, always upserted against
 /// the same id rather than queried as a list.
 model HomepageContent {
-  id                    String   @id @default("homepage")
-  heroEyebrow           String   @default("Islamic Teacher · Author · Khateeb")
+  id                    String  @id @default("homepage")
+  heroEyebrow           String  @default("Islamic Teacher · Author · Khateeb")
   heroHeadline          String
   heroSubtitle          String
-  heroPrimaryCtaLabel   String   @default("Explore Books")
-  heroPrimaryCtaHref    String   @default("/books")
-  heroSecondaryCtaLabel String   @default("Browse Articles")
-  heroSecondaryCtaHref  String   @default("/articles")
-  heroImageId           String?  @unique
-  heroImage             Media?   @relation("HomepageHeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
-  aboutPreviewText      String
-  featuredBookId        String?
-  featuredBook          Book?    @relation("HomepageFeaturedBook", fields: [featuredBookId], references: [id], onDelete: SetNull)
-  newsletterHeadline    String   @default("Stay connected, without the noise")
-  newsletterText        String
-  seoId                 String?  @unique
-  seo                   Seo?     @relation(fields: [seoId], references: [id], onDelete: SetNull)
-  status                ContentStatus @default(PUBLISHED)
-  updatedAt             DateTime @updatedAt
+  heroPrimaryCtaLabel   String  @default("Explore Books")
+  heroPrimaryCtaHref    String  @default("/books")
+  heroSecondaryCtaLabel String  @default("Browse Articles")
+  heroSecondaryCtaHref  String  @default("/articles")
+  heroImageId           String? @unique
+  heroImage             Media?  @relation("HomepageHeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
+
+  /// LEGACY/ORPHANED (Sprint 24) — superseded by the structured
+  /// `about*` fields below. Never read by any production code path
+  /// (confirmed by grep before this field was deprecated); its one
+  /// existing row's value predates every editorial rebuild since and
+  /// doesn't match anything ever actually shown publicly. Kept,
+  /// untouched, for this sprint only under the EXPAND strategy —
+  /// scheduled for removal in a later CONTRACT migration once the
+  /// fields below are proven live. Do not read from this field.
+  aboutPreviewText String
+
+  /// The homepage's own short-form "Who Teaches Here" copy — a
+  /// deliberately shortened editorial summary, not a duplicate of
+  /// AboutContent's full biography (Sprint 24). Defaults match the
+  /// copy actually live on the page today (verified against
+  /// `about-preview-section.tsx` directly, not assumed), so migrating
+  /// an existing row never produces empty/broken public output.
+  aboutEyebrow  String @default("Who teaches here")
+  aboutSubtitle String @default("Author · Teacher · Khateeb")
+  aboutLede     String @default("His work brings together Islamic teaching, community service, and more than fifteen years of experience in Ruqyah.")
+  aboutBody     String @default("Ahmad Mohamed Kassa studied Arabic and Islamic Studies in Kuwait before completing a degree in Computer Science and Telecommunications and a PGCE at the University of London. He has taught Ruqyah in the UK and abroad since 2009 and serves as Khateeb at Masjid Al-Noor in East London.")
+
+  featuredBookId String?
+  featuredBook   Book?   @relation("HomepageFeaturedBook", fields: [featuredBookId], references: [id], onDelete: SetNull)
+
+  /// The three explicit slots the public Latest Khutbah section
+  /// renders (Sprint 24) — not a generic feature+order flag, so the
+  /// schema itself makes "what does the visitor see" obvious. Each is
+  /// independently nullable; `resolveFeaturedKhutbahs()`
+  /// (src/lib/featured-khutbahs.ts) promotes the next available slot
+  /// forward if one is missing or its video gets unpublished/deleted.
+  primaryKhutbahId     String?
+  primaryKhutbah       Video?  @relation("HomepagePrimaryKhutbah", fields: [primaryKhutbahId], references: [id], onDelete: SetNull)
+  supportingKhutbah1Id String?
+  supportingKhutbah1   Video?  @relation("HomepageSupportingKhutbah1", fields: [supportingKhutbah1Id], references: [id], onDelete: SetNull)
+  supportingKhutbah2Id String?
+  supportingKhutbah2   Video?  @relation("HomepageSupportingKhutbah2", fields: [supportingKhutbah2Id], references: [id], onDelete: SetNull)
+
+  newsletterHeadline String        @default("Stay connected, without the noise")
+  newsletterText     String
+  seoId              String?       @unique
+  seo                Seo?          @relation(fields: [seoId], references: [id], onDelete: SetNull)
+  status             ContentStatus @default(PUBLISHED)
+  updatedAt          DateTime      @updatedAt
+
+  credentials HomepageCredential[]
 
   @@index([featuredBookId])
+  @@index([primaryKhutbahId])
+  @@index([supportingKhutbah1Id])
+  @@index([supportingKhutbah2Id])
   @@map("homepage_content")
+}
+
+/// The homepage About Preview's scannable credential list ("Arabic &
+/// Islamic Studies — Kuwait", "PGCE — University of London", ...) —
+/// normalized like TimelineItem/EducationItem below, not a JSON blob,
+/// so entries can be added/reordered/removed individually. Capped at
+/// 4 in the validation layer (src/schemas/homepage.schema.ts) to match
+/// the composition's actual tested vertical rhythm — the section's
+/// narrow `max-w-xs` mono column was built and reviewed around exactly
+/// four short lines; a 5th would visibly outgrow the portrait beside it.
+model HomepageCredential {
+  id                String          @id @default(uuid())
+  homepageContentId String          @default("homepage")
+  homepageContent   HomepageContent @relation(fields: [homepageContentId], references: [id], onDelete: Cascade)
+  label             String
+  order             Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([homepageContentId, order])
+  @@map("homepage_credentials")
+}
+
+/// A real, published video/khutbah — the canonical source for the
+/// homepage's Latest Khutbah section (Sprint 24), replacing the static
+/// src/lib/data/lectures.ts as production's source of truth (that file
+/// remains only as a vitest fixture). No podcast/audio/analytics
+/// fields — this models exactly what the admin video workflow and the
+/// public 1-primary + 2-supporting layout need, nothing speculative.
+model Video {
+  id              String        @id @default(uuid())
+  title           String
+  slug            String        @unique
+  youtubeId       String
+  thumbnailUrl    String
+  publishedAt     DateTime?
+  durationMinutes Int?
+  /// Free text (e.g. "Masjid Al-Noor") — not a channel-sync feature.
+  source          String?
+  /// Free text (e.g. "Weekly Khutbah") — deliberately not an enum;
+  /// the one real value in use today doesn't justify a closed set yet.
+  category        String?
+  status          ContentStatus @default(DRAFT)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  primaryOfHomepage     HomepageContent[] @relation("HomepagePrimaryKhutbah")
+  supporting1OfHomepage HomepageContent[] @relation("HomepageSupportingKhutbah1")
+  supporting2OfHomepage HomepageContent[] @relation("HomepageSupportingKhutbah2")
+
+  @@index([status])
+  @@index([publishedAt])
+  @@map("videos")
 }
 
 /// Singleton row (fixed id). Timeline and education entries are
@@ -542,8 +635,8 @@ model Question {
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
-  conversation Conversation?
-  notes        InternalNote[]
+  conversation  Conversation?
+  notes         InternalNote[]
   notifications UserNotification[]
 
   @@index([status])
@@ -661,15 +754,15 @@ model ContactMessage {
 /// its token raw). Unsubscribe links need no stored token at all — see
 /// src/lib/newsletter-token.ts's `unsubscribeToken()`.
 model NewsletterSubscriber {
-  id                         String            @id @default(uuid())
-  email                      String            @unique
-  normalizedEmail            String            @unique
+  id                         String           @id @default(uuid())
+  email                      String           @unique
+  normalizedEmail            String           @unique
   firstName                  String?
   /// Stored for a future multilingual rollout; not yet exposed as a
   /// form control (see features.multilingual).
-  preferredLanguage          String            @default("en")
-  status                     SubscriberStatus  @default(PENDING)
-  source                     SubscriberSource  @default(OTHER)
+  preferredLanguage          String           @default("en")
+  status                     SubscriberStatus @default(PENDING)
+  source                     SubscriberSource @default(OTHER)
   /// Which version of the on-page consent copy was shown at signup —
   /// bump the constant in code (not this schema) when the wording
   /// changes, so historical consent stays attributable to what a
@@ -678,10 +771,10 @@ model NewsletterSubscriber {
   consentedAt                DateTime?
   confirmedAt                DateTime?
   unsubscribedAt             DateTime?
-  createdAt                  DateTime          @default(now())
-  updatedAt                  DateTime          @updatedAt
+  createdAt                  DateTime         @default(now())
+  updatedAt                  DateTime         @updatedAt
   lastEmailSentAt            DateTime?
-  emailFailureCount          Int               @default(0)
+  emailFailureCount          Int              @default(0)
   /// Set only when status is SUPPRESSED/BOUNCED/COMPLAINED — why this
   /// address will never be emailed again.
   suppressionReason          String?
@@ -742,16 +835,16 @@ model Campaign {
 /// re-runs against an already-populated recipient set can't insert the
 /// same subscriber twice, and only ever processes rows still PENDING.
 model CampaignRecipient {
-  id                String                   @id @default(uuid())
+  id                String                  @id @default(uuid())
   campaignId        String
-  campaign          Campaign                 @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaign          Campaign                @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   subscriberId      String
-  subscriber        NewsletterSubscriber     @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
-  status            CampaignRecipientStatus  @default(PENDING)
+  subscriber        NewsletterSubscriber    @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  status            CampaignRecipientStatus @default(PENDING)
   sentAt            DateTime?
   error             String?
   providerMessageId String?
-  createdAt         DateTime                 @default(now())
+  createdAt         DateTime                @default(now())
 
   @@unique([campaignId, subscriberId])
   @@index([campaignId])
@@ -763,18 +856,18 @@ model CampaignRecipient {
 /// Singleton row (fixed id), same pattern as SiteSettings/
 /// HomepageContent — always a plain `.update()`, never `.upsert()`.
 model NewsletterSettings {
-  id                            String   @id @default("newsletter")
-  senderName                    String   @default("Ahmad Kassa")
-  senderEmail                   String   @default("newsletter@ahmadkassa.com")
-  replyToEmail                  String?
-  confirmationSubject           String   @default("Confirm your subscription")
-  welcomeSubject                String   @default("Welcome — you're subscribed")
-  defaultFooterText             String?
-  businessAddress               String?
-  defaultLanguage               String   @default("en")
-  confirmationTokenExpiryHours  Int      @default(48)
-  testEmailAllowlist            String[] @default([])
-  updatedAt                     DateTime @updatedAt
+  id                           String   @id @default("newsletter")
+  senderName                   String   @default("Ahmad Kassa")
+  senderEmail                  String   @default("newsletter@ahmadkassa.com")
+  replyToEmail                 String?
+  confirmationSubject          String   @default("Confirm your subscription")
+  welcomeSubject               String   @default("Welcome — you're subscribed")
+  defaultFooterText            String?
+  businessAddress              String?
+  defaultLanguage              String   @default("en")
+  confirmationTokenExpiryHours Int      @default(48)
+  testEmailAllowlist           String[] @default([])
+  updatedAt                    DateTime @updatedAt
 
   @@map("newsletter_settings")
 }

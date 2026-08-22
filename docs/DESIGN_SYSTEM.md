@@ -430,6 +430,26 @@ desktop / `space-4` mobile) on a white `card` surface with a `stone-200` border 
 Article, Video, and Khutbah cards sit in the same visual family without looking
 like four different components.
 
+**Asymmetric `fr` grid tracks must be guarded with `minmax(0, …)`.** Any
+two-up (or N-up) section built as `grid-cols-[Xfr_Yfr]` — Featured Book's
+`minmax(0,0.62fr)_1fr`, Latest Khutbah's primary/supporting split, About
+Preview's portrait/copy split — must wrap **every** track in
+`minmax(0, …)`, not just leave it as a bare `Nfr`. Grid items default to
+`min-width: auto`, so a bare `fr` track can be forced wider than its
+intended share if that column's content (most often a heading) has a
+larger min-content width than the `fr` ratio would allow — and because
+min-content width depends on font metrics, the exact point this trips
+differs by engine (WebKit vs. Blink render the same `@font-face` with
+different glyph/kerning metrics), so it can look fine in one browser and
+visibly blow out the ratio in another even though no layout code
+changed. `minmax(0, …)` on the track is the fix: it lets the item shrink
+below its content's min-content size (and wrap) instead of forcing the
+track wider. Found and fixed in Sprint 24 QA on Latest Khutbah's
+`lg:grid-cols-[1.6fr_1fr]` (missing the guard) against Featured Book's
+already-correct `lg:grid-cols-[minmax(0,0.62fr)_1fr]` (present since
+Sprint 11) — see `docs/sprints/SPRINT-24.md`'s correction-pass notes for
+the full investigation.
+
 ---
 
 ## 6. Buttons

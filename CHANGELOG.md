@@ -1257,3 +1257,60 @@ statement above a four-column grid," predating even the Sprint 14
 mission-line change this footer already had before this sprint). All
 three now describe the two-zone layout as it actually ships. Full
 reasoning: `docs/sprints/SPRINT-23.md`.
+
+---
+
+## v0.22.0 — Sprint 24: Homepage CMS Parity & Featured Khutbah Management
+
+### Added
+
+- `Video` content model — real khutbah/video records (title, slug,
+  YouTube ID, thumbnail, published date, duration, source, category,
+  draft/published status), with a full admin CRUD workflow at
+  `/admin/videos` matching the Books admin's list/create/edit pattern.
+  The create/edit form derives the video ID and thumbnail live from a
+  pasted YouTube URL (watch/share/`youtu.be` links or a bare 11-char
+  ID) before save.
+- `HomepageContent` gained three explicit featured-khutbah slots —
+  Primary, Supporting 1, Supporting 2 — each a `Video` picker on the
+  Homepage editor showing thumbnail+title+date+status, never a raw
+  id. Assigning the same video to two slots is rejected with an
+  inline "Each khutbah can only be assigned to one slot." error.
+- `HomepageContent` gained four structured About-preview fields
+  (eyebrow/subtitle/lede/body) and an ordered `HomepageCredential`
+  child list (add/remove/reorder, capped at 4), replacing the
+  homepage editor's old single "About preview" textarea.
+- The public homepage's About Preview and Latest Khutbah sections now
+  read live from the database — `AboutPreviewSection` from
+  `HomepageContent`/`HomepageCredential`, `LatestKhutbahSection` from
+  the three `Video` slots via a fallback/promotion algorithm that
+  compresses a missing or unpublished slot rather than showing a
+  broken card. Both sections' rendered output is unchanged from
+  before this sprint — verified in-browser, not just by reasoning
+  about the diff.
+- Three real, already-verified khutbahs (previously only in the
+  static `src/lib/data/lectures.ts` fixture) are now seeded into the
+  database, idempotently, preserving their exact current public order.
+
+### Fixed
+
+- A pre-existing Sprint 8 migration checksum mismatch (an already-
+  applied migration file had been hand-edited for readability after
+  the fact) was safely reconciled under an explicit no-`migrate
+  reset`/no-`db push --accept-data-loss` constraint — see
+  `docs/PROJECT_MEMORY.md`'s "Important conventions" for the full
+  resolution.
+
+### Notes
+
+`src/lib/data/lectures.ts` is no longer imported by any production
+code path — confirmed by grep, it remains only as a potential vitest
+fixture. `HomepageContent.aboutPreviewText` (the legacy field the new
+`about*` fields replace) was deliberately kept, not dropped, per an
+EXPAND → MIGRATE/BACKFILL → VERIFY → CONTRACT-LATER migration
+strategy — scheduled for removal in a future sprint once the new
+fields have been live for a while. Hero and the public `/about` page
+remain fully hardcoded — an explicit, named scope boundary for this
+sprint, not an oversight; see the CMS-parity classification table in
+`docs/sprints/SPRINT-24.md` for the full section-by-section breakdown.
+Full reasoning: `docs/sprints/SPRINT-24.md`.

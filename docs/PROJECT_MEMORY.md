@@ -56,6 +56,18 @@ scoped like a bespoke platform rather than a generic template.
   compiled cleanly. Found and fixed three times now (SiteSettings in
   Sprint 3; Homepage and About in Sprint 4). **If a fourth singleton
   table is ever added, give it a plain `update()` from the start.**
+- **`HomepageContent.aboutPreviewText` is a live example of the
+  EXPAND → MIGRATE/BACKFILL → VERIFY → CONTRACT-LATER migration
+  strategy, mid-flight.** Sprint 24 added four structured `about*`
+  fields (`aboutEyebrow`/`aboutSubtitle`/`aboutLede`/`aboutBody`) as
+  `aboutPreviewText`'s replacement, but deliberately kept the old
+  column and its one existing row untouched (the EXPAND step) rather
+  than dropping it in the same migration — the column is orphaned (no
+  code reads or writes it; `homepageContentSchema` doesn't even include
+  it) but not yet removed. It's scheduled for a CONTRACT migration in a
+  future sprint once the new fields have been live and verified for a
+  while — don't drop it opportunistically, and don't resurrect reading
+  from it either.
 - **`Media` and `Seo` are reusable, standalone tables**, not duplicated
   per feature. `Seo` attaches 1:1 to whatever needs it (Book, Homepage,
   About, SiteSettings) via an optional FK; services orchestrate
@@ -742,20 +754,27 @@ sprints — do not build these without being asked again:
 
 ## Known limitations
 
-- **The public site's CMS wiring is now partial, not zero.** Discovered
-  mid-Sprint-4, closed for books in Sprint 6: the Books listing, Book
-  Detail page, and the Homepage's Featured Book section now read live
-  from `bookService`/`homepageService.featuredBookId`, with a fallback
-  to the newest published book when no title is explicitly featured.
-  **`Hero`, `AboutPreviewSection`, and the public `/about` page are
-  still fully hardcoded** — the Homepage/About editors persist real
-  rows with **zero effect** on those specific sections. Draft/Published
-  on Homepage is still a real, persisted flag with no live-site
-  consequence yet outside the Featured Book section; the Homepage
-  editor's live preview is still an honest mockup, not a window onto
-  production. **Top priority for the next sprint** is wiring `Hero`,
-  `AboutPreviewSection`, and the public About page the same way books
-  were wired this sprint — see `docs/ROADMAP.md`.
+- **The public site's CMS wiring is now partial, not zero — and grew
+  again in Sprint 24.** Discovered mid-Sprint-4, closed for books in
+  Sprint 6: the Books listing, Book Detail page, and the Homepage's
+  Featured Book section read live from `bookService`/
+  `homepageService.featuredBookId`, with a fallback to the newest
+  published book when no title is explicitly featured. Sprint 24
+  closed the same gap for two more sections: `AboutPreviewSection` now
+  reads `HomepageContent.about*` fields + the ordered `HomepageCredential`
+  list, and `LatestKhutbahSection`
+  (`src/components/sections/featured-lectures-section.tsx`) now reads
+  the new `Video` model through `homepageService.resolveFeaturedKhutbahs()`
+  instead of the static `src/lib/data/lectures.ts` fixture (which
+  remains only as a vitest fixture — confirmed no production import
+  remains). **`Hero` and the public `/about` page are still fully
+  hardcoded** — the Homepage/About editors persist real rows (including
+  Hero's own `heroEyebrow`/`heroHeadline`/etc. fields) with **zero
+  effect** on those specific sections; this was a deliberate Sprint 24
+  scope boundary, not an oversight — see the CMS-parity table in
+  `docs/sprints/SPRINT-24.md`. **Top priority for the next sprint** is
+  wiring `Hero` and the public About page the same way Books/Homepage-
+  About-preview/Latest-Khutbah were wired — see `docs/ROADMAP.md`.
 - **Articles, Courses, and Events remain entirely unmodelled** (no
   Prisma tables) — Sprint 6 only extended the already-real `Book`
   model; it didn't add new content types. This is unchanged from
@@ -894,6 +913,34 @@ sprints — do not build these without being asked again:
   guarded file, extract it to a plain module first (see
   `src/lib/normalize-email.ts`, `src/schemas/newsletter.schema.ts`'s
   `canReceiveCampaign()`) rather than skipping the test.
+- **`prisma migrate dev` cannot run non-interactively in this
+  environment** — it fails with "Prisma Migrate has detected that the
+  environment is non-interactive, which is not supported" (not a
+  network error, despite how that message can read). The safe path for
+  a new migration here is `prisma migrate diff --from-config-datasource
+  --to-schema prisma/schema.prisma --script > migration.sql` (generates
+  the SQL non-interactively) followed by `prisma migrate deploy`
+  (applies it non-interactively) — verify the generated SQL has zero
+  `DROP` statements before applying, by eye, every time.
+- **A migration file must never be hand-edited for readability (or any
+  other reason) after it has already been applied, without also
+  correcting its checksum in `_prisma_migrations`.** Found and fixed in
+  Sprint 24: a pre-existing Sprint 8 migration file had been edited
+  post-application (evidenced by the file's own comment), causing
+  `prisma migrate status` to report a checksum mismatch. This was
+  reconciled by (1) confirming via direct SQL that the live schema
+  genuinely matched the migration's intended effect — proving the
+  underlying migration had in fact run correctly, only the file
+  changed afterward — then (2) getting explicit user approval, then
+  (3) a single, precise, verified `UPDATE "_prisma_migrations" SET
+  checksum = ... WHERE migration_name = ...`. **This is not a routine
+  recovery mechanism** — a direct write to `_prisma_migrations` needs
+  case-by-case explicit approval every time, never applied
+  automatically as a fix for `migrate resolve` behaving unexpectedly.
+  `prisma migrate resolve --applied` itself only works for migrations
+  Prisma does not yet consider applied (P3008 otherwise) — the wrong
+  tool for reconciling a checksum drift on an already-applied
+  migration.
 - **Content truth: placeholder/draft editorial content must never be
   presented publicly as genuine authored/published material.** A
   content-truth correction found the `/articles` catalog's ten entries
@@ -990,3 +1037,59 @@ sprints — do not build these without being asked again:
   `FutureCourseCard` (Sprint 19) are the two instances of this pattern.
   Keeps the homepage's own editorial refinements from becoming implicit
   regressions on `/articles`, `/courses`, etc.
+- **Explicit editorial slots (Sprint 24) beat "pick N, order by date"
+  when a layout has genuinely different treatments per position.** The
+  homepage's Latest Khutbah section is one large "Primary" card plus
+  up to two smaller "Supporting" cards — rather than a single ordered
+  list truncated to three, `HomepageContent` stores three independent
+  nullable FKs (`primaryKhutbahId`, `supportingKhutbah1Id`,
+  `supportingKhutbah2Id`), each resolved to a `Video` row and validated
+  server-side for cross-slot uniqueness (`homepageContentSchema`'s
+  `superRefine` in `src/schemas/homepage.schema.ts`). Never resolve
+  these to raw `Video` rows without also handling "unset, deleted, or
+  unpublished" — `resolveFeaturedKhutbahs()` (`src/lib/featured-
+  khutbahs.ts`) is the one gap-compression algorithm every consumer
+  (public section, admin live preview) must call, so a missing slot
+  promotes the next one forward instead of leaving a blank card or a
+  visible hole. It intentionally does not invent a placeholder card —
+  if all three are unavailable, the whole section renders `null`, the
+  same honesty this section held to before real recordings existed
+  (Sprint 18).
+- **Static→CMS content migration rule (Sprint 24 correction pass):
+  migrate the exact value from `HEAD` immediately before the migration
+  — never from Prisma `@default(...)`, seed-script literals, older
+  documentation, or memory of an earlier draft.** A Sprint 24 QA report
+  claimed the About Preview section had regressed to an older,
+  pre-refinement copy. Investigated via git history (not memory):
+  `git show <last-commit-touching-the-file>` proved the committed
+  source (`about-preview-section.tsx`) already held the correct,
+  final-approved copy; the Sprint 24 migration's `ADD COLUMN ...
+  DEFAULT '...'` clauses were generated from that same correct text
+  (confirmed by reading the applied `migration.sql` directly, and by
+  querying `_prisma_migrations` to confirm only one migration touched
+  those columns); the live database and the live server-rendered HTML
+  both held the exact correct text at investigation time. The specific
+  regression did not reproduce — the likely explanation is the QA
+  recording was made against an earlier, mid-sprint intermediate state
+  (this sprint went through at least one fork attempt that briefly
+  used stale default text before being caught and corrected), not the
+  final state. The rule this confirms: whenever a static value is
+  about to become a Prisma column default or a seed-script literal,
+  copy it from `git show <HEAD-ish>:<path>` at the moment of migration
+  — pasting from an earlier chat turn, an older sprint doc, or a
+  half-remembered "final" version is exactly how a stale value quietly
+  becomes the new source of truth. Compare the public page's rendered
+  output before and after the migration as the actual proof, the same
+  way `docs/sprints/SPRINT-24.md` did for the About Preview and Latest
+  Khutbah sections' visual composition.
+- **Grid tracks defined with bare `Nfr` (no `minmax(0, …)` guard) are a
+  latent cross-browser layout bug, not just a Chrome-only concern.**
+  See Section 5's "Asymmetric `fr` grid tracks" note in
+  `docs/DESIGN_SYSTEM.md` for the full mechanism — grid items default
+  to `min-width: auto`, so a long heading's min-content width (which
+  differs by engine/font metrics) can force a bare `fr` track wider
+  than intended. Found on Latest Khutbah's `lg:grid-cols-[1.6fr_1fr]`
+  during the Sprint 24 correction pass; fixed to
+  `minmax(0,1.6fr)_minmax(0,1fr)`, matching the guard Featured Book's
+  grid already had since Sprint 11. Any new asymmetric grid section
+  should copy the guarded pattern from the start.

@@ -8,6 +8,7 @@ import {
   Search,
   Settings,
   Users,
+  Video,
   type LucideIcon,
 } from "lucide-react";
 import type { Resource } from "@/permissions/permissions";
@@ -55,7 +56,12 @@ export const DASHBOARD_NAV: readonly NavSection[] = [
   },
   {
     label: "Media",
-    items: [{ label: "Media Library", href: "/admin/media", icon: ImageIcon, resource: "media" }],
+    items: [
+      { label: "Media Library", href: "/admin/media", icon: ImageIcon, resource: "media" },
+      // Gated on "content" (not "media") — videos are CMS content that
+      // feeds the homepage's Latest Khutbah section, not library assets.
+      { label: "Videos", href: "/admin/videos", icon: Video, resource: "content" },
+    ],
   },
   {
     label: "Administration",

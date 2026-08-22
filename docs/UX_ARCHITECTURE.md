@@ -42,8 +42,10 @@ today is five items — **About, Books, Courses, Articles, Ask Ahmad**
 (`src/constants/navigation.ts`) — not the seven-item Home/About/Books/Khutbahs/
 Videos/Articles/Contact nav this document originally specified. There is no
 `/khutbahs` page, no `/videos` page, and no `/search` page yet — Khutbah content
-exists only as a single homepage section (`LatestKhutbahSection`) pulling from
-`src/lib/data/lectures.ts`, where every entry is honestly `status: "coming-soon"`.
+exists only as a single homepage section (`LatestKhutbahSection`) reading the real
+`Video` Prisma model (Sprint 24) via three explicit homepage-editor slots (Primary/
+Supporting 1/Supporting 2), not the static `src/lib/data/lectures.ts` fixture that
+section used before (that file remains only as a vitest fixture).
 "Contact" and "Ask Ahmad" are two separate real routes (`/contact` and `/ask`), not
 one page with an internal category switch as Section 11 below originally proposed —
 see the correction inline. Sections 7 (Khutbah Library), and the Videos/Search/
@@ -582,13 +584,16 @@ is the site's clearest "we're real" signal — matches the original plan's reaso
 even though its position and visual treatment changed.
 
 **About Preview** (`about-preview-section.tsx`) — moved to position 3 (after
-Featured Book, not immediately after Hero as originally planned). `PortraitFrame` +
-a real short bio paragraph (Religious Institute in Kuwait, Khateeb at Masjid
-Al-Noor) + a five-item credentials list (Khateeb — Masjid Al-Noor; Author — The
-Great Debate; Teaching since 2009; Arabic & Islamic Studies; Computer Science &
-Education) + "Read full biography" outline button to `/about`. Same "answer who
-this person is, then hand off" intent as the original "Biography Preview" plan,
-different copy/position.
+Featured Book, not immediately after Hero as originally planned). As of Sprint 24
+this is a real async Server Component reading `HomepageContent` live
+(`homepageService.get()`): eyebrow/subtitle/lede/body text and an ordered,
+CMS-managed credential list (`HomepageCredential`, capped at 4 in the admin editor)
+render through `PortraitFrame` + the fetched copy, with "Read full biography"
+still a static outline button to `/about`. The portrait itself is the one
+deliberately-NOT-CMS-driven piece — it always sources from `CURRENT_PORTRAIT`
+(`src/config/portrait.ts`), an explicit architecture decision, not an oversight.
+Same "answer who this person is, then hand off" intent as the original
+"Biography Preview" plan, different copy/position, now genuinely editable.
 
 **Teaching Areas** (`teaching-areas-section.tsx`) — new in Sprint 11, not part of
 the original plan at all. Five cards (Aqeedah, Fiqh, Marriage & Family, Ruqyah,
@@ -605,23 +610,25 @@ it asked for.
 
 **Latest Khutbah** (`featured-lectures-section.tsx`, exported as
 `LatestKhutbahSection`) — not linking to a `/khutbahs` library page, which
-doesn't exist (see Section 0). As of Sprint 18, two real published khutbahs
-exist in `src/lib/data/lectures.ts` (`category: "Weekly Khutbah"`,
-real `youtubeId`s) — the section selects them by genuine `publishedAt`
-recency (never array/URL order) and presents an editorial primary +
-quieter secondary pairing (`KhutbahEntry`, `VideoThumbnail` extended to
-render real thumbnails) rather than the single spotlight card this
-section used before real content existed. The three remaining
-`coming-soon` lectures in that file are under other categories (Lecture,
-Conference Talk, Seminar) and never surface here — if/when all published
-"Weekly Khutbah" entries are ever removed again, the section falls back
-to rendering nothing (`null`) rather than a placeholder, the same honesty
-this section held to before. "Watch more on YouTube" now links to the
+doesn't exist (see Section 0). As of Sprint 24 this reads the real `Video`
+Prisma model, not the static `src/lib/data/lectures.ts` fixture (that file
+now exists only as a vitest fixture — confirmed no production import remains).
+The homepage editor picks three *explicit* slots — Primary, Supporting 1,
+Supporting 2 (`HomepageContent.primaryKhutbahId`/`supportingKhutbah1Id`/
+`supportingKhutbah2Id`), each a `Video` FK — rather than the section
+auto-selecting by recency; `resolveFeaturedKhutbahs()`
+(`src/lib/featured-khutbahs.ts`) resolves them to real published rows and
+compresses gaps (a missing/unpublished slot promotes the next one forward)
+before rendering the same editorial primary + quieter secondary pairing
+(`KhutbahEntry`, `VideoThumbnail`) this section has used since Sprint 18. If
+all three slots are unavailable, the section still falls back to rendering
+nothing (`null`) rather than a placeholder, the same honesty it held to
+before real recordings existed. "Watch more on YouTube" still links to the
 real, verified Masjid Al-Noor channel for this section specifically, not
 the sitewide (still-placeholder) social config. This replaces the
 original plan's separate "Latest Khutbah" + "Featured Video" sections
-with one combined spotlight, now content-driven rather than
-permanently placeholder.
+with one combined spotlight, now content-driven through the CMS rather
+than a static fixture.
 
 **Future Courses** (`future-courses-section.tsx`) — not part of the original plan.
 Mirrors the real `/courses` page's course grid (`getAllCourses()`, `CourseCard`)
@@ -721,8 +728,10 @@ right now, it effectively is the flagship.
 ## 8. Deep Dive — Khutbah Library (`/khutbahs`)
 
 🔵 **FUTURE-ASPIRATIONAL — no route exists.** Today, Khutbah content is a single
-homepage section (`LatestKhutbahSection`, Section 6) pulling from
-`src/lib/data/lectures.ts`, where every lecture is honestly `status: "coming-soon"`.
+homepage section (`LatestKhutbahSection`, Section 6) reading the real `Video`
+Prisma model (Sprint 24) through three explicit homepage-editor slots, not the
+static `src/lib/data/lectures.ts` fixture it read before (that file remains only
+as a vitest fixture; production never imports it).
 This entire section is kept as the long-term target design for once a real,
 dedicated Khutbah library is scoped — none of it should be treated as a near-term
 build.

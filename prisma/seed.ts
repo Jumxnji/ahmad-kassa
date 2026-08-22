@@ -180,10 +180,80 @@ async function main() {
         },
       });
 
+  // ---- Videos (khutbahs) -------------------------------------------------
+  // Real, already-verified khutbahs — exact metadata from
+  // src/lib/data/lectures.ts (that file's own comment documents how each
+  // title/date/duration was verified against YouTube directly). Matched
+  // by youtubeId (not unique in the schema, so `findFirst`, not
+  // `findUnique`) so re-running the seed never creates duplicates and
+  // never overwrites an editor's later edits through the CMS.
+  const SEED_VIDEOS = [
+    {
+      title: "Domestic Violence: In Light of the Qur'an and Sunnah",
+      slug: "domestic-violence-in-light-of-the-quran-and-sunnah",
+      youtubeId: "sA6wi43Jj9A",
+      publishedAt: new Date("2024-10-21"),
+      durationMinutes: 20,
+    },
+    {
+      title: "Parental Conflicts: Impact on Child Mental Health",
+      slug: "parental-conflicts-impact-on-child-mental-health",
+      youtubeId: "mEuDvsEGHhg",
+      publishedAt: new Date("2024-09-28"),
+      durationMinutes: 19,
+    },
+    {
+      title: "Lessons from the Prophet's Farewell Sermon Part 2",
+      slug: "lessons-from-the-prophets-farewell-sermon-part-2",
+      youtubeId: "du8JPMOcgBQ",
+      publishedAt: new Date("2023-07-21"),
+      durationMinutes: 29,
+    },
+  ] as const;
+
+  const seededVideos: { id: string; title: string }[] = [];
+  for (const seedVideo of SEED_VIDEOS) {
+    const existingVideo = await db.video.findFirst({ where: { youtubeId: seedVideo.youtubeId } });
+    const video =
+      existingVideo ??
+      (await db.video.create({
+        data: {
+          title: seedVideo.title,
+          slug: seedVideo.slug,
+          youtubeId: seedVideo.youtubeId,
+          thumbnailUrl: `https://i.ytimg.com/vi/${seedVideo.youtubeId}/maxresdefault.jpg`,
+          publishedAt: seedVideo.publishedAt,
+          durationMinutes: seedVideo.durationMinutes,
+          source: "Masjid Al-Noor",
+          category: "Weekly Khutbah",
+          status: "PUBLISHED",
+        },
+      }));
+    seededVideos.push({ id: video.id, title: video.title });
+  }
+  const [primaryKhutbah, supportingKhutbah1, supportingKhutbah2] = seededVideos;
+
   // ---- Homepage content (singleton) ------------------------------------
+  const existingHomepage = await db.homepageContent.findUnique({ where: { id: "homepage" } });
+
   await db.homepageContent.upsert({
     where: { id: "homepage" },
-    update: {},
+    // Only backfill the three khutbah slots the very first time all
+    // three are still unset — preserves the exact order already live
+    // publicly (primary=domestic-violence, supporting1=parental-
+    // conflicts, supporting2=farewell-sermon) as an explicit stored
+    // choice, without ever overwriting an editor's later reassignment.
+    update:
+      existingHomepage &&
+      !existingHomepage.primaryKhutbahId &&
+      !existingHomepage.supportingKhutbah1Id &&
+      !existingHomepage.supportingKhutbah2Id
+        ? {
+            primaryKhutbahId: primaryKhutbah.id,
+            supportingKhutbah1Id: supportingKhutbah1.id,
+            supportingKhutbah2Id: supportingKhutbah2.id,
+          }
+        : {},
     create: {
       id: "homepage",
       heroHeadline: "Ahmad Mohamed Kassa",
@@ -192,10 +262,32 @@ async function main() {
       aboutPreviewText:
         "Ahmad Mohamed Kassa pursued Arabic and Islamic Studies at the Religious Institute in Kuwait, where he received foundational training under respected scholars. Alongside a professional background in academia and consultancy, he serves as Khateeb at Masjid Al-Noor in East London and has authored several books.",
       featuredBookId: book.id,
+      primaryKhutbahId: primaryKhutbah.id,
+      supportingKhutbah1Id: supportingKhutbah1.id,
+      supportingKhutbah2Id: supportingKhutbah2.id,
       newsletterText:
         "Book announcements, course launches, seminars, lectures, and articles — delivered straight from Ahmad. No spam.",
     },
   });
+
+  // ---- Homepage credentials (child list) --------------------------------
+  // Matches the four-line margin index already live in
+  // AboutPreviewSection's hardcoded MARGIN_INDEX — this seed makes it
+  // the CMS-editable source of truth going forward.
+  const credentialLabels = [
+    "Arabic & Islamic Studies — Kuwait",
+    "PGCE — University of London",
+    "Khateeb — Masjid Al-Noor, East London",
+    "Ruqyah — practising and teaching since 2009",
+  ];
+
+  for (const [index, label] of credentialLabels.entries()) {
+    await db.homepageCredential.upsert({
+      where: { id: `seed-credential-${index}` },
+      update: {},
+      create: { id: `seed-credential-${index}`, homepageContentId: "homepage", order: index, label },
+    });
+  }
 
   // ---- About content (singleton) + timeline + education -----------------
   const about = await db.aboutContent.upsert({
@@ -367,8 +459,10 @@ async function main() {
 
   console.log("Seed complete:");
   console.log(`  Book:         ${book.title}`);
+  console.log(`  Videos:       ${seededVideos.length} khutbahs`);
   console.log(`  Timeline:     ${timelineItems.length} items`);
   console.log(`  Education:    ${educationItems.length} items`);
+  console.log(`  Credentials:  ${credentialLabels.length} items`);
 
   if (generatedCredentials.length > 0) {
     console.log("");
