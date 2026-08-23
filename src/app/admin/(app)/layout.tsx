@@ -20,11 +20,11 @@ export const metadata: Metadata = {
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
 
-  // No middleware.ts exists in this project — this layout-level check
-  // is the sole, authoritative auth gate for every route under
-  // admin/(app)/*, since a layout wraps all nested pages in the App
-  // Router. If middleware is ever added later, keep this check too
-  // (defense in depth) rather than relying on middleware alone.
+  // src/proxy.ts (Next.js 16's renamed middleware.ts convention — see
+  // its own comment) already redirects unauthenticated requests before
+  // they reach here; this is a second, authoritative check (defense in
+  // depth) in case a page is ever rendered outside the normal request
+  // flow, e.g. during static analysis or a future caching layer.
   if (!user) {
     redirect("/admin/login");
   }

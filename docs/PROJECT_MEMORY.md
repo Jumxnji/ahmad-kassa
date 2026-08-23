@@ -782,11 +782,27 @@ sprints — do not build these without being asked again:
 - `User.lastLoginAt` now populates for real on every successful login
   (Sprint 5) — sorting by it is meaningful going forward, though rows
   created before Sprint 5 (or never logged into) still show `Never`.
-- **Rate limiting (login, forgot-password) is in-memory and
-  single-instance.** Fine for the current deployment target; must move
-  to a shared store (e.g. Upstash Redis) before any multi-instance or
-  serverless-concurrent deployment, or limits can be trivially bypassed
-  by hitting different instances.
+- ~~Rate limiting (login, forgot-password) is in-memory and
+  single-instance.~~ **Resolved during pre-launch hardening**: moved to
+  Upstash Redis (`@upstash/ratelimit`, Vercel Marketplace integration,
+  free tier) — see `src/lib/rate-limit.ts`. Same 10-attempts/15-minute
+  numbers as before, now actually enforced across Vercel's multiple
+  serverless instances. Identifiers (email/IP) are HMAC'd with
+  `AUTH_SECRET` before ever reaching Redis — nothing raw is stored.
+  Fails open (allows the request through, logs by bucket name only) on
+  an Upstash outage.
+- **Neon Free plan's point-in-time-restore window is 6 hours** — no
+  scheduled backup/export exists in this codebase. Accepted as a
+  temporary launch risk (decision made during pre-launch hardening, not
+  an oversight): the client prefers upgrading Neon to a paid plan for a
+  longer PITR window over maintaining custom backup infrastructure
+  (pg_dump + Cron + a restore runbook nobody exercises often), but
+  didn't want to spend on it before the site is actually live. **Post-
+  launch task**: evaluate upgrading the Neon plan for longer PITR.
+  Vercel Blob has its own separate, still-unaddressed gap — a `del()`
+  is final, Neon's PITR doesn't restore deleted Blob objects — track
+  that as its own post-launch item rather than assuming a Neon upgrade
+  covers it.
 - **`AuditLog.ipAddress` is a schema placeholder, not populated yet.**
   The architecture (model + service) is in place per the Sprint 5
   brief, but no request actually writes a real IP today — wire this up
@@ -809,9 +825,21 @@ sprints — do not build these without being asked again:
   (no caching) — fine at current volume; if the inbox grows into the
   thousands the brief anticipates, revisit with a cheap cached count
   rather than re-querying on every dashboard page load.
-- The SEO `noindex` toggle's effect on `/robots.txt` relies on Next
-  revalidating a build-time-static route via `revalidatePath` — verified
-  working in dev; worth a smoke test after the first production deploy.
+- **The SEO `noindex` toggle's `revalidatePath("/robots.txt")` call does
+  not actually update the live route on Vercel production, despite
+  being present in `seo.actions.ts`.** Confirmed directly during
+  pre-launch hardening: toggling the setting and saving left
+  `/robots.txt` serving its old content (checked with a cache-busting
+  query string) until a full redeploy ran — only then did the new
+  content appear. `/robots.txt` builds as a fully static route
+  (`○ /robots.txt` in the build output) with no `dynamic`/`revalidate`
+  export, so it appears to be baked in at build time on Vercel's edge
+  regardless of `revalidatePath` calls at runtime. **Practical
+  consequence: toggling this setting requires a redeploy afterward to
+  take effect, both to enable and to disable it** — don't rely on the
+  CMS toggle alone for anything time-sensitive (e.g. the pre-launch
+  crawl block must be turned off *and redeployed* right after the real
+  domain is verified, not just switched off in the CMS).
 - **Newsletter/campaign email sending requires `NEWSLETTER_TOKEN_SECRET`,
   `RESEND_WEBHOOK_SECRET`, and (still, since Sprint 7) `RESEND_API_KEY`
   in production** — none are set in local dev by default. Confirmation/
