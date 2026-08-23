@@ -1,8 +1,16 @@
-import { PrismaPg } from "@prisma/adapter-pg";
+import { neonConfig } from "@neondatabase/serverless";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import ws from "ws";
 import { PrismaClient, type User } from "../src/generated/prisma/client";
 import { generateSecurePassword, hashPassword } from "../src/lib/password";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+// Same Neon WebSocket adapter as src/db/client.ts (see its comment) —
+// keeps one adapter pattern for the whole codebase rather than mixing
+// this with a raw-TCP one. Note this script is still always invoked
+// via `prisma db seed`/`tsx`, never through Prisma Migrate itself,
+// which always connects directly over 5432 regardless of this file.
+neonConfig.webSocketConstructor = ws;
+const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
 const db = new PrismaClient({ adapter });
 
 interface SeededCredential {

@@ -14,6 +14,26 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // AI coding-assistant scaffold/skill directories — not application
+    // source, not meant to be linted under this project's rules.
+    ".agents/**",
+    ".augment/**",
+    ".claude/**",
+    ".codebuddy/**",
+    ".codex/**",
+    ".continue/**",
+    ".cursor/**",
+    ".factory/**",
+    ".gemini/**",
+    ".github/**",
+    ".kilocode/**",
+    ".kiro/**",
+    ".opencode/**",
+    ".qoder/**",
+    ".roo/**",
+    ".trae/**",
+    ".warp/**",
+    ".windsurf/**",
   ]),
 ]);
 

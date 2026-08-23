@@ -1093,3 +1093,21 @@ sprints — do not build these without being asked again:
   `minmax(0,1.6fr)_minmax(0,1fr)`, matching the guard Featured Book's
   grid already had since Sprint 11. Any new asymmetric grid section
   should copy the guarded pattern from the start.
+- **The app connects to Neon over WebSocket (`@prisma/adapter-neon` +
+  `@neondatabase/serverless`), not raw TCP (`@prisma/adapter-pg`) —
+  Prisma/Neon's current recommended pattern for serverless runtimes
+  (Vercel Functions), not a legacy-host quirk.** Confirmed against the
+  installed `@prisma/adapter-neon` package's own README. Vercel's
+  `DATABASE_URL` should be Neon's *pooled* connection string; Prisma
+  Migrate/seed should always run with the *direct* (unpooled) string,
+  from local dev or CI, never as part of the Vercel build/runtime,
+  since Prisma Migrate has no concept of driver adapters and always
+  connects directly with whatever `DATABASE_URL` it's given. Full
+  reasoning in `docs/DEPLOYMENT.md`'s "Database: Neon over WebSocket,
+  not raw TCP". This is a deliberate Neon-specific lock-in, not an
+  oversight — accepted because Neon is the chosen production database.
+  (This project was previously deployed on Krystal shared hosting,
+  where the same adapter was additionally required because Krystal
+  blocked outbound port 5432 — that hosting has since been retired in
+  favor of Vercel, but the adapter choice itself was already correct
+  independent of that constraint.)

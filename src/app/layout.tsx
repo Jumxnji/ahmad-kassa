@@ -36,6 +36,13 @@ export const metadata: Metadata = {
       template: `%s — ${siteConfig.name}`,
     },
     description: siteConfig.description,
+    // Omits the explicit openGraph.images so Next picks up the
+    // co-located src/app/opengraph-image.tsx file-convention route
+    // instead — matching /about, /courses, etc. Without this, the
+    // explicit siteConfig.ogImage and the file-convention route
+    // conflicted and produced no og:image/twitter:image tag at all
+    // (confirmed on production before this fix).
+    useRouteOgImage: true,
   }),
   // Search Console / Bing ownership verification (Sprint 9) — both
   // optional, undefined-safe, set once the production domain is

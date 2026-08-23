@@ -15,7 +15,7 @@ table mirrors it, grouped by how load-bearing each variable actually is.
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | Postgres connection string (Prisma). The only line that changes between local dev and a managed provider (Neon, Vercel Postgres via Marketplace, Supabase, RDS). Nothing runs without this. |
+| `DATABASE_URL` | Neon Postgres connection string (Prisma, via `@prisma/adapter-neon`'s WebSocket driver — see "Database: Neon over WebSocket" below). Use the **direct** (non-pooled) connection string; this project's Prisma config has no separate `directUrl`, so one value serves both the app and `prisma migrate deploy`. Nothing runs without this. |
 | `AUTH_SECRET` | Auth.js v5 — signs/encrypts session JWTs and CSRF tokens. Generate with `openssl rand -base64 32`. Rotating it invalidates every active session (staff get logged out; not user-facing, since the public site has no accounts). |
 | `RESEND_API_KEY` (Sprint 7) | Required for any email to actually send — newsletter, Ask Ahmad/Contact confirmations, password reset. Without it, `emailService.send()` fails gracefully (logs, returns `{success:false}`) rather than throwing — see `docs/PROJECT_MEMORY.md`'s Known limitations — but nothing is actually delivered. |
 | `NEWSLETTER_TOKEN_SECRET` (Sprint 8) | Peppers confirmation-token hashes and derives unsubscribe tokens. Generate with `openssl rand -base64 32`. Rotating it invalidates every pending confirmation link and every previously-sent unsubscribe link. |
@@ -50,6 +50,40 @@ started. Don't imply otherwise in any deployment runbook.
 
 `@vercel/analytics` (Sprint 9) needs no environment variable at all —
 it's zero-config and activates automatically once deployed on Vercel.
+
+## Database: Neon over WebSocket, not raw TCP
+
+The app connects to Postgres via `@neondatabase/serverless` +
+`@prisma/adapter-neon` (`src/db/client.ts`, both seed scripts) — a
+WebSocket connection — rather than `@prisma/adapter-pg`'s plain TCP
+connection. This is Prisma/Neon's own current recommended pattern for
+serverless runtimes (Vercel Functions included), not a one-host
+workaround: it lets many concurrent, short-lived function invocations
+share Neon's built-in connection pooler instead of each opening a
+fresh Postgres connection. Confirmed directly against the installed
+`@prisma/adapter-neon` package's own README (v7.9.1), not just a blog
+post.
+
+On Vercel specifically, set the `DATABASE_URL` environment variable to
+Neon's **pooled** connection string (the one with `-pooler` in the
+hostname) — that's the string the running app actually queries with.
+
+Consequence: this ties the app to Neon (its serverless driver only
+proxies to Neon's own infrastructure) rather than "any managed Postgres
+provider" — accepted deliberately, since Neon is the chosen production
+database, not an oversight.
+
+**Prisma Migrate is unaffected by, and unaware of, this adapter.** The
+CLI (`prisma migrate deploy`, `prisma db seed` via `prisma.config.ts`)
+has no concept of driver adapters at all — confirmed by reading
+`@prisma/config`'s types and `prisma migrate deploy --help`, neither
+mentions "adapter" anywhere. The CLI always connects directly using
+the plain `DATABASE_URL` it's given. **Run migrations and seeding with
+Neon's *direct* (unpooled, no `-pooler` in the hostname) connection
+string, from local dev or CI** — never against the pooled string, and
+never as part of the Vercel build/runtime itself. Vercel's build step
+should run `prisma generate` (pure codegen, no DB connection needed)
+but not `prisma migrate deploy`.
 
 ## Search engine setup (once the domain is connected)
 

@@ -42,6 +42,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Neon CLI local project/branch link (project/org IDs only, no
+# secrets) — machine-specific, not meant to be shared via git
+.neon
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

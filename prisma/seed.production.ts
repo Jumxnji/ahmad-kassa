@@ -30,11 +30,15 @@
 //   npm run db:seed:production
 
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { neonConfig } from "@neondatabase/serverless";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import ws from "ws";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { generateSecurePassword, hashPassword } from "../src/lib/password";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+// Same Neon WebSocket adapter as src/db/client.ts (see its comment).
+neonConfig.webSocketConstructor = ws;
+const adapter = new PrismaNeon({ connectionString: process.env.DATABASE_URL });
 const db = new PrismaClient({ adapter });
 
 async function main() {
