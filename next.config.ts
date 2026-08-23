@@ -22,7 +22,19 @@ const nextConfig: NextConfig = {
     // Sprint 18 — real khutbah thumbnails are hotlinked from YouTube's
     // own oEmbed-documented image host (the standard, expected way to
     // display a YouTube thumbnail), not downloaded into the repo.
-    remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com" }],
+    //
+    // *.public.blob.vercel-storage.com — CMS uploads (book covers,
+    // homepage hero, site logo, SEO images) now live in Vercel Blob
+    // (see storage.ts). Wildcarded because the store's subdomain is a
+    // per-store random hash, not a fixed hostname. Without this, Next's
+    // Image Optimization API 400s on any Blob-hosted image (confirmed
+    // directly: /_next/image?url=<blob-url> returned 400 until this
+    // was added, even though the underlying Blob object itself was
+    // already correctly public and retrievable).
+    remotePatterns: [
+      { protocol: "https", hostname: "i.ytimg.com" },
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+    ],
   },
   // The above makes Turbopack load sharp as an external module at
   // runtime rather than bundling it, but that alone doesn't guarantee
