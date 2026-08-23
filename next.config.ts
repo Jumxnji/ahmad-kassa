@@ -30,12 +30,24 @@ const nextConfig: NextConfig = {
   // native .so binaries into the deployed function — dlopen'd native
   // addons are a documented tracer blind spot (see Next.js's own
   // "output" config docs, which name exactly this pattern as a
-  // required fix). Confirmed via Vercel runtime logs: even after
-  // serverExternalPackages + a clean no-cache rebuild, /admin still
-  // threw ERR_DLOPEN_FAILED — this explicitly forces the binaries into
-  // the trace.
+  // required fix).
+  //
+  // `node_modules/sharp/**/*` alone had zero effect: verified locally
+  // (via .next/server/app/admin/(app)/page.js.nft.json) that the
+  // actual libvips shared library — @img/sharp-libvips-<platform>'s
+  // lib/libvips-cpp.<version>.<ext> — sits in a sibling @img/* package,
+  // not inside node_modules/sharp/ at all, so that glob could never
+  // have matched it. The platform-specific @img/sharp-<platform>
+  // native addon binding gets traced in automatically (confirmed
+  // locally); only the deeper libvips .so/.dylib it dlopens is missed.
+  // Only the linux-x64 runtime variant is included since that's what
+  // Vercel's build/runtime actually targets.
   outputFileTracingIncludes: {
-    "/*": ["node_modules/sharp/**/*"],
+    "/*": [
+      "node_modules/sharp/**/*",
+      "node_modules/@img/sharp-linux-x64/**/*",
+      "node_modules/@img/sharp-libvips-linux-x64/**/*",
+    ],
   },
   // Baseline security headers (Sprint 5) — cheap, broadly-recommended
   // hardening that sits alongside the app-level protections (Zod
