@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname),
   },
+  // sharp (used by storage.ts for upload processing) ships a native
+  // binary — Turbopack's file-tracing doesn't reliably include it in
+  // the deployed function bundle, which crashed every route importing
+  // it (e.g. /admin, via mediaService) with ERR_DLOPEN_FAILED on
+  // Vercel's Linux runtime. Marking it external makes Next.js load it
+  // as a real Node module from node_modules at runtime instead of
+  // bundling it — Vercel's own documented fix for native-binary
+  // packages like sharp/canvas.
+  serverExternalPackages: ["sharp"],
   // AVIF/WebP negotiation for next/image (Sprint 9) — smaller payloads
   // on every browser that supports them, no source-image changes
   // needed since Next transcodes on request.
