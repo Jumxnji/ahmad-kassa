@@ -24,6 +24,19 @@ const nextConfig: NextConfig = {
     // display a YouTube thumbnail), not downloaded into the repo.
     remotePatterns: [{ protocol: "https", hostname: "i.ytimg.com" }],
   },
+  // The above makes Turbopack load sharp as an external module at
+  // runtime rather than bundling it, but that alone doesn't guarantee
+  // Next.js's build-time file tracer (@vercel/nft) copies sharp's
+  // native .so binaries into the deployed function — dlopen'd native
+  // addons are a documented tracer blind spot (see Next.js's own
+  // "output" config docs, which name exactly this pattern as a
+  // required fix). Confirmed via Vercel runtime logs: even after
+  // serverExternalPackages + a clean no-cache rebuild, /admin still
+  // threw ERR_DLOPEN_FAILED — this explicitly forces the binaries into
+  // the trace.
+  outputFileTracingIncludes: {
+    "/*": ["node_modules/sharp/**/*"],
+  },
   // Baseline security headers (Sprint 5) — cheap, broadly-recommended
   // hardening that sits alongside the app-level protections (Zod
   // validation everywhere, bcrypt password hashing, rate-limited auth
