@@ -46,6 +46,17 @@ yarn-error.log*
 # secrets) — machine-specific, not meant to be shared via git
 .neon
 
+# Auto-installed by the `neon`/`neon-postgres` agent skills the first
+# time either is invoked (root-owned, not deletable by the app's own
+# user). Unlike the other .agents/.claude skill directories in this
+# repo, these were never a deliberate, tracked part of the project, so
+# they're ignored rather than committed.
+.agents/skills/neon/
+.agents/skills/neon-postgres/
+.claude/skills/neon/
+.claude/skills/neon-postgres/
+skills-lock.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

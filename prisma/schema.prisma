@@ -200,6 +200,10 @@ model User {
   role         Role       @default(VIEWER)
   avatarUrl    String?
   status       UserStatus @default(ACTIVE)
+  /// Reserved for a future TOTP/authenticator flow — not implemented
+  /// anywhere yet (no enrollment UI, no verification step in
+  /// src/auth.ts's Credentials provider). Always false today; do not
+  /// treat its presence as evidence MFA is enforced.
   mfaEnabled   Boolean    @default(false)
   lastLoginAt  DateTime?
   createdAt    DateTime   @default(now())
