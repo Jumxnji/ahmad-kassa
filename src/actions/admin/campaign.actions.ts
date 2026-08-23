@@ -152,7 +152,7 @@ export async function sendTestCampaignEmailAction(id: string, values: unknown) {
       throw new ValidationError("Add at least one valid email address.", fieldErrorsFromZod(parsed.error));
     }
 
-    const rateLimit = checkRateLimit(`newsletter-test:${actor.id}`);
+    const rateLimit = await checkRateLimit(`newsletter-test:${actor.id}`);
     if (!rateLimit.allowed) {
       throw new ValidationError("Too many test sends — please wait a few minutes.");
     }

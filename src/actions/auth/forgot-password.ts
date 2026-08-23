@@ -17,7 +17,7 @@ export async function requestPasswordResetAction(values: unknown) {
       throw new ValidationError("Enter a valid email address.", fieldErrorsFromZod(parsed.error));
     }
 
-    const rateLimit = checkRateLimit(`forgot-password:${parsed.data.email.toLowerCase()}`);
+    const rateLimit = await checkRateLimit(`forgot-password:${parsed.data.email.toLowerCase()}`);
     if (!rateLimit.allowed) {
       throw new ValidationError(`Too many attempts. Try again in ${rateLimit.retryAfterSeconds}s.`);
     }

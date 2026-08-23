@@ -10,8 +10,9 @@ export function isHoneypotTriggered(value: unknown): boolean {
 /**
  * Shared per-IP rate limit for public form submissions, keyed
  * separately per form so a flood on one doesn't lock out the other.
- * Reuses the same in-memory limiter as auth (see src/lib/rate-limit.ts
- * for the production caveat about swapping in a shared store).
+ * Backed by the same Upstash-based limiter as auth (see
+ * src/lib/rate-limit.ts) — the IP never reaches Redis in the clear,
+ * it's HMAC'd first.
  */
 export async function checkFormRateLimit(formName: string): Promise<RateLimitResult> {
   const ip = await getRequestIp();

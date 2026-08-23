@@ -20,7 +20,7 @@ export async function loginAction(values: unknown) {
     const headerList = await headers();
     const ipAddress = headerList.get("x-forwarded-for") ?? headerList.get("x-real-ip") ?? undefined;
 
-    const rateLimit = checkRateLimit(`login:${parsed.data.email.toLowerCase()}`);
+    const rateLimit = await checkRateLimit(`login:${parsed.data.email.toLowerCase()}`);
     if (!rateLimit.allowed) {
       throw new ValidationError(
         `Too many attempts. Try again in ${rateLimit.retryAfterSeconds}s.`
@@ -48,7 +48,7 @@ export async function loginAction(values: unknown) {
       throw error;
     }
 
-    resetRateLimit(`login:${parsed.data.email.toLowerCase()}`);
+    await resetRateLimit(`login:${parsed.data.email.toLowerCase()}`);
 
     const user = await userService.getByEmail(parsed.data.email);
     if (user) {
